@@ -18,6 +18,8 @@ date > $LOG
 echo "Untarring..."
 tar zxvf faad2-$FAAD.tar.gz >> $LOG
 cd faad2-$FAAD >> $LOG
+patch -p0 < ../sc.patch >> $LOG
+patch -p0 < ../bpa-stdin.patch >> $LOG
 echo "Configuring..."
 ./configure --without-xmms --without-drm --without-mpeg4ip --disable-shared --prefix $OUTPUT >> $LOG
 echo "Running make"
