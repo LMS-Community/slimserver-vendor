@@ -1,0 +1,13 @@
+--- src/flac/main.c	2009-03-17 16:48:51.000000000 -0400
++++ src/flac/main.c	2009-03-17 16:50:10.000000000 -0400
+@@ -1136,6 +1136,10 @@
+ 	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
+ 	printf("Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007  Josh Coalson\n");
+ 	printf("\n");
++
++        printf("               Patched for SqueezeCenter\n");
++        printf("   http://bugs.slimdevices.com/show_bug.cgi?id=11223\n\n");
++
+ 	printf("This program is free software; you can redistribute it and/or\n");
+ 	printf("modify it under the terms of the GNU General Public License\n");
+ 	printf("as published by the Free Software Foundation; either version 2\n");
