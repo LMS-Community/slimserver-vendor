@@ -34,6 +34,9 @@ echo "Running make install"
 make install >> $LOG
 cd ..
 
+## display the log, just so that parabuild can parse it
+cat $LOG
+
 ## Tar the whole package up
 tar -zcvf $OUTPUT.tgz $OUTPUT
 rm -rf $OUTPUT
