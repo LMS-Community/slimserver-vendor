@@ -1,10 +1,14 @@
 #!/bin/sh
-
+TARGET="sparc-unknown-linux-gnu"
 FAAD=2.7
 LOG=$PWD/config.log
 CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
-ARCH=`arch`
-OUTPUT=$PWD/faad2-build-$ARCH-$CHANGENO
+OUTPUT=$PWD/faad2-build-$TARGET-$CHANGENO
+
+export CROSSBIN="/opt/crosstool/gcc-3.3.6-glibc-2.3.2/sparc-unknown-linux-gnu/bin"
+export PATH=$CROSSBIN:"$PATH"
+export CROSS="${CROSSBIN}/${TARGET}-"
+
 
 # Clean up
 rm -rf $OUTPUT
