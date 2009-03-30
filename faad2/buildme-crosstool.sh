@@ -1,14 +1,22 @@
 #!/bin/sh
-TARGET="sparc-unknown-linux-gnu"
 FAAD=2.7
 LOG=$PWD/config.log
 CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
 OUTPUT=$PWD/faad2-build-$TARGET-$CHANGENO
 
-export CROSSBIN="/opt/crosstool/gcc-3.3.6-glibc-2.3.2/sparc-unknown-linux-gnu/bin"
 export PATH=$CROSSBIN:"$PATH"
 export CROSS="${CROSSBIN}/${TARGET}-"
 
+# Check if $TARGET and $CROSSBIN were set
+if [ "$TARGET" = "" ]; then
+	echo "This tool is meant to be run through a cross compiler. Please set TARGET to the architecture you wish to build for."
+	exit
+fi
+
+if [ "$CROSSBIN" = "" ]; then
+	echo "This tool is meant to be run through a cross compiler. Please set CROSSBIN to the locatino of the cross compiler you are building with." 
+	exit
+fi
 
 # Clean up
 rm -rf $OUTPUT
