@@ -33,7 +33,7 @@ cd faad2-$FAAD >> $LOG
 patch -p0 < ../sc.patch >> $LOG
 patch -p0 < ../bpa-stdin.patch >> $LOG
 echo "Configuring..."
-./configure --host=sparc-unknown-linux-gnu --without-xmms --without-drm --without-mpeg4ip --disable-shared --prefix $OUTPUT >> $LOG
+./configure --host=$TARGET --without-xmms --without-drm --without-mpeg4ip --disable-shared --prefix $OUTPUT >> $LOG
 # Fix libfaad Makefile to not use -iquote
 sed -i 's/-iquote/-I/' libfaad/Makefile
 echo "Running make"
