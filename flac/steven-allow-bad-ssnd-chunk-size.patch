@@ -1,0 +1,13 @@
+--- src/flac/encode.c	2009-05-13 09:19:56.000000000 -0400
++++ src/flac/encode.c	2009-05-13 09:20:23.000000000 -0400
+@@ -397,8 +397,8 @@
+ 				return EncoderSession_finish_error(&encoder_session);
+ 			}
+ 			if(data_bytes!=(sample_frames*bytes_per_frame)) {
+-				flac__utils_printf(stderr, 1, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
+-				return EncoderSession_finish_error(&encoder_session);
++				flac__utils_printf(stderr, 1, "%s: WARNING: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
++				//return EncoderSession_finish_error(&encoder_session);
+ 			}
+ 
+ 			/* *options.common.align_reservoir_samples will be 0 unless --sector-align is used */

@@ -31,6 +31,7 @@ tar zxvf flac-$FLAC.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
 patch -p0 < ../sc.patch >> $LOG
 patch -p0 < ../triode-ignore-wav-length.patch >> $LOG
+patch -p0 < ../steven-allow-bad-ssnd-chunk-size.patch >> $LOG
 echo "Configuring..."
 ./configure --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-doxygen-docs --disable-shared --disable-xmms-plugin --disable-cpplibs --prefix $OUTPUT >> $LOG
 echo "Running make"
