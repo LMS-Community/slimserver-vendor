@@ -28,9 +28,17 @@ function build_module {
 	if [ -x $PERL_58 ]; then
 	    # Running Leopard
     	$PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
-    	make test
+    	if [ $RUN_TESTS -eq 1 ]; then
+    	    make test
+    	else
+    	    make
+    	fi
     	if [ $? != 0 ]; then
-    		echo "make test failed, aborting"
+    	    if [ $RUN_TESTS -eq 1 ]; then
+		        echo "make test failed, aborting"
+		    else
+		        echo "make failed, aborting"
+		    fi
     		exit $?
     	fi
     	make install
