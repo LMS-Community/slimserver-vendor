@@ -1,24 +1,27 @@
 #!/bin/bash
 
+# Build dir
+BUILD=$PWD/build
+
 # Path to Perl 5.8 (Leopard only)
 PERL_58=/usr/bin/perl5.8.8
 
 # Install dir for 5.8
-BASE_58=$PWD/build/5.8
+BASE_58=$BUILD/5.8
 
 # Path to Perl 5.10.0 (Snow Leopard only)
 PERL_510=/usr/bin/perl5.10.0
 
 # Install dir for 5.10
-BASE_510=$PWD/build/5.10
+BASE_510=$BUILD/5.10
 
 # Require modules to pass tests
 RUN_TESTS=1
 
 # Clean up
-rm -rf build
+#rm -rf $BUILD
 
-mkdir build
+mkdir $BUILD
 
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
@@ -125,7 +128,7 @@ if [ -x $PERL_58 ]; then
     CC=gcc CXX=gcc \
     CFLAGS="-O3 -fno-omit-frame-pointer -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3" \
     CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3" \
-        ./configure --prefix=$PWD/../build \
+        ./configure --prefix=$BUILD \
         --disable-dependency-tracking \
         --enable-thread-safe-client \
         --without-server --disable-shared --without-docs --without-man
@@ -141,7 +144,7 @@ if [ -x $PERL_510 ]; then
     CC=gcc CXX=gcc \
     CFLAGS="-O3 -fno-omit-frame-pointer -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
     CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
-        ./configure --prefix=$PWD/../build \
+        ./configure --prefix=$BUILD \
         --disable-dependency-tracking \
         --enable-thread-safe-client \
         --without-server --disable-shared --without-docs --without-man
@@ -160,10 +163,10 @@ tar zxvf DBD-mysql-3.0002.tar.gz
 cd DBD-mysql-3.0002
 cp -R ../hints .
 mkdir mysql-static
-cp $PWD/../build/lib/mysql/libmysqlclient.a mysql-static
+cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
 if [ -x $PERL_58 ]; then
     # Running Leopard
-    $PERL_58 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
+    $PERL_58 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
     make
     if [ $? != 0 ]; then
         echo "make failed, aborting"
@@ -174,7 +177,7 @@ if [ -x $PERL_58 ]; then
 fi
 if [ -x $PERL_510 ]; then
     # Running Snow Leopard
-    $PERL_510 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
+    $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
     make
     if [ $? != 0 ]; then
         echo "make failed, aborting"
@@ -207,12 +210,190 @@ fi
 cd ..
 rm -rf XML-Parser-2.34
 
-# XXX GD
-#  build libjpeg
-#  build libpng
-#  build fontconfig
-#  build freetype
-#  build gd
+# GD
+# build libjpeg
+# Makefile doesn't create directories properly, so make sure they exist
+# Note none of these directories are deleted until GD is built
+mkdir -p build/bin build/lib build/include build/man/man1
+tar zxvf jpegsrc.v6b.tar.gz
+cd jpeg-6b
+if [ -x $PERL_58 ]; then
+    # build 32-bit version
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
+CFLAGS="$FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking
+make && make test
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install-lib
+cd ..
+
+# build libpng
+tar zxvf libpng-1.2.39.tar.gz
+cd libpng-1.2.39
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version    
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
+CFLAGS="$FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking
+make && make test
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install
+cd ..
+
+# build freetype
+tar zxvf freetype-2.3.7.tar.gz
+cd freetype-2.3.7
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
+CFLAGS="$FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking
+make
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install
+cd ..
+
+# build fontconfig
+tar zxvf fontconfig-2.6.0.tar.gz
+cd fontconfig-2.6.0
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
+CFLAGS="$FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking --disable-docs \
+    --with-expat-includes=/usr/include --with-expat-lib=/usr/lib \
+    --with-freetype-config=$BUILD/bin/freetype-config
+make
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install
+cd ..
+
+# build gd
+tar zxvf gd-2.0.35.tar.gz
+cd gd-2.0.35
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
+# gd's configure is really dumb, adjust PATH so it can find the correct libpng config scripts
+# and need to manually specify include dir
+PATH="$BUILD/bin:$PATH" \
+CFLAGS="-I$BUILD/include $FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking --without-xpm --without-x \
+    --with-libiconv-prefix=/usr \
+    --with-jpeg=$BUILD \
+    --with-png=$BUILD \
+    --with-freetype=$BUILD \
+    --with-fontconfig=$BUILD
+make
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install
+cd ..
+
+# Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
+cd build/lib
+ln -sf libjpeg.a libjpeg_s.a
+ln -sf libpng12.a libpng12_s.a
+ln -sf libgd.a libgd_s.a
+ln -sf libfontconfig.a libfontconfig_s.a
+ln -sf libfreetype.a libfreetype_s.a
+cd ../..
+
+# GD
+tar zxvf GD-2.35.tar.gz
+cd GD-2.35
+cp ../GD-Makefile.PL Makefile.PL # XXX use a patch when it's working
+cp -R ../hints .
+if [ -x $PERL_58 ]; then
+    # Running Leopard
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+    exit
+fi
+if [ -x $PERL_510 ]; then
+    # Running Snow Leopard
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 \
+        -lib_gd_path=$BUILD \
+        -lib_ft_path=$BUILD \
+        -lib_png_path=$BUILD \
+        -lib_jpeg_path=$BUILD
+fi
+
+make
+# Re-create bundle
+# XXX: -all_load does not seem to work right here, all symbols are not added
+#gcc $FLAGS -bundle -all_load -undefined dynamic_lookup GD.o -o blib/arch/auto/GD/GD.bundle \
+#    -L$BUILD/lib \
+#    -lexpat -liconv -lz -lm \
+#    -ljpeg_s -lpng12_s -lgd_s -lfontconfig_s -lfreetype_s
+make test
+if [ $? != 0 ]; then
+    echo "make test failed, aborting"
+    exit $?
+fi
+make install
+cd ..
+rm -rf GD-2.35
+rm -rf gd-2.0.35
+rm -rf fontconfig-2.6.0
+rm -rf freetype-2.3.7
+rm -rf libpng-1.2.39
+rm -rf jpeg-6b
 
 export PERL5LIB=
 
