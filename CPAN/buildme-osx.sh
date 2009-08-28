@@ -4,20 +4,21 @@
 PERL_58=/usr/bin/perl5.8.8
 
 # Install dir for 5.8
-BASE_58=$PWD/build-5.8
+BASE_58=$PWD/build/5.8
 
 # Path to Perl 5.10.0 (Snow Leopard only)
 PERL_510=/usr/bin/perl5.10.0
 
 # Install dir for 5.10
-BASE_510=$PWD/build-5.10
+BASE_510=$PWD/build/5.10
 
 # Require modules to pass tests
 RUN_TESTS=1
 
 # Clean up
-rm -rf $BASE_58
-rm -rf $BASE_510
+rm -rf build
+
+mkdir build
 
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
@@ -115,12 +116,66 @@ build_module YAML-Syck-0.64
 
 # Now for the hard ones...
 
+# DBD::mysql
+#  Build libmysqlclient
+echo "Building libmysqlclient..."
+tar jxf mysql-5.1.37.tar.bz2
+cd mysql-5.1.37
+if [ -x $PERL_58 ]; then
+    # build 32-bit version
+    exit
+fi
+if [ -x $PERL_510 ]; then
+    # Build 64-bit version    
+    CC=gcc CXX=gcc \
+    CFLAGS="-O3 -fno-omit-frame-pointer -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+    CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+        ./configure --prefix=$PWD/../build \
+        --disable-dependency-tracking \
+        --enable-thread-safe-client \
+        --without-server --disable-shared --without-docs --without-man
+    make
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
+fi
+rm -rf mysql-5.1.37
+
+# DBD::mysql custom, statically linked with libmysqlclient
+tar zxvf DBD-mysql-3.0002.tar.gz
+cd DBD-mysql-3.0002
+cp -R ../hints .
+mkdir mysql-static
+cp $PWD/../build/lib/mysql/libmysqlclient.a mysql-static
+if [ -x $PERL_58 ]; then
+    # Running Leopard
+	$PERL_58 Makefile.PL --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
+    make
+	if [ $? != 0 ]; then
+        echo "make failed, aborting"
+		exit $?
+	fi
+	make install
+	make clean
+fi
+if [ -x $PERL_510 ]; then
+    # Running Snow Leopard
+	$PERL_510 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
+    make
+	if [ $? != 0 ]; then
+        echo "make failed, aborting"
+    	exit $?
+    fi
+	make install
+fi
+cd ..
+rm -rf DBD-mysql-3.0002
+
 # XXX XML::Parser
 #  build expat
 #  needs multiple hints dirs
-
-# XXX DBD::mysql
-#  build libmysqlclient?
 
 # XXX GD
 #  build libjpeg
