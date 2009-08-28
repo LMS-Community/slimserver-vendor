@@ -123,7 +123,19 @@ tar jxf mysql-5.1.37.tar.bz2
 cd mysql-5.1.37
 if [ -x $PERL_58 ]; then
     # build 32-bit version
-    exit
+    CC=gcc CXX=gcc \
+    CFLAGS="-O3 -fno-omit-frame-pointer -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3" \
+    CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3" \
+        ./configure --prefix=$PWD/../build \
+        --disable-dependency-tracking \
+        --enable-thread-safe-client \
+        --without-server --disable-shared --without-docs --without-man
+    make
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
 fi
 if [ -x $PERL_510 ]; then
     # Build 64-bit version    
@@ -151,24 +163,24 @@ mkdir mysql-static
 cp $PWD/../build/lib/mysql/libmysqlclient.a mysql-static
 if [ -x $PERL_58 ]; then
     # Running Leopard
-	$PERL_58 Makefile.PL --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
+    $PERL_58 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
     make
-	if [ $? != 0 ]; then
+    if [ $? != 0 ]; then
         echo "make failed, aborting"
-		exit $?
-	fi
-	make install
-	make clean
+        exit $?
+    fi
+    make install
+    make clean
 fi
 if [ -x $PERL_510 ]; then
     # Running Snow Leopard
-	$PERL_510 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
+    $PERL_510 Makefile.PL --mysql_config=$PWD/../build/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
     make
-	if [ $? != 0 ]; then
+    if [ $? != 0 ]; then
         echo "make failed, aborting"
-    	exit $?
+        exit $?
     fi
-	make install
+    make install
 fi
 cd ..
 rm -rf DBD-mysql-3.0002
