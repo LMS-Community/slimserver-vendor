@@ -117,9 +117,8 @@ build_module YAML-Syck-0.64
 # Now for the hard ones...
 
 # DBD::mysql
-#  Build libmysqlclient
-echo "Building libmysqlclient..."
-tar jxf mysql-5.1.37.tar.bz2
+# Build libmysqlclient
+tar jxvf mysql-5.1.37.tar.bz2
 cd mysql-5.1.37
 if [ -x $PERL_58 ]; then
     # build 32-bit version
@@ -153,6 +152,7 @@ if [ -x $PERL_510 ]; then
     fi
     make install
 fi
+cd ..
 rm -rf mysql-5.1.37
 
 # DBD::mysql custom, statically linked with libmysqlclient
@@ -185,9 +185,27 @@ fi
 cd ..
 rm -rf DBD-mysql-3.0002
 
-# XXX XML::Parser
-#  build expat
-#  needs multiple hints dirs
+# XML::Parser custom, built against system expat
+tar zxvf XML-Parser-2.34.tar.gz
+cd XML-Parser-2.34
+cp -R ../hints .
+cp -R ../hints ./Expat # needed for second Makefile.PL
+if [ -x $PERL_58 ]; then
+    # Running Leopard
+    exit
+fi
+if [ -x $PERL_510 ]; then
+    # Running Snow Leopard
+    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
+    make # minor test failure, so don't test
+    if [ $? != 0 ]; then
+        echo "make test failed, aborting"
+        exit $?
+    fi
+    make install
+fi
+cd ..
+rm -rf XML-Parser-2.34
 
 # XXX GD
 #  build libjpeg
