@@ -327,6 +327,7 @@ cp -R ../hints .
 if [ -x $PERL_58 ]; then
     # Running Leopard
     $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 \
+        -options "JPEG,FT,PNG,GIF,ANIMGIF" \
         -lib_gd_path=$BUILD \
         -lib_ft_path=$BUILD \
         -lib_png_path=$BUILD \
@@ -334,6 +335,7 @@ if [ -x $PERL_58 ]; then
 elif [ -x $PERL_510 ]; then
     # Running Snow Leopard
     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 \
+        -options "JPEG,FT,PNG,GIF,ANIMGIF" \
         -lib_gd_path=$BUILD \
         -lib_ft_path=$BUILD \
         -lib_png_path=$BUILD \
