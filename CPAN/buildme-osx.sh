@@ -19,7 +19,7 @@ BASE_510=$BUILD/5.10
 RUN_TESTS=1
 
 # Clean up
-#rm -rf $BUILD
+rm -rf $BUILD
 
 mkdir $BUILD
 
@@ -195,7 +195,13 @@ cp -R ../hints .
 cp -R ../hints ./Expat # needed for second Makefile.PL
 if [ -x $PERL_58 ]; then
     # Running Leopard
-    exit
+    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
+    make # minor test failure, so don't test
+    if [ $? != 0 ]; then
+        echo "make test failed, aborting"
+        exit $?
+    fi
+    make install
 fi
 if [ -x $PERL_510 ]; then
     # Running Snow Leopard
@@ -362,7 +368,11 @@ cp -R ../hints .
 if [ -x $PERL_58 ]; then
     # Running Leopard
     FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-    exit
+    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 \
+        -lib_gd_path=$BUILD \
+        -lib_ft_path=$BUILD \
+        -lib_png_path=$BUILD \
+        -lib_jpeg_path=$BUILD
 fi
 if [ -x $PERL_510 ]; then
     # Running Snow Leopard
@@ -374,13 +384,6 @@ if [ -x $PERL_510 ]; then
         -lib_jpeg_path=$BUILD
 fi
 
-make
-# Re-create bundle
-# XXX: -all_load does not seem to work right here, all symbols are not added
-#gcc $FLAGS -bundle -all_load -undefined dynamic_lookup GD.o -o blib/arch/auto/GD/GD.bundle \
-#    -L$BUILD/lib \
-#    -lexpat -liconv -lz -lm \
-#    -ljpeg_s -lpng12_s -lgd_s -lfontconfig_s -lfreetype_s
 make test
 if [ $? != 0 ]; then
     echo "make test failed, aborting"
@@ -398,4 +401,5 @@ rm -rf jpeg-6b
 export PERL5LIB=
 
 # XXX strip -S on all bundle files
+# XXX: clean out useless .bs files, etc
 # XXX move bundles into our directory structure
