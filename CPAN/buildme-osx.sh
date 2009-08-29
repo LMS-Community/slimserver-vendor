@@ -120,7 +120,7 @@ cp -R ../hints .
 cp -R ../hints ./xs
 if [ -x $PERL_58 ]; then
     # Running Leopard
-    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
+    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
     make # minor test failure, so don't test
     if [ $? != 0 ]; then
         echo "make failed, aborting"
@@ -129,7 +129,7 @@ if [ -x $PERL_58 ]; then
     make install
 elif [ -x $PERL_510 ]; then
     # Running Snow Leopard
-    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
+    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
     make # minor test failure, so don't test
     if [ $? != 0 ]; then
         echo "make failed, aborting"
