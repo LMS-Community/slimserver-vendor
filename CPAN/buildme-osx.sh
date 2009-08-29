@@ -47,8 +47,7 @@ function build_module {
     	fi
     	make install
     	make clean
-    fi
-    if [ -x $PERL_510 ]; then
+    elif [ -x $PERL_510 ]; then
         # Running Snow Leopard
     	$PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
     	if [ $RUN_TESTS -eq 1 ]; then
@@ -138,8 +137,7 @@ if [ -x $PERL_58 ]; then
         exit $?
     fi
     make install
-fi
-if [ -x $PERL_510 ]; then
+elif [ -x $PERL_510 ]; then
     # Build 64-bit version    
     CC=gcc CXX=gcc \
     CFLAGS="-O3 -fno-omit-frame-pointer -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
@@ -174,8 +172,7 @@ if [ -x $PERL_58 ]; then
     fi
     make install
     make clean
-fi
-if [ -x $PERL_510 ]; then
+elif [ -x $PERL_510 ]; then
     # Running Snow Leopard
     $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
     make
@@ -202,8 +199,7 @@ if [ -x $PERL_58 ]; then
         exit $?
     fi
     make install
-fi
-if [ -x $PERL_510 ]; then
+elif [ -x $PERL_510 ]; then
     # Running Snow Leopard
     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
     make # minor test failure, so don't test
@@ -217,21 +213,21 @@ cd ..
 rm -rf XML-Parser-2.34
 
 # GD
+
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+elif [ -x $PERL_510 ]; then
+    # Build 64-bit version    
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
 # build libjpeg
 # Makefile doesn't create directories properly, so make sure they exist
 # Note none of these directories are deleted until GD is built
 mkdir -p build/bin build/lib build/include build/man/man1
 tar zxvf jpegsrc.v6b.tar.gz
 cd jpeg-6b
-if [ -x $PERL_58 ]; then
-    # build 32-bit version
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-fi
-if [ -x $PERL_510 ]; then
-    # Build 64-bit version
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
-
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
@@ -247,16 +243,6 @@ cd ..
 # build libpng
 tar zxvf libpng-1.2.39.tar.gz
 cd libpng-1.2.39
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-
-fi
-if [ -x $PERL_510 ]; then
-    # Build 64-bit version    
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
-
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
@@ -272,15 +258,6 @@ cd ..
 # build freetype
 tar zxvf freetype-2.3.7.tar.gz
 cd freetype-2.3.7
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-fi
-if [ -x $PERL_510 ]; then
-    # Build 64-bit version
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
-
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
@@ -296,15 +273,6 @@ cd ..
 # build fontconfig
 tar zxvf fontconfig-2.6.0.tar.gz
 cd fontconfig-2.6.0
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-fi
-if [ -x $PERL_510 ]; then
-    # Build 64-bit version
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
-
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
@@ -322,15 +290,6 @@ cd ..
 # build gd
 tar zxvf gd-2.0.35.tar.gz
 cd gd-2.0.35
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-fi
-if [ -x $PERL_510 ]; then
-    # Build 64-bit version
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
-
 # gd's configure is really dumb, adjust PATH so it can find the correct libpng config scripts
 # and need to manually specify include dir
 PATH="$BUILD/bin:$PATH" \
@@ -367,16 +326,13 @@ cp ../GD-Makefile.PL Makefile.PL # XXX use a patch when it's working
 cp -R ../hints .
 if [ -x $PERL_58 ]; then
     # Running Leopard
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
     $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 \
         -lib_gd_path=$BUILD \
         -lib_ft_path=$BUILD \
         -lib_png_path=$BUILD \
         -lib_jpeg_path=$BUILD
-fi
-if [ -x $PERL_510 ]; then
+elif [ -x $PERL_510 ]; then
     # Running Snow Leopard
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 \
         -lib_gd_path=$BUILD \
         -lib_ft_path=$BUILD \
