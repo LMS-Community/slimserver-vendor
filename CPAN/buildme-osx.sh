@@ -107,16 +107,38 @@ RUN_TESTS=0
 build_module POE-XS-Queue-Array-0.002
 RUN_TESTS=1
 
-# Skip tests, tiedhash tests fail
-RUN_TESTS=0
-build_module Template-Toolkit-2.15 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n"
-RUN_TESTS=1
-
 build_module Time-HiRes-1.86
 
 build_module YAML-Syck-0.64
 
 # Now for the hard ones...
+
+# Template, custom build due to 2 Makefile.PL's
+tar zxvf Template-Toolkit-2.15.tar.gz
+cd Template-Toolkit-2.15
+cp -R ../hints .
+cp -R ../hints ./xs
+if [ -x $PERL_58 ]; then
+    # Running Leopard
+    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
+    make # minor test failure, so don't test
+    if [ $? != 0 ]; then
+        echo "make failed, aborting"
+        exit $?
+    fi
+    make install
+elif [ -x $PERL_510 ]; then
+    # Running Snow Leopard
+    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
+    make # minor test failure, so don't test
+    if [ $? != 0 ]; then
+        echo "make failed, aborting"
+        exit $?
+    fi
+    make install
+fi
+cd ..
+rm -rf Template-Toolkit-2.15
 
 # DBD::mysql
 # Build libmysqlclient
@@ -195,7 +217,7 @@ if [ -x $PERL_58 ]; then
     $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
     make # minor test failure, so don't test
     if [ $? != 0 ]; then
-        echo "make test failed, aborting"
+        echo "make failed, aborting"
         exit $?
     fi
     make install
@@ -204,7 +226,7 @@ elif [ -x $PERL_510 ]; then
     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
     make # minor test failure, so don't test
     if [ $? != 0 ]; then
-        echo "make test failed, aborting"
+        echo "make failed, aborting"
         exit $?
     fi
     make install
