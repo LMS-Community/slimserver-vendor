@@ -18,6 +18,14 @@ BASE_510=$BUILD/5.10
 # Require modules to pass tests
 RUN_TESTS=1
 
+if [ -x $PERL_58 ]; then
+    # build 32-bit version 
+    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+elif [ -x $PERL_510 ]; then
+    # Build 64-bit version    
+    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+fi
+
 # Clean up
 rm -rf $BUILD
 
@@ -117,8 +125,24 @@ build_module YAML-Syck-1.05
 # Now for the hard ones...
 
 # Audio::Scan
-# XXX Build libFLAC
-build_module Audio-Scan-0.30 --with-flac-static
+# Build libFLAC
+tar zxvf flac-1.2.1.tar.gz
+cd flac-1.2.1
+CFLAGS="$FLAGS" \
+LDFLAGS="$FLAGS" \
+    ./configure --prefix=$BUILD \
+    --disable-dependency-tracking --disable-shared \
+    --disable-asm-optimizations --disable-xmms-plugin --disable-cpplibs --disable-ogg --disable-doxygen-docs
+make
+if [ $? != 0 ]; then
+    echo "make failed"
+    exit $?
+fi
+make install
+cd ..
+rm -rf flac-1.2.1
+
+build_module Audio-Scan-0.31 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
 
 # Template, custom build due to 2 Makefile.PL's
 tar zxvf Template-Toolkit-2.21.tar.gz
@@ -242,14 +266,6 @@ cd ..
 rm -rf XML-Parser-2.36
 
 # GD
-
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-elif [ -x $PERL_510 ]; then
-    # Build 64-bit version    
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-fi
 
 # build libjpeg
 # Makefile doesn't create directories properly, so make sure they exist
