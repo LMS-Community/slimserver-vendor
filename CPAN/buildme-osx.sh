@@ -322,7 +322,7 @@ cd ../..
 # GD
 tar zxvf GD-2.35.tar.gz
 cd GD-2.35
-cp ../GD-Makefile.PL Makefile.PL # XXX use a patch when it's working
+patch -p0 < ../GD-Makefile.patch # patch to build statically
 cp -R ../hints .
 if [ -x $PERL_58 ]; then
     # Running Leopard
