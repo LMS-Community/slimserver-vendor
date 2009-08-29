@@ -70,7 +70,7 @@ function build_module {
 }
 
 # AutoXS::Header support module
-build_module AutoXS-Header-0.03
+build_module AutoXS-Header-1.02
 
 # Data::Dump support module (Encode::Detect dep)
 build_module Data-Dump-1.15
@@ -82,36 +82,45 @@ else
     export PERL5LIB=$BASE_510/lib/perl5
 fi
 
-# Class::XSAccessor::Array
-build_module Class-XSAccessor-Array-0.05
+if [ -x $PERL_58 ]; then
+    build_module Class-C3-XS-0.11
+fi
 
-# don't run Compress::Zlib tests, doesn't pass all tests on SL 5.10
-RUN_TESTS=0
-build_module Compress-Zlib-1.41
-RUN_TESTS=1
+build_module Class-XSAccessor-1.03
 
-build_module DBI-1.604
+build_module Class-XSAccessor-Array-1.04
+
+build_module Compress-Raw-Zlib-2.017
+
+build_module DBI-1.608
 
 build_module Digest-SHA1-2.11
 
+export PERL_MM_USE_DEFAULT=1
+build_module EV-3.6
+export PERL_MM_USE_DEFAULT=
+
 build_module Encode-Detect-1.00
 
-build_module HTML-Parser-3.48
+build_module HTML-Parser-3.60
 
-build_module JSON-XS-1.5
+build_module JSON-XS-2.232
 
 build_module Locale-Hebrew-1.04
 
-# Skip tests, POE is not installed
-RUN_TESTS=0
-build_module POE-XS-Queue-Array-0.002
-RUN_TESTS=1
+build_module Sub-Name-0.04
+
+build_module Template-Toolkit-2.21 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n"
 
 build_module Time-HiRes-1.86
 
-build_module YAML-Syck-0.64
+build_module YAML-Syck-1.05
 
 # Now for the hard ones...
+
+# Audio::Scan
+# XXX Build libFLAC
+build_module Audio-Scan-0.30 --with-flac-static
 
 # Template, custom build due to 2 Makefile.PL's
 tar zxvf Template-Toolkit-2.15.tar.gz
@@ -208,8 +217,8 @@ cd ..
 rm -rf DBD-mysql-3.0002
 
 # XML::Parser custom, built against system expat
-tar zxvf XML-Parser-2.34.tar.gz
-cd XML-Parser-2.34
+tar zxvf XML-Parser-2.36.tar.gz
+cd XML-Parser-2.36
 cp -R ../hints .
 cp -R ../hints ./Expat # needed for second Makefile.PL
 if [ -x $PERL_58 ]; then
@@ -232,7 +241,7 @@ elif [ -x $PERL_510 ]; then
     make install
 fi
 cd ..
-rm -rf XML-Parser-2.34
+rm -rf XML-Parser-2.36
 
 # GD
 
@@ -342,8 +351,8 @@ ln -sf libfreetype.a libfreetype_s.a
 cd ../..
 
 # GD
-tar zxvf GD-2.35.tar.gz
-cd GD-2.35
+tar zxvf GD-2.41.tar.gz
+cd GD-2.41
 patch -p0 < ../GD-Makefile.patch # patch to build statically
 cp -R ../hints .
 if [ -x $PERL_58 ]; then
@@ -371,7 +380,7 @@ if [ $? != 0 ]; then
 fi
 make install
 cd ..
-rm -rf GD-2.35
+rm -rf GD-2.41
 rm -rf gd-2.0.35
 rm -rf fontconfig-2.6.0
 rm -rf freetype-2.3.7
