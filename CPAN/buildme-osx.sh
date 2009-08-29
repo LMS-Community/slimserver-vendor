@@ -358,6 +358,25 @@ rm -rf jpeg-6b
 
 export PERL5LIB=
 
-# XXX strip -S on all bundle files
-# XXX: clean out useless .bs files, etc
-# XXX move bundles into our directory structure
+# strip -S on all bundle files
+find $BUILD -name '*.bundle' -exec chmod u+w {} \;
+find $BUILD -name '*.bundle' -exec strip -S {} \;
+
+# clean out useless .bs/.packlist files, etc
+find $BUILD -name '*.bs' -exec rm -f {} \;
+find $BUILD -name '*.packlist' -exec rm -f {} \;
+
+# create our directory structure
+# XXX there is still some crap left in here by some modules such as DBI, GD
+if [ -e $BUILD_58 ]; then
+    mkdir -p $BUILD/arch/5.8
+    mv $BUILD_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
+elif [ -e $BUILD_510 ]; then
+    mkdir -p $BUILD/arch/5.10
+    mv $BUILD_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
+fi
+
+# could remove rest of build data, but let's leave it around in case
+#rm -rf $BUILD_58
+#rm -rf $BUILD_510
+#rm -rf $BUILD/bin $BUILD/etc $BUILD/include $BUILD/lib $BUILD/man $BUILD/share $BUILD/var
