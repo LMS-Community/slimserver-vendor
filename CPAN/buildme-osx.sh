@@ -461,13 +461,13 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 # XXX there is still some crap left in here by some modules such as DBI, GD
 if [ -x $PERL_58 ]; then
     mkdir -p $BUILD/arch/5.8
-    mv $BASE_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
+    cp -R $BASE_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
 elif [ -x $PERL_510 ]; then
     mkdir -p $BUILD/arch/5.10
-    mv $BASE_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
+    cp -R $BASE_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
 fi
 
 # could remove rest of build data, but let's leave it around in case
-#rm -rf $BUILD_58
-#rm -rf $BUILD_510
+#rm -rf $BASE_58
+#rm -rf $BASE_510
 #rm -rf $BUILD/bin $BUILD/etc $BUILD/include $BUILD/lib $BUILD/man $BUILD/share $BUILD/var
