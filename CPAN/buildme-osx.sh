@@ -110,8 +110,6 @@ build_module Locale-Hebrew-1.04
 
 build_module Sub-Name-0.04
 
-build_module Template-Toolkit-2.21 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n"
-
 build_module Time-HiRes-1.86
 
 build_module YAML-Syck-1.05
@@ -123,8 +121,8 @@ build_module YAML-Syck-1.05
 build_module Audio-Scan-0.30 --with-flac-static
 
 # Template, custom build due to 2 Makefile.PL's
-tar zxvf Template-Toolkit-2.15.tar.gz
-cd Template-Toolkit-2.15
+tar zxvf Template-Toolkit-2.21.tar.gz
+cd Template-Toolkit-2.21
 cp -R ../hints .
 cp -R ../hints ./xs
 if [ -x $PERL_58 ]; then
@@ -147,7 +145,7 @@ elif [ -x $PERL_510 ]; then
     make install
 fi
 cd ..
-rm -rf Template-Toolkit-2.15
+rm -rf Template-Toolkit-2.21
 
 # DBD::mysql
 # Build libmysqlclient
