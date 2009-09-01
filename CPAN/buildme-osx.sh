@@ -162,8 +162,8 @@ if [ -x $PERL_58 ]; then
 elif [ -x $PERL_510 ]; then
     # Build 64-bit version    
     CC=gcc CXX=gcc \
-    CFLAGS="-O3 -fno-omit-frame-pointer -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
-    CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+    CFLAGS="-O3 -fno-omit-frame-pointer -arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+    CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti -arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking \
         --enable-thread-safe-client \
@@ -241,7 +241,7 @@ if [ -x $PERL_58 ]; then
     FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
 elif [ -x $PERL_510 ]; then
     # Build 64-bit version    
-    FLAGS="-arch x86_64 -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+    FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
 fi
 
 # build libjpeg
@@ -390,15 +390,15 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # XXX there is still some crap left in here by some modules such as DBI, GD
-if [ -e $BUILD_58 ]; then
+if [ -e $BASE_58 ]; then
     mkdir -p $BUILD/arch/5.8
-    mv $BUILD_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
-elif [ -e $BUILD_510 ]; then
+    mv $BASE_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
+elif [ -e $BASE_510 ]; then
     mkdir -p $BUILD/arch/5.10
-    mv $BUILD_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
+    mv $BASE_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
 fi
 
 # could remove rest of build data, but let's leave it around in case
-#rm -rf $BUILD_58
-#rm -rf $BUILD_510
+#rm -rf $BASE_58
+#rm -rf $BASE_510
 #rm -rf $BUILD/bin $BUILD/etc $BUILD/include $BUILD/lib $BUILD/man $BUILD/share $BUILD/var
