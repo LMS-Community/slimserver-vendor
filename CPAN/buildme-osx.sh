@@ -1,16 +1,38 @@
 #!/bin/bash
 
+OS=`uname`
+
+ARCH=`perl -MConfig -le 'print $Config{archname}'`
+
+echo "Building for $OS / $ARCH"
+
 # Build dir
 BUILD=$PWD/build
 
-# Path to Perl 5.8 (Leopard only)
-PERL_58=/usr/bin/perl5.8.8
+# Path to Perl 5.8.8
+if [ -x "/usr/bin/perl5.8.8" ]; then
+    PERL_58=/usr/bin/perl5.8.8
+elif [ -x "/usr/local/bin/perl5.8.8" ]; then
+    PERL_58=/usr/local/bin/perl5.8.8
+fi
+
+if [ $PERL_58 ]; then
+    echo "Building with Perl 5.8.8 at $PERL_58"
+fi
 
 # Install dir for 5.8
 BASE_58=$BUILD/5.8
 
-# Path to Perl 5.10.0 (Snow Leopard only)
-PERL_510=/usr/bin/perl5.10.0
+# Path to Perl 5.10.0
+if [ -x "/usr/bin/perl5.10.0" ]; then
+    PERL_510=/usr/bin/perl5.10.0
+elif [ -x "/usr/local/bin/perl5.10.0" ]; then
+    PERL_510=/usr/local/bin/perl5.10.0
+fi
+
+if [ $PERL_510 ]; then
+    echo "Building with Perl 5.10 at $PERL_510"
+fi
 
 # Install dir for 5.10
 BASE_510=$BUILD/5.10
@@ -18,12 +40,16 @@ BASE_510=$BUILD/5.10
 # Require modules to pass tests
 RUN_TESTS=1
 
-if [ -x $PERL_58 ]; then
-    # build 32-bit version 
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-elif [ -x $PERL_510 ]; then
-    # Build 64-bit version    
-    FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+FLAGS=""
+# Mac-specific flags
+if [ $OS = "Darwin" ]; then
+    if [ $PERL_58 ]; then
+        # build 32-bit version 
+        FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+    elif [ $PERL_510 ]; then
+        # Build 64-bit version    
+        FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+    fi
 fi
 
 # Clean up
@@ -37,8 +63,8 @@ function build_module {
 	tar zxvf $1.tar.gz
 	cd $1
 	cp -R ../hints .
-	if [ -x $PERL_58 ]; then
-	    # Running Leopard
+	if [ $PERL_58 ]; then
+	    # Running 5.8
     	$PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
     	if [ $RUN_TESTS -eq 1 ]; then
     	    make test
@@ -55,8 +81,8 @@ function build_module {
     	fi
     	make install
     	make clean
-    elif [ -x $PERL_510 ]; then
-        # Running Snow Leopard
+    elif [ $PERL_510 ]; then
+        # Running 5.10
     	$PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
     	if [ $RUN_TESTS -eq 1 ]; then
     	    make test
@@ -81,6 +107,7 @@ function build_all {
     build Audio::Scan
     build AutoXS::Header
     build Data::Dump
+    build common::sense
     build Class::C3::XS
     build Class::XSAccessor
     build Class::XSAccessor::Array
@@ -113,8 +140,13 @@ function build {
             build_module Data-Dump-1.15
             ;;
         
+        common::sense)
+            # common::sense support module (EV dep)
+            build_module common-sense-2.0
+            ;;
+        
         Class::C3::XS)
-            if [ -x $PERL_58 ]; then
+            if [ $PERL_58 ]; then
                 build_module Class-C3-XS-0.11
             fi
             ;;
@@ -200,8 +232,8 @@ function build {
             cd Template-Toolkit-2.21
             cp -R ../hints .
             cp -R ../hints ./xs
-            if [ -x $PERL_58 ]; then
-                # Running Leopard
+            if [ $PERL_58 ]; then
+                # Running 5.8
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
                 make # minor test failure, so don't test
                 if [ $? != 0 ]; then
@@ -209,8 +241,8 @@ function build {
                     exit $?
                 fi
                 make install
-            elif [ -x $PERL_510 ]; then
-                # Running Snow Leopard
+            elif [ $PERL_510 ]; then
+                # Running 5.10
                 $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
                 make # minor test failure, so don't test
                 if [ $? != 0 ]; then
@@ -249,8 +281,8 @@ function build {
             cp -R ../hints .
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
-            if [ -x $PERL_58 ]; then
-                # Running Leopard
+            if [ $PERL_58 ]; then
+                # Running 5.8
                 $PERL_58 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
                 make
                 if [ $? != 0 ]; then
@@ -259,8 +291,8 @@ function build {
                 fi
                 make install
                 make clean
-            elif [ -x $PERL_510 ]; then
-                # Running Snow Leopard
+            elif [ $PERL_510 ]; then
+                # Running 5.10
                 $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
                 make
                 if [ $? != 0 ]; then
@@ -279,8 +311,8 @@ function build {
             cd XML-Parser-2.36
             cp -R ../hints .
             cp -R ../hints ./Expat # needed for second Makefile.PL
-            if [ -x $PERL_58 ]; then
-                # Running Leopard
+            if [ $PERL_58 ]; then
+                # Running 5.8
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
                 make # minor test failure, so don't test
                 if [ $? != 0 ]; then
@@ -288,8 +320,8 @@ function build {
                     exit $?
                 fi
                 make install
-            elif [ -x $PERL_510 ]; then
-                # Running Snow Leopard
+            elif [ $PERL_510 ]; then
+                # Running 5.10
                 $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
                 make # minor test failure, so don't test
                 if [ $? != 0 ]; then
@@ -405,12 +437,12 @@ function build {
             cd GD-2.41
             patch -p0 < ../GD-Makefile.patch # patch to build statically
             cp -R ../hints .
-            if [ -x $PERL_58 ]; then
-                # Running Leopard
+            if [ $PERL_58 ]; then
+                # Running 5.8
                 PATH="$BUILD/bin:$PATH" \
                     $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
-            elif [ -x $PERL_510 ]; then
-                # Running Snow Leopard
+            elif [ $PERL_510 ]; then
+                # Running 5.10
                 PATH="$BUILD/bin:$PATH" \
                     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
             fi
@@ -433,7 +465,7 @@ function build {
 }
 
 # Set PERL5LIB so correct support modules are used
-if [ -x $PERL_58 ]; then
+if [ $PERL_58 ]; then
     export PERL5LIB=$BASE_58/lib/perl5
 else
     export PERL5LIB=$BASE_510/lib/perl5
@@ -449,9 +481,15 @@ fi
 # Reset PERL5LIB
 export PERL5LIB=
 
-# strip -S on all bundle files
-find $BUILD -name '*.bundle' -exec chmod u+w {} \;
-find $BUILD -name '*.bundle' -exec strip -S {} \;
+if [ $OS = 'Darwin' ]; then
+    # strip -S on all bundle files
+    find $BUILD -name '*.bundle' -exec chmod u+w {} \;
+    find $BUILD -name '*.bundle' -exec strip -S {} \;
+elif [ $OS = 'Linux' ]; then
+    # strip all so files
+    find $BUILD -name '*.so' -exec chmod u+w {} \;
+    find $BUILD -name '*.so' -exec strip {} \;
+fi
 
 # clean out useless .bs/.packlist files, etc
 find $BUILD -name '*.bs' -exec rm -f {} \;
@@ -459,12 +497,12 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # XXX there is still some crap left in here by some modules such as DBI, GD
-if [ -x $PERL_58 ]; then
+if [ $PERL_58 ]; then
     mkdir -p $BUILD/arch/5.8
-    cp -R $BASE_58/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.8
-elif [ -x $PERL_510 ]; then
+    cp -R $BASE_58/lib/perl5/$ARCH $BUILD/arch/5.8
+elif [ $PERL_510 ]; then
     mkdir -p $BUILD/arch/5.10
-    cp -R $BASE_510/lib/perl5/darwin-thread-multi-2level $BUILD/arch/5.10
+    cp -R $BASE_510/lib/perl5/$ARCH $BUILD/arch/5.10
 fi
 
 # could remove rest of build data, but let's leave it around in case
