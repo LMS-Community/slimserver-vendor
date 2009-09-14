@@ -5,7 +5,12 @@ OS=`uname`
 # get system arch, stripping out extra -gnu on Linux
 ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//'`
 
-echo "Building for $OS / $ARCH"
+if [ $OS = "Linux" -o $OS = "Darwin" ]; then
+    echo "Building for $OS / $ARCH"
+else
+    echo "Unsupported platform: $OS, please submit a patch"
+    exit
+fi
 
 # Build dir
 BUILD=$PWD/build
