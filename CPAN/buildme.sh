@@ -2,7 +2,7 @@
 
 OS=`uname`
 
-ARCH=`perl -MConfig -le 'print $Config{archname}'`
+ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}'`
 
 echo "Building for $OS / $ARCH"
 
