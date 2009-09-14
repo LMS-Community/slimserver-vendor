@@ -141,7 +141,7 @@ function build {
         
         EV)
             export PERL_MM_USE_DEFAULT=1
-            build_module EV-3.6
+            build_module EV-3.8
             export PERL_MM_USE_DEFAULT=
             ;;
         
