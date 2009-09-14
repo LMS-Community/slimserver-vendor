@@ -2,7 +2,8 @@
 
 OS=`uname`
 
-ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}'`
+# get system arch, stripping out extra -gnu on Linux
+ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//'`
 
 echo "Building for $OS / $ARCH"
 
@@ -53,6 +54,7 @@ if [ $OS = "Darwin" ]; then
 fi
 
 # Clean up
+# XXX command-line flag to skip cleanup
 rm -rf $BUILD
 
 mkdir $BUILD
@@ -81,7 +83,8 @@ function build_module {
     	fi
     	make install
     	make clean
-    elif [ $PERL_510 ]; then
+    fi
+    if [ $PERL_510 ]; then
         # Running 5.10
     	$PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
     	if [ $RUN_TESTS -eq 1 ]; then
@@ -241,7 +244,9 @@ function build {
                     exit $?
                 fi
                 make install
-            elif [ $PERL_510 ]; then
+                make clean
+            fi
+            if [ $PERL_510 ]; then
                 # Running 5.10
                 $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
                 make # minor test failure, so don't test
@@ -291,7 +296,8 @@ function build {
                 fi
                 make install
                 make clean
-            elif [ $PERL_510 ]; then
+            fi
+            if [ $PERL_510 ]; then
                 # Running 5.10
                 $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
                 make
@@ -320,7 +326,9 @@ function build {
                     exit $?
                 fi
                 make install
-            elif [ $PERL_510 ]; then
+                make clean
+            fi
+            if [ $PERL_510 ]; then
                 # Running 5.10
                 $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
                 make # minor test failure, so don't test
@@ -441,18 +449,28 @@ function build {
                 # Running 5.8
                 PATH="$BUILD/bin:$PATH" \
                     $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
-            elif [ $PERL_510 ]; then
+
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_510 ]; then
                 # Running 5.10
                 PATH="$BUILD/bin:$PATH" \
                     $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
+
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
             fi
 
-            make test
-            if [ $? != 0 ]; then
-                echo "make test failed, aborting"
-                exit $?
-            fi
-            make install
             cd ..
             rm -rf GD-2.41
             rm -rf gd-2.0.35
@@ -498,11 +516,12 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 # create our directory structure
 # XXX there is still some crap left in here by some modules such as DBI, GD
 if [ $PERL_58 ]; then
-    mkdir -p $BUILD/arch/5.8
-    cp -R $BASE_58/lib/perl5/$ARCH $BUILD/arch/5.8
-elif [ $PERL_510 ]; then
-    mkdir -p $BUILD/arch/5.10
-    cp -R $BASE_510/lib/perl5/$ARCH $BUILD/arch/5.10
+    mkdir -p $BUILD/arch/5.8/$ARCH
+    cp -R $BASE_58/lib/perl5/*/auto $BUILD/arch/5.8/$ARCH/
+fi
+if [ $PERL_510 ]; then
+    mkdir -p $BUILD/arch/5.10/$ARCH
+    cp -R $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
 fi
 
 # could remove rest of build data, but let's leave it around in case
