@@ -3,7 +3,7 @@
 OS=`uname`
 
 # get system arch, stripping out extra -gnu on Linux
-ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//'`
+ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//' | sed 's/486/386/' `
 
 if [ $OS = "Linux" -o $OS = "Darwin" ]; then
     echo "Building for $OS / $ARCH"
