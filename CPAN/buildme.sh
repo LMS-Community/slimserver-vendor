@@ -220,6 +220,7 @@ function build {
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
+                --with-pic \
                 --disable-dependency-tracking --disable-shared \
                 --disable-asm-optimizations --disable-xmms-plugin --disable-cpplibs --disable-ogg --disable-doxygen-docs
             make
