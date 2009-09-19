@@ -232,7 +232,7 @@ function build {
             cd ..
             rm -rf flac-1.2.1
 
-            build_module Audio-Scan-0.35 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
+            build_module Audio-Scan-0.37 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
             ;;
         
         Template)
