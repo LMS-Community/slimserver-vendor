@@ -508,7 +508,7 @@ function build {
             cd build/lib
             ln -sf libexpat.a libexpat_s.a
             ln -sf libjpeg.a libjpeg_s.a
-            ln -sf libpng12.a libpng1_s.a
+            ln -sf libpng12.a libpng12_s.a
             ln -sf libgd.a libgd_s.a
             ln -sf libfontconfig.a libfontconfig_s.a
             ln -sf libfreetype.a libfreetype_s.a
