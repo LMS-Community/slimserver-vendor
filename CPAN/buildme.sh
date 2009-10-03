@@ -1,11 +1,21 @@
 #!/bin/bash
+#
+# $Id$
+#
+# This script builds all binary Perl modules required by Squeezebox Server.
+# 
+# Supported OSes:
+#
+# Linux (Perl 5.8.8 & 5.10.0)
+# Mac OSX 10.5, 10.6, (Perl 5.8.8 & 5.10.0)
+# FreeBSD 7.2 (Perl 5.8.9)
 
 OS=`uname`
 
 # get system arch, stripping out extra -gnu on Linux
 ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//' | sed 's/486/386/' `
 
-if [ $OS = "Linux" -o $OS = "Darwin" ]; then
+if [ $OS = "Linux" -o $OS = "Darwin" -o $OS = "FreeBSD" ]; then
     echo "Building for $OS / $ARCH"
 else
     echo "Unsupported platform: $OS, please submit a patch"
@@ -20,10 +30,12 @@ if [ -x "/usr/bin/perl5.8.8" ]; then
     PERL_58=/usr/bin/perl5.8.8
 elif [ -x "/usr/local/bin/perl5.8.8" ]; then
     PERL_58=/usr/local/bin/perl5.8.8
+elif [ -x "/usr/local/bin/perl5.8.9" ]; then # FreeBSD 7.2
+    PERL_58=/usr/local/bin/perl5.8.9
 fi
 
 if [ $PERL_58 ]; then
-    echo "Building with Perl 5.8.8 at $PERL_58"
+    echo "Building with Perl 5.8.x at $PERL_58"
 fi
 
 # Install dir for 5.8
@@ -56,6 +68,18 @@ if [ $OS = "Darwin" ]; then
         # Build 64-bit version    
         FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
     fi
+fi
+
+# FreeBSD's make sucks
+if [ $OS = "FreeBSD" ]; then
+    if [ !-x /usr/local/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi
+    export GNUMAKE=/usr/local/bin/gmake
+    export MAKE=/usr/local/bin/gmake
+else
+    export MAKE=/usr/bin/make
 fi
 
 # Clean up
@@ -114,8 +138,6 @@ function build_module {
 function build_all {
     build Audio::Scan
     build AutoXS::Header
-    build Data::Dump
-    build common::sense
     build Class::C3::XS
     build Class::XSAccessor
     build Class::XSAccessor::Array
@@ -143,16 +165,6 @@ function build {
             build_module AutoXS-Header-1.02
             ;;
             
-        Data::Dump)
-            # Data::Dump support module (Encode::Detect dep)
-            build_module Data-Dump-1.15
-            ;;
-        
-        common::sense)
-            # common::sense support module (EV dep)
-            build_module common-sense-2.0
-            ;;
-        
         Class::C3::XS)
             if [ $PERL_58 ]; then
                 build_module Class-C3-XS-0.11
@@ -180,16 +192,24 @@ function build {
             ;;
         
         EV)
+            build_module common-sense-2.0
+
             export PERL_MM_USE_DEFAULT=1
             build_module EV-3.8
             export PERL_MM_USE_DEFAULT=
             ;;
         
         Encode::Detect)
+            build_module Data-Dump-1.15
+            build_module ExtUtils-CBuilder-0.260301
+            RUN_TESTS=0
+            build_module Module-Build-0.35
+            RUN_TESTS=1
             build_module Encode-Detect-1.00
             ;;
         
         HTML::Parser)
+            build_module HTML-Tagset-3.20
             build_module HTML-Parser-3.60
             ;;
         
@@ -214,25 +234,35 @@ function build {
             ;;
         
         Audio::Scan)
-            # Build libFLAC
-            tar zxvf flac-1.2.1.tar.gz
-            cd flac-1.2.1
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --with-pic \
-                --disable-dependency-tracking --disable-shared \
-                --disable-asm-optimizations --disable-xmms-plugin --disable-cpplibs --disable-ogg --disable-doxygen-docs
-            make
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
-            rm -rf flac-1.2.1
+            if [ $OS = "FreeBSD" ]; then
+                if [ -f /usr/local/lib/libFLAC.a ]; then
+                    build_module Audio-Scan-0.40 "--with-flac-includes=/usr/local/include --with-flac-libs=/usr/local/lib --with-flac-static"
+                else
+                    echo "ERROR: You must install flac from ports to build Audio::Scan"
+                    exit
+                fi
+            else
+                # Build libFLAC
+                tar zxvf flac-1.2.1.tar.gz
+                cd flac-1.2.1
+                CFLAGS="$FLAGS" \
+                LDFLAGS="$FLAGS" \
+                    ./configure --prefix=$BUILD \
+                    --with-pic \
+                    --disable-dependency-tracking --disable-shared \
+                    --disable-asm-optimizations --disable-xmms-plugin --disable-cpplibs --disable-ogg --disable-doxygen-docs
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                make install
+                cd ..
+                rm -rf flac-1.2.1
 
-            build_module Audio-Scan-0.39 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
+                build_module Audio-Scan-0.40 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
+            fi
+
             ;;
         
         Template)
@@ -318,15 +348,36 @@ function build {
             ;;
         
         XML::Parser)
-            # XML::Parser custom, built against system expat
+            # build expat
+            tar zxvf expat-2.0.1.tar.gz
+            cd expat-2.0.1
+            CFLAGS="$FLAGS" \
+            LDFLAGS="$FLAGS" \
+                ./configure --prefix=$BUILD \
+                --disable-dependency-tracking
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+            make install
+            cd ..
+
+            # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
+            cd build/lib
+            ln -sf libexpat.a libexpat_s.a
+            cd ../..
+
+            # XML::Parser custom, built against expat
             tar zxvf XML-Parser-2.36.tar.gz
             cd XML-Parser-2.36
             cp -R ../hints .
             cp -R ../hints ./Expat # needed for second Makefile.PL
+            patch -p0 < ../XML-Parser-Expat-Makefile.patch
             if [ $PERL_58 ]; then
                 # Running 5.8
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
-                make # minor test failure, so don't test
+                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
+                make test
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
                     exit $?
@@ -336,8 +387,8 @@ function build {
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=/usr/lib EXPATINCPATH=/usr/include
-                make # minor test failure, so don't test
+                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
+                make test
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
                     exit $?
@@ -346,6 +397,7 @@ function build {
             fi
             cd ..
             rm -rf XML-Parser-2.36
+            rm -rf expat-2.0.1
             ;;
         
         GD)
@@ -383,8 +435,23 @@ function build {
             cd ..
 
             # build freetype
-            tar zxvf freetype-2.3.7.tar.gz
-            cd freetype-2.3.7
+            tar zxvf freetype-2.3.9.tar.gz
+            cd freetype-2.3.9
+            CFLAGS="$FLAGS" \
+            LDFLAGS="$FLAGS" \
+                ./configure --prefix=$BUILD \
+                --disable-dependency-tracking
+            $MAKE
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+            $MAKE install
+            cd ..
+
+            # build expat
+            tar zxvf expat-2.0.1.tar.gz
+            cd expat-2.0.1
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
@@ -404,7 +471,7 @@ function build {
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking --disable-docs \
-                --with-expat-includes=/usr/include --with-expat-lib=/usr/lib \
+                --with-expat-includes=$BUILD/include --with-expat-lib=$BUILD/lib \
                 --with-freetype-config=$BUILD/bin/freetype-config
             make
             if [ $? != 0 ]; then
@@ -439,6 +506,7 @@ function build {
 
             # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
             cd build/lib
+            ln -sf libexpat.a libexpat_s.a
             ln -sf libjpeg.a libjpeg_s.a
             ln -sf libpng12.a libpng12_s.a
             ln -sf libgd.a libgd_s.a
@@ -481,7 +549,8 @@ function build {
             rm -rf GD-2.41
             rm -rf gd-2.0.35
             rm -rf fontconfig-2.6.0
-            rm -rf freetype-2.3.7
+            rm -rf expat-2.0.1
+            rm -rf freetype-2.3.9
             rm -rf libpng-1.2.39
             rm -rf jpeg-6b
             ;;
@@ -509,7 +578,7 @@ if [ $OS = 'Darwin' ]; then
     # strip -S on all bundle files
     find $BUILD -name '*.bundle' -exec chmod u+w {} \;
     find $BUILD -name '*.bundle' -exec strip -S {} \;
-elif [ $OS = 'Linux' ]; then
+elif [ $OS = 'Linux' -o $OS = "FreeBSD" ]; then
     # strip all so files
     find $BUILD -name '*.so' -exec chmod u+w {} \;
     find $BUILD -name '*.so' -exec strip {} \;
