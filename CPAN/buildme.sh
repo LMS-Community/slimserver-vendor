@@ -234,35 +234,7 @@ function build {
             ;;
         
         Audio::Scan)
-            if [ $OS = "FreeBSD" ]; then
-                if [ -f /usr/local/lib/libFLAC.a ]; then
-                    build_module Audio-Scan-0.40 "--with-flac-includes=/usr/local/include --with-flac-libs=/usr/local/lib --with-flac-static"
-                else
-                    echo "ERROR: You must install flac from ports to build Audio::Scan"
-                    exit
-                fi
-            else
-                # Build libFLAC
-                tar zxvf flac-1.2.1.tar.gz
-                cd flac-1.2.1
-                CFLAGS="$FLAGS" \
-                LDFLAGS="$FLAGS" \
-                    ./configure --prefix=$BUILD \
-                    --with-pic \
-                    --disable-dependency-tracking --disable-shared \
-                    --disable-asm-optimizations --disable-xmms-plugin --disable-cpplibs --disable-ogg --disable-doxygen-docs
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                make install
-                cd ..
-                rm -rf flac-1.2.1
-
-                build_module Audio-Scan-0.40 "--with-flac-includes=$BUILD/include --with-flac-libs=$BUILD/lib --with-flac-static"
-            fi
-
+            build_module Audio-Scan-0.41 
             ;;
         
         Template)
