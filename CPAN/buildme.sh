@@ -18,7 +18,7 @@ ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/-gnu//' | se
 if [ $OS = "Linux" -o $OS = "Darwin" -o $OS = "FreeBSD" ]; then
     echo "Building for $OS / $ARCH"
 else
-    echo "Unsupported platform: $OS, please submit a patch"
+    echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
     exit
 fi
 
