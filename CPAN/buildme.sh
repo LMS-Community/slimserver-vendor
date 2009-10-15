@@ -412,11 +412,11 @@ function build {
             # build freetype
             tar zxvf freetype-2.3.9.tar.gz
             cd freetype-2.3.9
-            patch -p0 < ../freetype-arm-asm.patch # patch to fix ARM asm
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking
+            patch -p0 < ../freetype-arm-asm.patch # patch to fix ARM asm
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
