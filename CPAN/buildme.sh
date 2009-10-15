@@ -91,48 +91,52 @@ mkdir $BUILD
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
 function build_module {
-	tar zxvf $1.tar.gz
-	cd $1
-	cp -R ../hints .
-	if [ $PERL_58 ]; then
-	    # Running 5.8
-    	$PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
-    	if [ $RUN_TESTS -eq 1 ]; then
-    	    make test
-    	else
-    	    make
-    	fi
-    	if [ $? != 0 ]; then
-    	    if [ $RUN_TESTS -eq 1 ]; then
-		        echo "make test failed, aborting"
-		    else
-		        echo "make failed, aborting"
-		    fi
-    		exit $?
-    	fi
-    	make install
-    	make clean
+    tar zxvf $1.tar.gz
+    cd $1
+    cp -R ../hints .
+    if [ $PERL_58 ]; then
+        # Running 5.8
+        export PERL5LIB=$BASE_58/lib/perl5
+        
+        $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+        if [ $RUN_TESTS -eq 1 ]; then
+            make test
+        else
+            make
+        fi
+        if [ $? != 0 ]; then
+            if [ $RUN_TESTS -eq 1 ]; then
+                echo "make test failed, aborting"
+            else
+                echo "make failed, aborting"
+            fi
+            exit $?
+        fi
+        make install
+        make clean
     fi
     if [ $PERL_510 ]; then
         # Running 5.10
-    	$PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
-    	if [ $RUN_TESTS -eq 1 ]; then
-    	    make test
-    	else
-    	    make
-    	fi
-    	if [ $? != 0 ]; then
-    	    if [ $RUN_TESTS -eq 1 ]; then
-		        echo "make test failed, aborting"
-		    else
-		        echo "make failed, aborting"
-		    fi
-        	exit $?
+        export PERL5LIB=$BASE_510/lib/perl5
+        
+        $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
+        if [ $RUN_TESTS -eq 1 ]; then
+            make test
+        else
+            make
         fi
-    	make install
+        if [ $? != 0 ]; then
+            if [ $RUN_TESTS -eq 1 ]; then
+                echo "make test failed, aborting"
+            else
+                echo "make failed, aborting"
+            fi
+            exit $?
+        fi
+        make install
     fi
-	cd ..
-	rm -rf $1
+    cd ..
+    rm -rf $1
 }
 
 function build_all {
@@ -296,6 +300,8 @@ function build {
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             if [ $PERL_58 ]; then
                 # Running 5.8
+                export PERL5LIB=$BASE_58/lib/perl5
+                
                 $PERL_58 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
                 make
                 if [ $? != 0 ]; then
@@ -307,6 +313,8 @@ function build {
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
+                export PERL5LIB=$BASE_510/lib/perl5
+                
                 $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
                 make
                 if [ $? != 0 ]; then
@@ -528,13 +536,6 @@ function build {
             ;;
     esac
 }
-
-# Set PERL5LIB so correct support modules are used
-if [ $PERL_58 ]; then
-    export PERL5LIB=$BASE_58/lib/perl5
-else
-    export PERL5LIB=$BASE_510/lib/perl5
-fi
 
 # Build a single module if requested, or all
 if [ $1 ]; then
