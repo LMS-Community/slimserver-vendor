@@ -157,7 +157,6 @@ function build_all {
     build Locale::Hebrew
     build Sub::Name
     build Template
-    build Time::HiRes
     build XML::Parser
     build YAML::Syck
 }
@@ -227,10 +226,6 @@ function build {
         
         Sub::Name)
             build_module Sub-Name-0.04
-            ;;
-        
-        Time::HiRes)
-            build_module Time-HiRes-1.86
             ;;
         
         YAML::Syck)
