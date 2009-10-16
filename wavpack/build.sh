@@ -50,3 +50,9 @@ rm -rf wavpack-4.50.1
 
 cp $BUILD/bin/wvunpack .
 rm -rf $BUILD
+
+if [ $OS = 'Darwin' ]; then
+    strip -S wvunpack
+elif [ $OS = 'Linux' -o $OS = "FreeBSD" ]; then
+    strip wvunpack
+fi
