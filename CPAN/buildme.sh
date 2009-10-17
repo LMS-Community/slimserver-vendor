@@ -7,7 +7,12 @@
 # Supported OSes:
 #
 # Linux (Perl 5.8.8 & 5.10.0)
+#   i386/x86_64 Linux
+#   ARM Linux
+#   PowerPC Linux
 # Mac OSX 10.5, 10.6, (Perl 5.8.8 & 5.10.0)
+#   Under 10.5, builds Universal Binaries for i386/ppc
+#   Under 10.6, builds Universal Binaries for i386/x86_64
 # FreeBSD 7.2 (Perl 5.8.9)
 
 OS=`uname`
@@ -233,7 +238,7 @@ function build {
             ;;
         
         Audio::Scan)
-            build_module Audio-Scan-0.43
+            build_module Audio-Scan-0.44
             ;;
         
         Template)
