@@ -43,7 +43,7 @@ echo "Untarring libvorbis-$VORBIS.tar.gz..."
 tar -zxf libvorbis-$VORBIS.tar.gz
 cd libvorbis-$VORBIS
 echo "Configuring..."
-./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --with-ogg-includes=$PWD/../libogg-1.1.3/include --with-ogg-libraries=$PWD/../libogg-1.1.3/src/.libs --disable-shared --disable-dependency-tracking >> $LOG
+./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs --disable-shared --disable-dependency-tracking >> $LOG
 echo "Running make"
 make >> $LOG
 cd ..
