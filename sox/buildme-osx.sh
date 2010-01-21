@@ -6,7 +6,6 @@ OGG=1.1.4
 VORBIS=1.2.3
 MAD=0.15.1b
 WAVPACK=4.60.1
-SAMPLERATE=0.1.7
 LOG=$PWD/config.log
 CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
 ARCH="osx"
@@ -24,7 +23,6 @@ rm -rf libogg-$OGG
 rm -rf libvorbis-$VORBIS
 rm -rf libmad-$MAD
 rm -rf wavpack-$WAVPACK
-rm -rf libsamplerate-$SAMPLERATE
 
 ## Start
 echo "Most log mesages sent to $LOG... only 'errors' displayed here"
@@ -88,24 +86,14 @@ cd include
 ln -s . wavpack
 cd ../..
 
-## Build libsamplerate
-echo "Untarring libsamplerate-$SAMPLERATE.tar.gz"
-tar -zxf libsamplerate-$SAMPLERATE.tar.gz
-cd libsamplerate-$SAMPLERATE
-echo "Configuring..."
-./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --disable-shared --disable-dependency-tracking >> $LOG
-echo "Running make"
-make >> $LOG
-cd ..
-
 ## finally, build SOX against FLAC
 echo "Untarring sox-$SOX.tar.gz..."
 tar -zxf sox-$SOX.tar.gz >> $LOG
 cd sox-$SOX >> $LOG
 echo "Configuring..."
-CPF="$CFLAGS -I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD -I$PWD/../libsamplerate-$SAMPLERATE/src" 
-LDF="$LDFLAGS -L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs -L$PWD/../libsamplerate-$SAMPLERATE/src/.libs"
-./configure CFLAGS="$CPF" LDFLAGS="$LDF" --with-flac --with-vorbis --with-ogg --with-mad --with-wavpack --with-samplerate --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --disable-oss --disable-alsa --disable-symlinks --disable-libao --disable-coreaudio --without-libltdl --disable-dependency-tracking --prefix $OUTPUT >> $LOG
+CPF="$CFLAGS -I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
+LDF="$LDFLAGS -L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
+./configure CFLAGS="$CPF" LDFLAGS="$LDF" --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
 echo "Running make"
 make  >> $LOG
 echo "Running make install"
@@ -121,4 +109,3 @@ rm -rf libogg-$OGG
 rm -rf libvorbis-$VORBIS
 rm -rf libmad-$MAD
 rm -rf wavpack-$WAVPACK
-rm -rf libsamplerate-$SAMPLERATE
