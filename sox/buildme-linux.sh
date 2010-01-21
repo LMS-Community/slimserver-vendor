@@ -1,12 +1,12 @@
 #!/bin/sh
 
 FLAC=1.2.1
-SOX=14.2.0
-OGG=1.1.3
-VORBIS=1.2.0
+SOX=14.3.0
+OGG=1.1.4
+VORBIS=1.2.3
 MAD=0.15.1b
-WAVPACK=4.50.1
-SAMPLERATE=0.1.4
+WAVPACK=4.60.1
+SAMPLERATE=0.1.7
 LOG=$PWD/config.log
 CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
 ARCH=`arch`
