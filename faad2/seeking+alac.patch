@@ -1,6 +1,6 @@
-diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4atom.c ./common/mp4ff/mp4atom.c
---- /home/awy/Download/faad2-2.7/common/mp4ff/mp4atom.c	2009-01-20 00:56:30.000000000 +0100
-+++ ./common/mp4ff/mp4atom.c	2010-02-05 17:39:15.207007253 +0100
+diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4atom.c
+--- faad2-2.7/common/mp4ff/mp4atom.c	2009-01-19 18:56:30.000000000 -0500
++++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-02-08 09:07:12.000000000 -0500
 @@ -224,6 +224,8 @@
          return ATOM_DESCRIPTION;
      else if (mp4ff_atom_compare(a,b,c,d, 'p','c','s','t'))
@@ -93,9 +93,9 @@ diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4atom.c ./common/mp4ff/mp4a
          } else {
              f->track[f->total_tracks - 1]->type = TRACK_UNKNOWN;
          }
-diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.c ./common/mp4ff/mp4ff.c
---- /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.c	2009-01-27 00:01:40.000000000 +0100
-+++ ./common/mp4ff/mp4ff.c	2010-02-05 14:00:47.624754655 +0100
+diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
+--- faad2-2.7/common/mp4ff/mp4ff.c	2009-01-26 18:01:40.000000000 -0500
++++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-02-08 09:07:12.000000000 -0500
 @@ -312,6 +312,11 @@
  	return f->track[track]->sampleRate;
  }
@@ -108,9 +108,9 @@ diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.c ./common/mp4ff/mp4ff.
  uint32_t mp4ff_get_channel_count(const mp4ff_t * f,const int32_t track)
  {
  	return f->track[track]->channelCount;
-diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.h ./common/mp4ff/mp4ff.h
---- /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.h	2009-01-29 01:41:08.000000000 +0100
-+++ ./common/mp4ff/mp4ff.h	2010-02-05 17:39:16.683003678 +0100
+diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
+--- faad2-2.7/common/mp4ff/mp4ff.h	2009-01-28 19:41:08.000000000 -0500
++++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-02-08 09:07:12.000000000 -0500
 @@ -54,6 +54,11 @@
  /* mp4 main file structure */
  typedef void* mp4ff_t;
@@ -131,9 +131,9 @@ diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ff.h ./common/mp4ff/mp4ff.
  uint32_t mp4ff_get_channel_count(const mp4ff_t * f,const int32_t track);
  uint32_t mp4ff_get_audio_type(const mp4ff_t * f,const int32_t track);
  
-diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ffint.h ./common/mp4ff/mp4ffint.h
---- /home/awy/Download/faad2-2.7/common/mp4ff/mp4ffint.h	2009-01-25 21:14:34.000000000 +0100
-+++ ./common/mp4ff/mp4ffint.h	2010-02-05 17:39:17.524006658 +0100
+diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ffint.h
+--- faad2-2.7/common/mp4ff/mp4ffint.h	2009-01-25 15:14:34.000000000 -0500
++++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-02-08 09:07:12.000000000 -0500
 @@ -40,10 +40,10 @@
  
  #define MAX_TRACKS 1024
@@ -155,640 +155,9 @@ diff -ru /home/awy/Download/faad2-2.7/common/mp4ff/mp4ffint.h ./common/mp4ff/mp4
  
  #define ATOM_UNKNOWN 255
  #define ATOM_FREE ATOM_UNKNOWN
-diff -ru /home/awy/Download/faad2-2.7/frontend/audio.c ./frontend/audio.c
---- /home/awy/Download/faad2-2.7/frontend/audio.c	2008-09-20 00:50:17.000000000 +0200
-+++ ./frontend/audio.c	2010-02-08 11:43:56.138006395 +0100
-@@ -40,7 +40,7 @@
- 
- 
- audio_file *open_audio_file(char *infile, int samplerate, int channels,
--                            int outputFormat, int fileType, long channelMask)
-+                            int outputFormat, int fileType, long channelMask, unsigned long expectedSamples)
- {
-     audio_file *aufile = malloc(sizeof(audio_file));
- 
-@@ -48,7 +48,7 @@
- 
-     aufile->samplerate = samplerate;
-     aufile->channels = channels;
--    aufile->total_samples = 0;
-+    aufile->total_samples = expectedSamples;
-     aufile->fileType = fileType;
-     aufile->channelMask = channelMask;
- 
-@@ -95,6 +95,8 @@
-             write_wav_header(aufile);
-     }
- 
-+    aufile->total_samples = 0;
-+
-     return aufile;
- }
- 
-@@ -118,6 +120,15 @@
-     return 0;
- }
- 
-+int write_audio_file_raw(audio_file *aufile, void *sample_buffer,
-+                             unsigned int samples)
-+{
-+    aufile->total_samples += samples;
-+
-+    return fwrite(sample_buffer, samples, aufile->bits_per_sample/8, aufile->sndfile);
-+}
-+
-+
- void close_audio_file(audio_file *aufile)
- {
-     if ((aufile->fileType == OUTPUT_WAV) && (aufile->toStdio == 0))
-@@ -141,12 +152,12 @@
-     unsigned char header[44];
-     unsigned char* p = header;
-     unsigned int bytes = (aufile->bits_per_sample + 7) / 8;
--    float data_size = (float)bytes * aufile->total_samples;
-+    double data_size = (double)bytes * aufile->total_samples;
-     unsigned long word32;
- 
-     *p++ = 'R'; *p++ = 'I'; *p++ = 'F'; *p++ = 'F';
- 
--    word32 = (data_size + (44 - 8) < (float)MAXWAVESIZE) ?
-+    word32 = (data_size + (44 - 8) < (double)MAXWAVESIZE) ?
-         (unsigned long)data_size + (44 - 8)  :  (unsigned long)MAXWAVESIZE;
-     *p++ = (unsigned char)(word32 >>  0);
-     *p++ = (unsigned char)(word32 >>  8);
-diff -ru /home/awy/Download/faad2-2.7/frontend/audio.h ./frontend/audio.h
---- /home/awy/Download/faad2-2.7/frontend/audio.h	2007-11-01 13:33:29.000000000 +0100
-+++ ./frontend/audio.h	2010-02-08 11:45:13.380007859 +0100
-@@ -54,8 +54,9 @@
- } audio_file;
- 
- audio_file *open_audio_file(char *infile, int samplerate, int channels,
--                            int outputFormat, int fileType, long channelMask);
-+                            int outputFormat, int fileType, long channelMask, unsigned long expectedSamples);
- int write_audio_file(audio_file *aufile, void *sample_buffer, int samples, int offset);
-+int write_audio_file_rawS(audio_file *aufile, void *sample_buffer, int samples, int offset);
- void close_audio_file(audio_file *aufile);
- static int write_wav_header(audio_file *aufile);
- static int write_wav_extensible_header(audio_file *aufile, long channelMask);
-diff -ru /home/awy/Download/faad2-2.7/frontend/main.c ./frontend/main.c
---- /home/awy/Download/faad2-2.7/frontend/main.c	2008-09-22 19:55:09.000000000 +0200
-+++ ./frontend/main.c	2010-02-08 13:57:24.806006118 +0100
-@@ -36,6 +36,8 @@
- #include <time.h>
- #endif
- 
-+#define WITH_ALAC
-+
- #include <fcntl.h>
- #include <stdio.h>
- #include <stdarg.h>
-@@ -55,7 +57,6 @@
- #define MAX_CHANNELS 6 /* make this higher to support files with
-                           more channels */
- 
--
- static int quiet = 0;
- 
- static void faad_fprintf(FILE *stream, const char *fmt, ...)
-@@ -387,6 +388,7 @@
-     faad_fprintf(stdout, " -w    Write output to stdio instead of a file.\n");
-     faad_fprintf(stdout, " -g    Disable gapless decoding.\n");
-     faad_fprintf(stdout, " -q    Quiet - suppresses status messages.\n");
-+    faad_fprintf(stdout, " -j X  Jump - start output X seconds into track (MP4 files only).\n");
-     faad_fprintf(stdout, "Example:\n");
-     faad_fprintf(stdout, "       %s infile.aac\n", progName);
-     faad_fprintf(stdout, "       %s infile.mp4\n", progName);
-@@ -611,10 +613,10 @@
-                 if (!to_stdout)
-                 {
-                     aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
--                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
-+                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo), 0);
-                 } else {
-                     aufile = open_audio_file("-", frameInfo.samplerate, frameInfo.channels,
--                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
-+                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo), 0);
-                 }
-                 if (aufile == NULL)
-                 {
-@@ -702,27 +704,27 @@
-     return -1;
- }
- 
-+
-+
- static const unsigned long srates[] =
- {
-     96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000,
-     12000, 11025, 8000
- };
- 
--static int decodeMP4file(char *mp4file, char *sndfile, char *adts_fn, int to_stdout,
-+static int decodeMP4fileAAC(mp4ff_t *infile, char *sndfile, char *adts_fn, int to_stdout,
-                   int outputFormat, int fileType, int downMatrix, int noGapless,
--                  int infoOnly, int adts_out, float *song_length)
-+                  int infoOnly, int adts_out, float *song_length, float seek_to)
- {
-     int track;
-     unsigned long samplerate;
-     unsigned char channels;
-     void *sample_buffer;
- 
--    mp4ff_t *infile;
--    long sampleId, numSamples;
-+    long sampleId, numSamples, startSampleId;
- 
-     audio_file *aufile;
- 
--    FILE *mp4File;
-     FILE *adtsFile;
-     unsigned char *adtsData;
-     int adtsDataSize;
-@@ -746,16 +748,6 @@
-     unsigned int framesize;
-     unsigned long timescale;
- 
--
--    /* initialise the callback structure */
--    mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
--
--    mp4File = fopen(mp4file, "rb");
--    mp4cb->read = read_callback;
--    mp4cb->seek = seek_callback;
--    mp4cb->user_data = mp4File;
--
--
-     hDecoder = NeAACDecOpen();
- 
-     /* Set configuration */
-@@ -775,21 +767,10 @@
-         }
-     }
- 
--    infile = mp4ff_open_read(mp4cb);
--    if (!infile)
--    {
--        /* unable to open file */
--        faad_fprintf(stderr, "Error opening file: %s\n", mp4file);
--        return 1;
--    }
--
-     if ((track = GetAACTrack(infile)) < 0)
-     {
-         faad_fprintf(stderr, "Unable to find correct AAC sound track in the MP4 file.\n");
-         NeAACDecClose(hDecoder);
--        mp4ff_close(infile);
--        free(mp4cb);
--        fclose(mp4File);
-         return 1;
-     }
- 
-@@ -803,9 +784,6 @@
-         /* If some error initializing occured, skip the file */
-         faad_fprintf(stderr, "Error initializing decoder library.\n");
-         NeAACDecClose(hDecoder);
--        mp4ff_close(infile);
--        free(mp4cb);
--        fclose(mp4File);
-         return 1;
-     }
- 
-@@ -824,7 +802,7 @@
-     }
- 
-     /* print some mp4 file info */
--    faad_fprintf(stderr, "%s file info:\n\n", mp4file);
-+    faad_fprintf(stderr, "file info:\n\n");
-     {
-         char *tag = NULL, *item = NULL;
-         int k, j;
-@@ -865,15 +843,19 @@
-     if (infoOnly)
-     {
-         NeAACDecClose(hDecoder);
--        mp4ff_close(infile);
--        free(mp4cb);
--        fclose(mp4File);
-         return 0;
-     }
- 
-     numSamples = mp4ff_num_samples(infile, track);
- 
--    for (sampleId = 0; sampleId < numSamples; sampleId++)
-+    startSampleId = 0;
-+    if (seek_to > 0.1) {
-+    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
-+    	if (sample > 0 && sample < numSamples)
-+			startSampleId = sample;
-+    }
-+
-+    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
-     {
-         int rc;
-         long dur;
-@@ -890,9 +872,6 @@
-         {
-             faad_fprintf(stderr, "Reading from MP4 file failed.\n");
-             NeAACDecClose(hDecoder);
--            mp4ff_close(infile);
--            free(mp4cb);
--            fclose(mp4File);
-             return 1;
-         }
- 
-@@ -947,20 +926,19 @@
-                 if(!to_stdout)
-                 {
-                     aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
--                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
-+                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo),
-+                        mp4ff_get_track_duration(infile, track) * channels);
-                 } else {
- #ifdef _WIN32
-                     setmode(fileno(stdout), O_BINARY);
- #endif
-                     aufile = open_audio_file("-", frameInfo.samplerate, frameInfo.channels,
--                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
-+                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo),
-+                        mp4ff_get_track_duration(infile, track) * channels);
-                 }
-                 if (aufile == NULL)
-                 {
-                     NeAACDecClose(hDecoder);
--                    mp4ff_close(infile);
--                    free(mp4cb);
--                    fclose(mp4File);
-                     return 0;
-                 }
-             }
-@@ -973,7 +951,7 @@
-         if (percent > old_percent)
-         {
-             old_percent = percent;
--            sprintf(percents, "%d%% decoding %s.", percent, mp4file);
-+            sprintf(percents, "%d%% decoding.", percent);
-             faad_fprintf(stderr, "%s\r", percents);
- #ifdef _WIN32
-             SetConsoleTitle(percents);
-@@ -1000,17 +978,209 @@
-         fclose(adtsFile);
-     }
- 
--    mp4ff_close(infile);
--
-     if (!first_time && !adts_out)
-         close_audio_file(aufile);
- 
--    free(mp4cb);
--    fclose(mp4File);
--
-     return frameInfo.error;
- }
- 
-+static int GetALACTrack(mp4ff_t *infile)
-+{
-+    /* find ALAC track */
-+    int i, rc;
-+    int numTracks = mp4ff_total_tracks(infile);
-+
-+    for (i = 0; i < numTracks; i++)
-+    {
-+        if (mp4ff_get_track_type(infile, i) == TRACK_AUDIO_ALAC)
-+        	return i;
-+    }
-+
-+    /* can't decode this */
-+    return -1;
-+}
-+
-+#ifdef WITH_ALAC
-+
-+extern struct alac_file *alac_init(int * samplesize, int numchannels, unsigned long *samplerate, const char *config);
-+extern unsigned long alac_decode_frame(struct alac_file *alac,
-+        unsigned char *inbuffer,
-+        void *outbuffer, int *outputsize);
-+
-+static int decodeMP4fileALAC(mp4ff_t *infile, char *sndfile, int to_stdout,
-+                  int fileType, int downMatrix,
-+                  int infoOnly, float *song_length, float seek_to)
-+{
-+    int track;
-+    unsigned long samplerate;
-+    unsigned char channels;
-+    unsigned long timescale;
-+    int samplesize;
-+    int outputFormat;
-+    char sample_buffer[100*1024];
-+
-+    long sampleId, numSamples, startSampleId;
-+
-+    audio_file *aufile;
-+    struct alac_file *alac;
-+
-+    unsigned char *buffer;
-+    int buffer_size;
-+
-+    char percents[200];
-+    int percent, old_percent = -1;
-+
-+    if ((track = GetALACTrack(infile)) < 0)
-+    {
-+        faad_fprintf(stderr, "Unable to find correct ALAC sound track in the MP4 file.\n");
-+        return 1;
-+    }
-+
-+    samplerate = mp4ff_get_sample_rate(infile, track);	/* quite possibly garbage */
-+    channels   = mp4ff_get_channel_count(infile, track);
-+    timescale  = mp4ff_time_scale(infile, track);
-+    samplesize = mp4ff_get_sample_size(infile, track);
-+
-+    buffer = NULL;
-+    buffer_size = 0;
-+    mp4ff_get_decoder_config(infile, track, &buffer, &buffer_size);
-+
-+    alac = alac_init(&samplesize, channels, &samplerate, buffer); /* updates samplesize & samplerate from codec config */
-+    if (buffer)
-+        free(buffer);
-+
-+    switch (samplesize) {
-+
-+    case 16:
-+    	outputFormat = FAAD_FMT_16BIT;
-+    	break;
-+    case 24:
-+    	outputFormat = FAAD_FMT_24BIT;
-+    	break;
-+    case 32:
-+    	outputFormat = FAAD_FMT_32BIT;
-+    	break;
-+    default:
-+        faad_fprintf(stderr, "Unsupported sample size %d for ALAC file\n", samplesize);
-+        return 1;
-+    }
-+
-+    /* print some mp4 file info */
-+    faad_fprintf(stderr, "file info:\n\n");
-+    {
-+        char *tag = NULL, *item = NULL;
-+        int k, j;
-+        long samples = mp4ff_num_samples(infile, track);
-+        float f = 1024.0;
-+        float seconds;
-+
-+        seconds = (float)mp4ff_get_track_duration(infile, track)/(float)samplerate;
-+
-+        *song_length = seconds;
-+
-+        faad_fprintf(stderr, "%.3f secs, %d ch, samplerate=%ld, timescale=%ld\n\n",
-+            seconds, channels, samplerate, timescale);
-+
-+#define PRINT_MP4_METADATA
-+#ifdef PRINT_MP4_METADATA
-+        j = mp4ff_meta_get_num_items(infile);
-+        for (k = 0; k < j; k++)
-+        {
-+            if (mp4ff_meta_get_by_index(infile, k, &item, &tag))
-+            {
-+                if (item != NULL && tag != NULL)
-+                {
-+                    faad_fprintf(stderr, "%s: %s\n", item, tag);
-+                    free(item); item = NULL;
-+                    free(tag); tag = NULL;
-+                }
-+            }
-+        }
-+        if (j > 0) faad_fprintf(stderr, "\n");
-+#endif
-+    }
-+
-+    if (infoOnly)
-+        return 0;
-+
-+    /* open the sound file now that the number of channels are known */
-+	if(!to_stdout)
-+	{
-+		aufile = open_audio_file(sndfile, samplerate, channels,
-+			outputFormat, fileType, 0, mp4ff_get_track_duration(infile, track) * channels);
-+	} else {
-+#ifdef _WIN32
-+		setmode(fileno(stdout), O_BINARY);
-+#endif
-+		aufile = open_audio_file("-", samplerate, channels,
-+			outputFormat, fileType, 0, mp4ff_get_track_duration(infile, track) * channels);
-+	}
-+	if (aufile == NULL)
-+		return 0;
-+
-+    numSamples = mp4ff_num_samples(infile, track);
-+
-+    startSampleId = 0;
-+    if (seek_to > 0.1) {
-+    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
-+    	if (sample > 0 && sample < numSamples)
-+			startSampleId = sample;
-+    }
-+
-+    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
-+    {
-+        int rc;
-+        long dur;
-+        long sample_count;
-+        unsigned int delay = 0;
-+        int output_len;
-+
-+        /* get acces unit from MP4 file */
-+        buffer = NULL;
-+        buffer_size = 0;
-+
-+        dur = mp4ff_get_sample_duration(infile, track, sampleId);
-+        rc = mp4ff_read_sample(infile, track, sampleId, &buffer,  &buffer_size);
-+        if (rc == 0)
-+        {
-+            faad_fprintf(stderr, "Reading from MP4 file failed.\n");
-+            close_audio_file(aufile);
-+            return 1;
-+        }
-+
-+        output_len = sizeof sample_buffer;
-+        sample_count = alac_decode_frame(alac, buffer, sample_buffer, &output_len);
-+
-+        if (buffer) free(buffer);
-+
-+        percent = min((int)(sampleId*100)/numSamples, 100);
-+        if (percent > old_percent)
-+        {
-+            old_percent = percent;
-+            sprintf(percents, "%d%% decoding.", percent);
-+            faad_fprintf(stderr, "%s\r", percents);
-+#ifdef _WIN32
-+            SetConsoleTitle(percents);
-+#endif
-+        }
-+
-+        if (sample_count > 0)
-+        {
-+            if (write_audio_file_raw(aufile, sample_buffer, sample_count, delay) == 0)
-+                break;
-+        }
-+
-+        if (sample_count < 0)
-+        	break;
-+    }
-+
-+    close_audio_file(aufile);
-+
-+    return !(sampleId > startSampleId);
-+}
-+
-+#endif /* WITH_ALAC */
-+
- int main(int argc, char *argv[])
- {
-     int result;
-@@ -1021,6 +1191,7 @@
-     int downMatrix = 0;
-     int format = 1;
-     int outputFormat = FAAD_FMT_16BIT;
-+    int outputFormatSet = 0;
-     int outfile_set = 0;
-     int adts_out = 0;
-     int old_format = 0;
-@@ -1031,6 +1202,7 @@
-     char aacFileName[255];
-     char audioFileName[255];
-     char adtsFileName[255];
-+    float seekTo = 0;
-     unsigned char header[8];
-     float length = 0;
-     FILE *hMP4File;
-@@ -1063,11 +1235,12 @@
-             { "info",       0, 0, 'i' },
-             { "stdio",      0, 0, 'w' },
-             { "stdio",      0, 0, 'g' },
-+            { "seek",       1, 0, 'j' },
-             { "help",       0, 0, 'h' },
-             { 0, 0, 0, 0 }
-         };
- 
--        c = getopt_long(argc, argv, "o:a:s:f:b:l:wgdhitq",
-+        c = getopt_long(argc, argv, "o:a:s:f:b:l:j:wgdhitq",
-             long_options, &option_index);
- 
-         if (c == -1)
-@@ -1124,6 +1297,7 @@
-                     outputFormat = atoi(dr);
-                     if ((outputFormat < 1) || (outputFormat > 5))
-                         showHelp = 1;
-+                    outputFormatSet = 1;
-                 }
-             }
-             break;
-@@ -1146,6 +1320,12 @@
-                 }
-             }
-             break;
-+        case 'j':
-+            if (optarg)
-+            {
-+            	seekTo = atof(optarg);
-+            }
-+            break;
-         case 't':
-             old_format = 1;
-             break;
-@@ -1167,7 +1347,7 @@
-         case 'q':
-             quiet = 1;
-             break;
--        default:
-+         default:
-             break;
-         }
-     }
-@@ -1241,10 +1421,78 @@
-     if (header[4] == 'f' && header[5] == 't' && header[6] == 'y' && header[7] == 'p')
-         mp4file = 1;
- 
-+    if (!mp4file && seekTo != 0) {
-+    	faad_fprintf(stderr, "Warning: can only seek in MP4 files");
-+    }
-+
-     if (mp4file)
-     {
--        result = decodeMP4file(aacFileName, audioFileName, adtsFileName, writeToStdio,
--            outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length);
-+    	mp4ff_t *infile;
-+    	FILE *mp4File;
-+
-+    	if (def_srate)
-+        {
-+            faad_fprintf(stderr, "Cannot resample MP4 file %s\n", aacFileName);
-+            return 1;
-+        }
-+
-+        /* initialise the callback structure */
-+        mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
-+
-+        mp4File = fopen(aacFileName	, "rb");
-+        mp4cb->read = read_callback;
-+        mp4cb->seek = seek_callback;
-+        mp4cb->user_data = mp4File;
-+
-+        infile = mp4ff_open_read(mp4cb);
-+        if (!infile)
-+        {
-+            /* unable to open file */
-+            faad_fprintf(stderr, "Error opening file: %s\n", mp4file);
-+            free(mp4cb);
-+            fclose(mp4File);
-+            return 1;
-+        }
-+
-+        if (GetALACTrack(infile) < 0) {
-+			result = decodeMP4fileAAC(infile, audioFileName, adtsFileName, writeToStdio,
-+				outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length, seekTo);
-+        } else {
-+
-+#ifdef WITH_ALAC
-+            if (adts_out)
-+            {
-+                faad_fprintf(stderr, "Cannot output ADTS format from ALAC file %s\n", aacFileName);
-+                mp4ff_close(infile);
-+                free(mp4cb);
-+                fclose(mp4File);
-+				return 1;
-+            }
-+
-+            if (outputFormatSet)
-+            {
-+                faad_fprintf(stderr, "Cannot specify output format for ALAC file %s\n", aacFileName);
-+                mp4ff_close(infile);
-+                free(mp4cb);
-+                fclose(mp4File);
-+				return 1;
-+            }
-+
-+           	result = decodeMP4fileALAC(infile, audioFileName, writeToStdio,
-+                    format, downMatrix, infoOnly, &length, seekTo);
-+#else
-+            faad_fprintf(stderr, "Unsupported ALAC file %s\n", aacFileName);
-+            mp4ff_close(infile);
-+            free(mp4cb);
-+            fclose(mp4File);
-+			return 1;
-+#endif
-+        }
-+
-+        mp4ff_close(infile);
-+        free(mp4cb);
-+        fclose(mp4File);
-+
-     } else {
-         result = decodeAACfile(aacFileName, audioFileName, adtsFileName, writeToStdio,
-             def_srate, object_type, outputFormat, format, downMatrix, infoOnly, adts_out,
-diff -ru /home/awy/Download/faad2-2.7/frontend/Makefile.in ./frontend/Makefile.in
---- /home/awy/Download/faad2-2.7/frontend/Makefile.in	2009-02-10 09:36:11.000000000 +0100
-+++ ./frontend/Makefile.in	2010-02-08 14:20:08.027758461 +0100
+diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
+--- faad2-2.7/frontend/Makefile.in	2009-02-10 03:36:11.000000000 -0500
++++ faad2-2.7-patched/frontend/Makefile.in	2010-02-08 09:07:12.000000000 -0500
 @@ -49,7 +49,7 @@
  am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(manmdir)"
  binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -815,9 +184,9 @@ diff -ru /home/awy/Download/faad2-2.7/frontend/Makefile.in ./frontend/Makefile.i
  
  .c.o:
  @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-diff -u -N /home/awy/Download/faad2-2.7/frontend/alac.c ./frontend/alac.c
---- /home/awy/Download/faad2-2.7/frontend/alac.c	1970-01-01 01:00:00.000000000 +0100
-+++ ./frontend/alac.c	2010-02-08 11:55:18.393758179 +0100
+diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
+--- faad2-2.7/frontend/alac.c	1969-12-31 19:00:00.000000000 -0500
++++ faad2-2.7-patched/frontend/alac.c	2010-02-08 09:07:12.000000000 -0500
 @@ -0,0 +1,1176 @@
 +/*
 + * ALAC (Apple Lossless Audio Codec) decoder
@@ -1995,3 +1364,653 @@ diff -u -N /home/awy/Download/faad2-2.7/frontend/alac.c ./frontend/alac.c
 +    return newfile;
 +}
 +
+diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
+--- faad2-2.7/frontend/audio.c	2008-09-19 18:50:17.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.c	2010-02-08 09:07:12.000000000 -0500
+@@ -40,7 +40,7 @@
+ 
+ 
+ audio_file *open_audio_file(char *infile, int samplerate, int channels,
+-                            int outputFormat, int fileType, long channelMask)
++                            int outputFormat, int fileType, long channelMask, unsigned long expectedSamples)
+ {
+     audio_file *aufile = malloc(sizeof(audio_file));
+ 
+@@ -48,7 +48,7 @@
+ 
+     aufile->samplerate = samplerate;
+     aufile->channels = channels;
+-    aufile->total_samples = 0;
++    aufile->total_samples = expectedSamples;
+     aufile->fileType = fileType;
+     aufile->channelMask = channelMask;
+ 
+@@ -95,6 +95,8 @@
+             write_wav_header(aufile);
+     }
+ 
++    aufile->total_samples = 0;
++
+     return aufile;
+ }
+ 
+@@ -118,6 +120,15 @@
+     return 0;
+ }
+ 
++int write_audio_file_raw(audio_file *aufile, void *sample_buffer,
++                             unsigned int samples)
++{
++    aufile->total_samples += samples;
++
++    return fwrite(sample_buffer, samples, aufile->bits_per_sample/8, aufile->sndfile);
++}
++
++
+ void close_audio_file(audio_file *aufile)
+ {
+     if ((aufile->fileType == OUTPUT_WAV) && (aufile->toStdio == 0))
+@@ -141,12 +152,12 @@
+     unsigned char header[44];
+     unsigned char* p = header;
+     unsigned int bytes = (aufile->bits_per_sample + 7) / 8;
+-    float data_size = (float)bytes * aufile->total_samples;
++    double data_size = (double)bytes * aufile->total_samples;
+     unsigned long word32;
+ 
+     *p++ = 'R'; *p++ = 'I'; *p++ = 'F'; *p++ = 'F';
+ 
+-    word32 = (data_size + (44 - 8) < (float)MAXWAVESIZE) ?
++    word32 = (data_size + (44 - 8) < (double)MAXWAVESIZE) ?
+         (unsigned long)data_size + (44 - 8)  :  (unsigned long)MAXWAVESIZE;
+     *p++ = (unsigned char)(word32 >>  0);
+     *p++ = (unsigned char)(word32 >>  8);
+diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
+--- faad2-2.7/frontend/audio.h	2007-11-01 08:33:29.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.h	2010-02-08 09:07:12.000000000 -0500
+@@ -54,8 +54,9 @@
+ } audio_file;
+ 
+ audio_file *open_audio_file(char *infile, int samplerate, int channels,
+-                            int outputFormat, int fileType, long channelMask);
++                            int outputFormat, int fileType, long channelMask, unsigned long expectedSamples);
+ int write_audio_file(audio_file *aufile, void *sample_buffer, int samples, int offset);
++int write_audio_file_rawS(audio_file *aufile, void *sample_buffer, int samples, int offset);
+ void close_audio_file(audio_file *aufile);
+ static int write_wav_header(audio_file *aufile);
+ static int write_wav_extensible_header(audio_file *aufile, long channelMask);
+diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
+--- faad2-2.7/frontend/main.c	2008-09-22 13:55:09.000000000 -0400
++++ faad2-2.7-patched/frontend/main.c	2010-02-08 09:07:12.000000000 -0500
+@@ -36,6 +36,8 @@
+ #include <time.h>
+ #endif
+ 
++#define WITH_ALAC
++
+ #include <fcntl.h>
+ #include <stdio.h>
+ #include <stdarg.h>
+@@ -55,7 +57,6 @@
+ #define MAX_CHANNELS 6 /* make this higher to support files with
+                           more channels */
+ 
+-
+ static int quiet = 0;
+ 
+ static void faad_fprintf(FILE *stream, const char *fmt, ...)
+@@ -387,6 +388,7 @@
+     faad_fprintf(stdout, " -w    Write output to stdio instead of a file.\n");
+     faad_fprintf(stdout, " -g    Disable gapless decoding.\n");
+     faad_fprintf(stdout, " -q    Quiet - suppresses status messages.\n");
++    faad_fprintf(stdout, " -j X  Jump - start output X seconds into track (MP4 files only).\n");
+     faad_fprintf(stdout, "Example:\n");
+     faad_fprintf(stdout, "       %s infile.aac\n", progName);
+     faad_fprintf(stdout, "       %s infile.mp4\n", progName);
+@@ -611,10 +613,10 @@
+                 if (!to_stdout)
+                 {
+                     aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
+-                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
++                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo), 0);
+                 } else {
+                     aufile = open_audio_file("-", frameInfo.samplerate, frameInfo.channels,
+-                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
++                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo), 0);
+                 }
+                 if (aufile == NULL)
+                 {
+@@ -702,27 +704,27 @@
+     return -1;
+ }
+ 
++
++
+ static const unsigned long srates[] =
+ {
+     96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000,
+     12000, 11025, 8000
+ };
+ 
+-static int decodeMP4file(char *mp4file, char *sndfile, char *adts_fn, int to_stdout,
++static int decodeMP4fileAAC(mp4ff_t *infile, char *sndfile, char *adts_fn, int to_stdout,
+                   int outputFormat, int fileType, int downMatrix, int noGapless,
+-                  int infoOnly, int adts_out, float *song_length)
++                  int infoOnly, int adts_out, float *song_length, float seek_to)
+ {
+     int track;
+     unsigned long samplerate;
+     unsigned char channels;
+     void *sample_buffer;
+ 
+-    mp4ff_t *infile;
+-    long sampleId, numSamples;
++    long sampleId, numSamples, startSampleId;
+ 
+     audio_file *aufile;
+ 
+-    FILE *mp4File;
+     FILE *adtsFile;
+     unsigned char *adtsData;
+     int adtsDataSize;
+@@ -746,16 +748,6 @@
+     unsigned int framesize;
+     unsigned long timescale;
+ 
+-
+-    /* initialise the callback structure */
+-    mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
+-
+-    mp4File = fopen(mp4file, "rb");
+-    mp4cb->read = read_callback;
+-    mp4cb->seek = seek_callback;
+-    mp4cb->user_data = mp4File;
+-
+-
+     hDecoder = NeAACDecOpen();
+ 
+     /* Set configuration */
+@@ -775,21 +767,10 @@
+         }
+     }
+ 
+-    infile = mp4ff_open_read(mp4cb);
+-    if (!infile)
+-    {
+-        /* unable to open file */
+-        faad_fprintf(stderr, "Error opening file: %s\n", mp4file);
+-        return 1;
+-    }
+-
+     if ((track = GetAACTrack(infile)) < 0)
+     {
+         faad_fprintf(stderr, "Unable to find correct AAC sound track in the MP4 file.\n");
+         NeAACDecClose(hDecoder);
+-        mp4ff_close(infile);
+-        free(mp4cb);
+-        fclose(mp4File);
+         return 1;
+     }
+ 
+@@ -803,9 +784,6 @@
+         /* If some error initializing occured, skip the file */
+         faad_fprintf(stderr, "Error initializing decoder library.\n");
+         NeAACDecClose(hDecoder);
+-        mp4ff_close(infile);
+-        free(mp4cb);
+-        fclose(mp4File);
+         return 1;
+     }
+ 
+@@ -824,7 +802,7 @@
+     }
+ 
+     /* print some mp4 file info */
+-    faad_fprintf(stderr, "%s file info:\n\n", mp4file);
++    faad_fprintf(stderr, "file info:\n\n");
+     {
+         char *tag = NULL, *item = NULL;
+         int k, j;
+@@ -865,15 +843,19 @@
+     if (infoOnly)
+     {
+         NeAACDecClose(hDecoder);
+-        mp4ff_close(infile);
+-        free(mp4cb);
+-        fclose(mp4File);
+         return 0;
+     }
+ 
+     numSamples = mp4ff_num_samples(infile, track);
+ 
+-    for (sampleId = 0; sampleId < numSamples; sampleId++)
++    startSampleId = 0;
++    if (seek_to > 0.1) {
++    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
++    	if (sample > 0 && sample < numSamples)
++			startSampleId = sample;
++    }
++
++    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
+     {
+         int rc;
+         long dur;
+@@ -890,9 +872,6 @@
+         {
+             faad_fprintf(stderr, "Reading from MP4 file failed.\n");
+             NeAACDecClose(hDecoder);
+-            mp4ff_close(infile);
+-            free(mp4cb);
+-            fclose(mp4File);
+             return 1;
+         }
+ 
+@@ -947,20 +926,19 @@
+                 if(!to_stdout)
+                 {
+                     aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
+-                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
++                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo),
++                        mp4ff_get_track_duration(infile, track) * channels);
+                 } else {
+ #ifdef _WIN32
+                     setmode(fileno(stdout), O_BINARY);
+ #endif
+                     aufile = open_audio_file("-", frameInfo.samplerate, frameInfo.channels,
+-                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo));
++                        outputFormat, fileType, aacChannelConfig2wavexChannelMask(&frameInfo),
++                        mp4ff_get_track_duration(infile, track) * channels);
+                 }
+                 if (aufile == NULL)
+                 {
+                     NeAACDecClose(hDecoder);
+-                    mp4ff_close(infile);
+-                    free(mp4cb);
+-                    fclose(mp4File);
+                     return 0;
+                 }
+             }
+@@ -973,7 +951,7 @@
+         if (percent > old_percent)
+         {
+             old_percent = percent;
+-            sprintf(percents, "%d%% decoding %s.", percent, mp4file);
++            sprintf(percents, "%d%% decoding.", percent);
+             faad_fprintf(stderr, "%s\r", percents);
+ #ifdef _WIN32
+             SetConsoleTitle(percents);
+@@ -1000,17 +978,209 @@
+         fclose(adtsFile);
+     }
+ 
+-    mp4ff_close(infile);
+-
+     if (!first_time && !adts_out)
+         close_audio_file(aufile);
+ 
+-    free(mp4cb);
+-    fclose(mp4File);
+-
+     return frameInfo.error;
+ }
+ 
++static int GetALACTrack(mp4ff_t *infile)
++{
++    /* find ALAC track */
++    int i, rc;
++    int numTracks = mp4ff_total_tracks(infile);
++
++    for (i = 0; i < numTracks; i++)
++    {
++        if (mp4ff_get_track_type(infile, i) == TRACK_AUDIO_ALAC)
++        	return i;
++    }
++
++    /* can't decode this */
++    return -1;
++}
++
++#ifdef WITH_ALAC
++
++extern struct alac_file *alac_init(int * samplesize, int numchannels, unsigned long *samplerate, const char *config);
++extern unsigned long alac_decode_frame(struct alac_file *alac,
++        unsigned char *inbuffer,
++        void *outbuffer, int *outputsize);
++
++static int decodeMP4fileALAC(mp4ff_t *infile, char *sndfile, int to_stdout,
++                  int fileType, int downMatrix,
++                  int infoOnly, float *song_length, float seek_to)
++{
++    int track;
++    unsigned long samplerate;
++    unsigned char channels;
++    unsigned long timescale;
++    int samplesize;
++    int outputFormat;
++    char sample_buffer[100*1024];
++
++    long sampleId, numSamples, startSampleId;
++
++    audio_file *aufile;
++    struct alac_file *alac;
++
++    unsigned char *buffer;
++    int buffer_size;
++
++    char percents[200];
++    int percent, old_percent = -1;
++
++    if ((track = GetALACTrack(infile)) < 0)
++    {
++        faad_fprintf(stderr, "Unable to find correct ALAC sound track in the MP4 file.\n");
++        return 1;
++    }
++
++    samplerate = mp4ff_get_sample_rate(infile, track);	/* quite possibly garbage */
++    channels   = mp4ff_get_channel_count(infile, track);
++    timescale  = mp4ff_time_scale(infile, track);
++    samplesize = mp4ff_get_sample_size(infile, track);
++
++    buffer = NULL;
++    buffer_size = 0;
++    mp4ff_get_decoder_config(infile, track, &buffer, &buffer_size);
++
++    alac = alac_init(&samplesize, channels, &samplerate, buffer); /* updates samplesize & samplerate from codec config */
++    if (buffer)
++        free(buffer);
++
++    switch (samplesize) {
++
++    case 16:
++    	outputFormat = FAAD_FMT_16BIT;
++    	break;
++    case 24:
++    	outputFormat = FAAD_FMT_24BIT;
++    	break;
++    case 32:
++    	outputFormat = FAAD_FMT_32BIT;
++    	break;
++    default:
++        faad_fprintf(stderr, "Unsupported sample size %d for ALAC file\n", samplesize);
++        return 1;
++    }
++
++    /* print some mp4 file info */
++    faad_fprintf(stderr, "file info:\n\n");
++    {
++        char *tag = NULL, *item = NULL;
++        int k, j;
++        long samples = mp4ff_num_samples(infile, track);
++        float f = 1024.0;
++        float seconds;
++
++        seconds = (float)mp4ff_get_track_duration(infile, track)/(float)samplerate;
++
++        *song_length = seconds;
++
++        faad_fprintf(stderr, "%.3f secs, %d ch, samplerate=%ld, timescale=%ld\n\n",
++            seconds, channels, samplerate, timescale);
++
++#define PRINT_MP4_METADATA
++#ifdef PRINT_MP4_METADATA
++        j = mp4ff_meta_get_num_items(infile);
++        for (k = 0; k < j; k++)
++        {
++            if (mp4ff_meta_get_by_index(infile, k, &item, &tag))
++            {
++                if (item != NULL && tag != NULL)
++                {
++                    faad_fprintf(stderr, "%s: %s\n", item, tag);
++                    free(item); item = NULL;
++                    free(tag); tag = NULL;
++                }
++            }
++        }
++        if (j > 0) faad_fprintf(stderr, "\n");
++#endif
++    }
++
++    if (infoOnly)
++        return 0;
++
++    /* open the sound file now that the number of channels are known */
++	if(!to_stdout)
++	{
++		aufile = open_audio_file(sndfile, samplerate, channels,
++			outputFormat, fileType, 0, mp4ff_get_track_duration(infile, track) * channels);
++	} else {
++#ifdef _WIN32
++		setmode(fileno(stdout), O_BINARY);
++#endif
++		aufile = open_audio_file("-", samplerate, channels,
++			outputFormat, fileType, 0, mp4ff_get_track_duration(infile, track) * channels);
++	}
++	if (aufile == NULL)
++		return 0;
++
++    numSamples = mp4ff_num_samples(infile, track);
++
++    startSampleId = 0;
++    if (seek_to > 0.1) {
++    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
++    	if (sample > 0 && sample < numSamples)
++			startSampleId = sample;
++    }
++
++    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
++    {
++        int rc;
++        long dur;
++        long sample_count;
++        unsigned int delay = 0;
++        int output_len;
++
++        /* get acces unit from MP4 file */
++        buffer = NULL;
++        buffer_size = 0;
++
++        dur = mp4ff_get_sample_duration(infile, track, sampleId);
++        rc = mp4ff_read_sample(infile, track, sampleId, &buffer,  &buffer_size);
++        if (rc == 0)
++        {
++            faad_fprintf(stderr, "Reading from MP4 file failed.\n");
++            close_audio_file(aufile);
++            return 1;
++        }
++
++        output_len = sizeof sample_buffer;
++        sample_count = alac_decode_frame(alac, buffer, sample_buffer, &output_len);
++
++        if (buffer) free(buffer);
++
++        percent = min((int)(sampleId*100)/numSamples, 100);
++        if (percent > old_percent)
++        {
++            old_percent = percent;
++            sprintf(percents, "%d%% decoding.", percent);
++            faad_fprintf(stderr, "%s\r", percents);
++#ifdef _WIN32
++            SetConsoleTitle(percents);
++#endif
++        }
++
++        if (sample_count > 0)
++        {
++            if (write_audio_file_raw(aufile, sample_buffer, sample_count, delay) == 0)
++                break;
++        }
++
++        if (sample_count < 0)
++        	break;
++    }
++
++    close_audio_file(aufile);
++
++    return !(sampleId > startSampleId);
++}
++
++#endif /* WITH_ALAC */
++
+ int main(int argc, char *argv[])
+ {
+     int result;
+@@ -1021,6 +1191,7 @@
+     int downMatrix = 0;
+     int format = 1;
+     int outputFormat = FAAD_FMT_16BIT;
++    int outputFormatSet = 0;
+     int outfile_set = 0;
+     int adts_out = 0;
+     int old_format = 0;
+@@ -1031,6 +1202,7 @@
+     char aacFileName[255];
+     char audioFileName[255];
+     char adtsFileName[255];
++    float seekTo = 0;
+     unsigned char header[8];
+     float length = 0;
+     FILE *hMP4File;
+@@ -1063,11 +1235,12 @@
+             { "info",       0, 0, 'i' },
+             { "stdio",      0, 0, 'w' },
+             { "stdio",      0, 0, 'g' },
++            { "seek",       1, 0, 'j' },
+             { "help",       0, 0, 'h' },
+             { 0, 0, 0, 0 }
+         };
+ 
+-        c = getopt_long(argc, argv, "o:a:s:f:b:l:wgdhitq",
++        c = getopt_long(argc, argv, "o:a:s:f:b:l:j:wgdhitq",
+             long_options, &option_index);
+ 
+         if (c == -1)
+@@ -1124,6 +1297,7 @@
+                     outputFormat = atoi(dr);
+                     if ((outputFormat < 1) || (outputFormat > 5))
+                         showHelp = 1;
++                    outputFormatSet = 1;
+                 }
+             }
+             break;
+@@ -1146,6 +1320,12 @@
+                 }
+             }
+             break;
++        case 'j':
++            if (optarg)
++            {
++            	seekTo = atof(optarg);
++            }
++            break;
+         case 't':
+             old_format = 1;
+             break;
+@@ -1167,7 +1347,7 @@
+         case 'q':
+             quiet = 1;
+             break;
+-        default:
++         default:
+             break;
+         }
+     }
+@@ -1241,10 +1421,78 @@
+     if (header[4] == 'f' && header[5] == 't' && header[6] == 'y' && header[7] == 'p')
+         mp4file = 1;
+ 
++    if (!mp4file && seekTo != 0) {
++    	faad_fprintf(stderr, "Warning: can only seek in MP4 files");
++    }
++
+     if (mp4file)
+     {
+-        result = decodeMP4file(aacFileName, audioFileName, adtsFileName, writeToStdio,
+-            outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length);
++    	mp4ff_t *infile;
++    	FILE *mp4File;
++
++    	if (def_srate)
++        {
++            faad_fprintf(stderr, "Cannot resample MP4 file %s\n", aacFileName);
++            return 1;
++        }
++
++        /* initialise the callback structure */
++        mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
++
++        mp4File = fopen(aacFileName	, "rb");
++        mp4cb->read = read_callback;
++        mp4cb->seek = seek_callback;
++        mp4cb->user_data = mp4File;
++
++        infile = mp4ff_open_read(mp4cb);
++        if (!infile)
++        {
++            /* unable to open file */
++            faad_fprintf(stderr, "Error opening file: %s\n", mp4file);
++            free(mp4cb);
++            fclose(mp4File);
++            return 1;
++        }
++
++        if (GetALACTrack(infile) < 0) {
++			result = decodeMP4fileAAC(infile, audioFileName, adtsFileName, writeToStdio,
++				outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length, seekTo);
++        } else {
++
++#ifdef WITH_ALAC
++            if (adts_out)
++            {
++                faad_fprintf(stderr, "Cannot output ADTS format from ALAC file %s\n", aacFileName);
++                mp4ff_close(infile);
++                free(mp4cb);
++                fclose(mp4File);
++				return 1;
++            }
++
++            if (outputFormatSet)
++            {
++                faad_fprintf(stderr, "Cannot specify output format for ALAC file %s\n", aacFileName);
++                mp4ff_close(infile);
++                free(mp4cb);
++                fclose(mp4File);
++				return 1;
++            }
++
++           	result = decodeMP4fileALAC(infile, audioFileName, writeToStdio,
++                    format, downMatrix, infoOnly, &length, seekTo);
++#else
++            faad_fprintf(stderr, "Unsupported ALAC file %s\n", aacFileName);
++            mp4ff_close(infile);
++            free(mp4cb);
++            fclose(mp4File);
++			return 1;
++#endif
++        }
++
++        mp4ff_close(infile);
++        free(mp4cb);
++        fclose(mp4File);
++
+     } else {
+         result = decodeAACfile(aacFileName, audioFileName, adtsFileName, writeToStdio,
+             def_srate, object_type, outputFormat, format, downMatrix, infoOnly, adts_out,
+diff -urN faad2-2.7/frontend/stdint_win.h faad2-2.7-patched/frontend/stdint_win.h
+--- faad2-2.7/frontend/stdint_win.h	1969-12-31 19:00:00.000000000 -0500
++++ faad2-2.7-patched/frontend/stdint_win.h	2010-02-08 09:10:00.000000000 -0500
+@@ -0,0 +1,14 @@
++
++#ifndef ALAC_STDINT_WIN_H__
++#define ALAC_STDINT_WIN_H__
++
++typedef signed char         int8_t;
++typedef signed short        int16_t;
++typedef signed int          int32_t;
++typedef signed __int64      int64_t;
++typedef unsigned char       uint8_t;
++typedef unsigned short      uint16_t;
++typedef unsigned int        uint32_t;
++typedef unsigned __int64    uint64_t;
++
++#endif // ALAC_STDINT_WIN_H__
+\ No newline at end of file
