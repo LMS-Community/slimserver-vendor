@@ -1441,7 +1441,7 @@ diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
  static int write_wav_extensible_header(audio_file *aufile, long channelMask);
 diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 --- faad2-2.7/frontend/main.c	2008-09-22 13:55:09.000000000 -0400
-+++ faad2-2.7-patched/frontend/main.c	2010-02-08 09:07:12.000000000 -0500
++++ faad2-2.7-patched/frontend/main.c	2010-02-08 09:25:48.000000000 -0500
 @@ -36,6 +36,8 @@
  #include <time.h>
  #endif
@@ -1914,7 +1914,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              break;
          }
      }
-@@ -1241,10 +1421,78 @@
+@@ -1241,10 +1421,79 @@
      if (header[4] == 'f' && header[5] == 't' && header[6] == 'y' && header[7] == 'p')
          mp4file = 1;
  
@@ -1928,6 +1928,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 -            outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length);
 +    	mp4ff_t *infile;
 +    	FILE *mp4File;
++	mp4ff_callback_t *mp4cb;
 +
 +    	if (def_srate)
 +        {
@@ -1936,7 +1937,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +        }
 +
 +        /* initialise the callback structure */
-+        mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
++        mp4cb = malloc(sizeof(mp4ff_callback_t));
 +
 +        mp4File = fopen(aacFileName	, "rb");
 +        mp4cb->read = read_callback;
