@@ -180,18 +180,6 @@
  
      if (!first_time && !adts_out)
          close_audio_file(aufile);
-@@ -750,6 +823,11 @@
-     /* initialise the callback structure */
-     mp4ff_callback_t *mp4cb = malloc(sizeof(mp4ff_callback_t));
- 
-+    if (strcmp(mp4file, "-") == 0 ) {
-+        faad_fprintf(stderr, "Cannot open stdin for MP4 input \n");
-+        return 1;
-+    }
-+
-     mp4File = fopen(mp4file, "rb");
-     mp4cb->read = read_callback;
-     mp4cb->seek = seek_callback;
 @@ -1016,6 +1094,7 @@
      int result;
      int infoOnly = 0;
