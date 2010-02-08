@@ -24,7 +24,7 @@ echo "Untarring..."
 tar zxvf faad2-$FAAD.tar.gz >> $LOG
 cd faad2-$FAAD >> $LOG
 patch -p0 < ../sc.patch >> $LOG
-patch -p0 < ../seeking+alac.patch >> $LOG
+patch -p1 < ../seeking+alac.patch >> $LOG
 patch -p0 < ../bpa-stdin.patch >> $LOG
 echo "Configuring..."
 ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --without-xmms --without-drm --without-mpeg4ip --disable-shared --disable-dependency-tracking >> $LOG
