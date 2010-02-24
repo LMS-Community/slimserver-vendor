@@ -238,7 +238,7 @@ function build {
             ;;
         
         Audio::Scan)
-            build_module Audio-Scan-0.59
+            build_module Audio-Scan-0.61
             ;;
         
         Template)
