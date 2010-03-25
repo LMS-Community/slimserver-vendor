@@ -230,7 +230,11 @@ function build {
             
             tar zxvf EV-3.8.tar.gz
             cd EV-3.8
-            patch -p0 < ../EV-pthread.patch # patch to disable pthreads
+            if [ $OS = "Darwin" ]; then
+                if [ $PERL_58 ]; then
+                    patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
+                fi
+            fi
             cp -R ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8

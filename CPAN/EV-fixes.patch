@@ -1,5 +1,5 @@
---- EV-orig.xs	2010-03-24 21:09:43.000000000 -0400
-+++ EV.xs	2010-03-24 21:06:28.000000000 -0400
+--- EV-orig.xs	2010-03-25 11:11:29.000000000 -0400
++++ EV.xs	2010-03-25 11:12:18.000000000 -0400
 @@ -30,7 +30,8 @@
  #include "libev/ev.c"
  
@@ -10,7 +10,17 @@
  #endif
  
  #define e_loop(w) INT2PTR (struct ev_loop *, SvIVX ((w)->loop))
-@@ -485,7 +486,7 @@
+@@ -168,7 +169,8 @@
+     {
+       rv = newRV_noinc (w->self);
+       sv_bless (rv, stash);
+-      SvREADONLY_on (w->self);
++      // this conflicts with weaken under perl 5.8.1, seems safe to comment it out
++      //SvREADONLY_on (w->self);
+     }
+ 
+   return rv;
+@@ -485,7 +487,7 @@
      SvREADONLY_on (sv);
    }
  #ifndef _WIN32
@@ -19,3 +29,4 @@
  #endif
  }
  
+
