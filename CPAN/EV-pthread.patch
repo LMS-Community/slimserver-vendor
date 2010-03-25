@@ -1,0 +1,21 @@
+--- EV-orig.xs	2010-03-24 21:09:43.000000000 -0400
++++ EV.xs	2010-03-24 21:06:28.000000000 -0400
+@@ -30,7 +30,8 @@
+ #include "libev/ev.c"
+ 
+ #ifndef _WIN32
+-# include <pthread.h>
++// pthread not supported in OSX 10.3 and we don't need it anyway
++//# include <pthread.h>
+ #endif
+ 
+ #define e_loop(w) INT2PTR (struct ev_loop *, SvIVX ((w)->loop))
+@@ -485,7 +486,7 @@
+     SvREADONLY_on (sv);
+   }
+ #ifndef _WIN32
+-  pthread_atfork (0, 0, ev_default_fork);
++//  pthread_atfork (0, 0, ev_default_fork);
+ #endif
+ }
+ 

@@ -1,0 +1,11 @@
+--- XS-orig.xs	2010-03-25 07:41:47.000000000 -0400
++++ XS.xs	2010-03-25 08:00:49.000000000 -0400
+@@ -455,7 +455,7 @@
+             cstash = gv_stashsv(linear_sv, FALSE);
+ 
+             if (!cstash) {
+-                if (ckWARN(WARN_MISC))
++                //if (ckWARN(WARN_MISC))
+                     Perl_warner(aTHX_ packWARN(WARN_MISC), "Can't locate package %"SVf" for @%s::ISA",
+                         (void*)linear_sv, hvname);
+                 continue;

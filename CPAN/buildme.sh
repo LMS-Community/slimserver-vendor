@@ -175,7 +175,30 @@ function build {
             
         Class::C3::XS)
             if [ $PERL_58 ]; then
-                build_module Class-C3-XS-0.11
+                tar zxvf Class-C3-XS-0.11.tar.gz
+                cd Class-C3-XS-0.11
+                patch -p0 < ../Class-C3-XS-no-ckWARN.patch
+                cp -R ../hints .
+                export PERL5LIB=$BASE_58/lib/perl5
+
+                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+                if [ $RUN_TESTS -eq 1 ]; then
+                    make test
+                else
+                    make
+                fi
+                if [ $? != 0 ]; then
+                    if [ $RUN_TESTS -eq 1 ]; then
+                        echo "make test failed, aborting"
+                    else
+                        echo "make failed, aborting"
+                    fi
+                    exit $?
+                fi
+                make install
+                make clean
+                cd ..
+                rm -rf Class-C3-XS-0.11
             fi
             ;;
         
@@ -202,8 +225,57 @@ function build {
         EV)
             build_module common-sense-2.0
 
+            # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
-            build_module EV-3.8
+            
+            tar zxvf EV-3.8.tar.gz
+            cd EV-3.8
+            patch -p0 < ../EV-pthread.patch # patch to disable pthreads
+            cp -R ../hints .
+            if [ $PERL_58 ]; then
+                # Running 5.8
+                export PERL5LIB=$BASE_58/lib/perl5
+
+                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+                if [ $RUN_TESTS -eq 1 ]; then
+                    make test
+                else
+                    make
+                fi
+                if [ $? != 0 ]; then
+                    if [ $RUN_TESTS -eq 1 ]; then
+                        echo "make test failed, aborting"
+                    else
+                        echo "make failed, aborting"
+                    fi
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_510 ]; then
+                # Running 5.10
+                export PERL5LIB=$BASE_510/lib/perl5
+
+                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
+                if [ $RUN_TESTS -eq 1 ]; then
+                    make test
+                else
+                    make
+                fi
+                if [ $? != 0 ]; then
+                    if [ $RUN_TESTS -eq 1 ]; then
+                        echo "make test failed, aborting"
+                    else
+                        echo "make failed, aborting"
+                    fi
+                    exit $?
+                fi
+                make install
+            fi
+            cd ..
+            rm -rf EV-3.8
+            
             export PERL_MM_USE_DEFAULT=
             ;;
         
