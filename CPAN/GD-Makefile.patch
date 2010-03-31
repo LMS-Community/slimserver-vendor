@@ -1,19 +1,17 @@
 --- Makefile.PL.orig	2008-04-21 10:12:25.000000000 -0400
 +++ Makefile.PL	2009-10-03 03:56:21.000000000 -0400
-@@ -225,6 +225,19 @@
+@@ -225,6 +225,17 @@
  print F $DEFINES,"\n";
  close F;
  
 +# Patch to build statically
 +@LIBS = ( '-liconv', '-lz', '-lm' );
-+push @LIBS, ( '-ljpeg_s -lpng12_s -lgd_s -lexpat_s -lfontconfig_s -lfreetype_s' );
++push @LIBS, ( '-ljpeg_s -lpng12_s -lgd_s -lfreetype_s' );
 +
 +my $MYEXTLIB = join( ' ', (
 +    '../build/lib/libjpeg.a',
 +    '../build/lib/libpng12.a',
 +    '../build/lib/libgd.a',
-+    '../build/lib/libexpat.a',
-+    '../build/lib/libfontconfig.a',
 +    '../build/lib/libfreetype.a',
 +) );
 +

@@ -63,6 +63,8 @@ BASE_510=$BUILD/5.10
 # Require modules to pass tests
 RUN_TESTS=1
 
+USE_HINTS=1
+
 FLAGS=""
 # Mac-specific flags
 if [ $OS = "Darwin" ]; then
@@ -73,6 +75,11 @@ if [ $OS = "Darwin" ]; then
         # Build 64-bit version    
         FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
     fi
+fi
+
+# Enable fPIC on 64-bit Linux
+if [ $ARCH = "x86_64-linux-thread-multi" ]; then
+    FLAGS="-fPIC"
 fi
 
 # FreeBSD's make sucks
@@ -98,7 +105,11 @@ mkdir $BUILD
 function build_module {
     tar zxvf $1.tar.gz
     cd $1
-    cp -R ../hints .
+    if [ $USE_HINTS -eq 1 ]; then
+        if [ ! -f hints/darwin.pl ]; then
+            cp -R ../hints .
+        fi
+    fi
     if [ $PERL_58 ]; then
         # Running 5.8
         export PERL5LIB=$BASE_58/lib/perl5
@@ -146,20 +157,22 @@ function build_module {
 
 function build_all {
     build Audio::Scan
-    build AutoXS::Header
     build Class::C3::XS
     build Class::XSAccessor
-    build Class::XSAccessor::Array
     build Compress::Raw::Zlib
     build DBI
     build DBD::mysql
+    build DBD::SQLite
     build Digest::SHA1
     build EV
     build Encode::Detect
     build GD
     build HTML::Parser
+    build IO::AIO
     build JSON::XS
+    build Linux::Inotify2
     build Locale::Hebrew
+    build Mac::FSEvents
     build Sub::Name
     build Template
     build XML::Parser
@@ -168,11 +181,6 @@ function build_all {
 
 function build {
     case "$1" in
-        AutoXS::Header)
-            # AutoXS::Header support module
-            build_module AutoXS-Header-1.02
-            ;;
-            
         Class::C3::XS)
             if [ $PERL_58 ]; then
                 tar zxvf Class-C3-XS-0.11.tar.gz
@@ -203,11 +211,7 @@ function build {
             ;;
         
         Class::XSAccessor)
-            build_module Class-XSAccessor-1.03
-            ;;
-        
-        Class::XSAccessor::Array)
-            build_module Class-XSAccessor-Array-1.04
+            build_module Class-XSAccessor-1.05
             ;;
         
         Compress::Raw::Zlib)
@@ -216,6 +220,10 @@ function build {
         
         DBI)
             build_module DBI-1.608
+            ;;
+        
+        DBD::SQLite)
+            build_module DBD-SQLite-1.29
             ;;
         
         Digest::SHA1)
@@ -228,8 +236,8 @@ function build {
             # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
             
-            tar zxvf EV-3.8.tar.gz
-            cd EV-3.8
+            tar zxvf EV-3.9.tar.gz
+            cd EV-3.9
             if [ $OS = "Darwin" ]; then
                 if [ $PERL_58 ]; then
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
@@ -278,7 +286,7 @@ function build {
                 make install
             fi
             cd ..
-            rm -rf EV-3.8
+            rm -rf EV-3.9
             
             export PERL_MM_USE_DEFAULT=
             ;;
@@ -297,12 +305,36 @@ function build {
             build_module HTML-Parser-3.60
             ;;
         
+        IO::AIO)
+            if [ $OS != "FreeBSD" ]; then
+                build_module common-sense-2.0
+            
+                # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
+                USE_HINTS=0
+                build_module IO-AIO-3.5
+                USE_HINTS=1
+            fi
+            ;;
+        
         JSON::XS)
-            build_module JSON-XS-2.232
+            build_module JSON-XS-2.27
+            ;;
+        
+        Linux::Inotify2)
+            if [ $OS = "Linux" ]; then
+                build_module common-sense-2.0
+                build_module Linux-Inotify2-1.21
+            fi
             ;;
         
         Locale::Hebrew)
             build_module Locale-Hebrew-1.04
+            ;;
+
+        Mac::FSEvents)
+            if [ $OS = 'Darwin' ]; then
+                build_module Mac-FSEvents-0.04
+            fi
             ;;
         
         Sub::Name)
@@ -506,54 +538,28 @@ function build {
             $MAKE install
             cd ..
 
-            # build expat
-            tar zxvf expat-2.0.1.tar.gz
-            cd expat-2.0.1
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
-            make
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
-
-            # build fontconfig
-            tar zxvf fontconfig-2.6.0.tar.gz
-            cd fontconfig-2.6.0
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking --disable-docs \
-                --with-expat-includes=$BUILD/include --with-expat-lib=$BUILD/lib \
-                --with-freetype-config=$BUILD/bin/freetype-config
-            make
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
-
             # build gd
             tar zxvf gd-2.0.35.tar.gz
             cd gd-2.0.35
+            
+            # patch libgd to add support for libjpeg scale factor
+            patch -p1 < ../gd-jpeg-scaling.patch
+            
             # gd's configure is really dumb, adjust PATH so it can find the correct libpng config scripts
             # and need to manually specify include dir
             PATH="$BUILD/bin:$PATH" \
             CFLAGS="-I$BUILD/include $FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
-                --disable-dependency-tracking --without-xpm --without-x \
+                --disable-dependency-tracking --without-xpm --without-x --without-fontconfig \
                 --with-libiconv-prefix=/usr \
                 --with-jpeg=$BUILD \
                 --with-png=$BUILD \
-                --with-freetype=$BUILD \
-                --with-fontconfig=$BUILD
-            make
+                --with-freetype=$BUILD
+            PATH="$BUILD/bin:$PATH" \
+            CFLAGS="-I$BUILD/include $FLAGS" \
+            LDFLAGS="$FLAGS" \
+                make
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
@@ -563,18 +569,17 @@ function build {
 
             # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
             cd build/lib
-            ln -sf libexpat.a libexpat_s.a
             ln -sf libjpeg.a libjpeg_s.a
             ln -sf libpng12.a libpng12_s.a
             ln -sf libgd.a libgd_s.a
-            ln -sf libfontconfig.a libfontconfig_s.a
             ln -sf libfreetype.a libfreetype_s.a
             cd ../..
 
             # GD
-            tar zxvf GD-2.41.tar.gz
-            cd GD-2.41
+            tar zxvf GD-2.44.tar.gz
+            cd GD-2.44
             patch -p0 < ../GD-Makefile.patch # patch to build statically
+            patch -p1 < ../GD-Scaling.patch  # patch to add scaling methods for JPEG
             cp -R ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
@@ -603,10 +608,8 @@ function build {
             fi
 
             cd ..
-            rm -rf GD-2.41
+            rm -rf GD-2.44
             rm -rf gd-2.0.35
-            rm -rf fontconfig-2.6.0
-            rm -rf expat-2.0.1
             rm -rf freetype-2.3.9
             rm -rf libpng-1.2.39
             rm -rf jpeg-6b

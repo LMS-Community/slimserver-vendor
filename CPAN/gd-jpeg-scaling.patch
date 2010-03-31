@@ -1,0 +1,111 @@
+diff -u gd-2.0.35-orig/gd.h gd-2.0.35/gd.h
+--- gd-2.0.35-orig/gd.h	2009-11-10 16:18:33.000000000 -0500
++++ gd-2.0.35/gd.h	2009-11-10 16:18:38.000000000 -0500
+@@ -285,8 +285,10 @@
+ BGD_DECLARE(gdImagePtr) gdImageCreateFromWBMPCtx (gdIOCtx * infile);
+ BGD_DECLARE(gdImagePtr) gdImageCreateFromWBMPPtr (int size, void *data);
+ BGD_DECLARE(gdImagePtr) gdImageCreateFromJpeg (FILE * infile);
+-BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtx (gdIOCtx * infile);
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegScaled (FILE * infile, unsigned int target_width, unsigned int target_height);
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtx (gdIOCtx * infile, unsigned int target_width, unsigned int target_height);
+ BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegPtr (int size, void *data);
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegPtrScaled (int size, void *data, unsigned int target_width, unsigned int target_height);
+ 
+ /* A custom data source. */
+ /* The source function must return -1 on error, otherwise the number
+diff -u gd-2.0.35-orig/gd_jpeg.c gd-2.0.35/gd_jpeg.c
+--- gd-2.0.35-orig/gd_jpeg.c	2009-11-10 16:18:33.000000000 -0500
++++ gd-2.0.35/gd_jpeg.c	2009-11-10 16:18:41.000000000 -0500
+@@ -266,7 +266,16 @@
+ {
+   gdImagePtr im;
+   gdIOCtx *in = gdNewFileCtx (inFile);
+-  im = gdImageCreateFromJpegCtx (in);
++  im = gdImageCreateFromJpegCtx (in, 0, 0);
++  in->gd_free (in);
++  return im;
++}
++
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegScaled (FILE * inFile, JDIMENSION target_width, JDIMENSION target_height)
++{
++  gdImagePtr im;
++  gdIOCtx *in = gdNewFileCtx (inFile);
++  im = gdImageCreateFromJpegCtx (in, target_width, target_height);
+   in->gd_free (in);
+   return im;
+ }
+@@ -275,7 +284,16 @@
+ {
+   gdImagePtr im;
+   gdIOCtx *in = gdNewDynamicCtxEx (size, data, 0);
+-  im = gdImageCreateFromJpegCtx (in);
++  im = gdImageCreateFromJpegCtx (in, 0, 0);
++  in->gd_free (in);
++  return im;
++}
++
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegPtrScaled (int size, void *data, JDIMENSION target_width, JDIMENSION target_height)
++{
++  gdImagePtr im;
++  gdIOCtx *in = gdNewDynamicCtxEx (size, data, 0);
++  im = gdImageCreateFromJpegCtx (in, target_width, target_height);
+   in->gd_free (in);
+   return im;
+ }
+@@ -288,7 +306,7 @@
+  * Create a gd-format image from the JPEG-format INFILE.  Returns the
+  * image, or NULL upon error.
+  */
+-BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtx (gdIOCtx * infile)
++BGD_DECLARE(gdImagePtr) gdImageCreateFromJpegCtx (gdIOCtx * infile, JDIMENSION target_width, JDIMENSION target_height)
+ {
+   struct jpeg_decompress_struct cinfo;
+   struct jpeg_error_mgr jerr;
+@@ -346,9 +364,45 @@
+     fprintf (stderr, "gd-jpeg: warning: JPEG image width (%u) is"
+ 	     " greater than INT_MAX (%d) (and thus greater than"
+ 	     " gd can handle)\n", cinfo.image_width, INT_MAX);
++	    
++	// Adjust scale factor if target dimensions were provided
++  if (target_width > 0 || target_height > 0) {
++#ifndef MAX
++#define MAX(x,y) (x) > (y) ? (x) : (y)
++#endif
++  
++    int dstmax, srcmax;
++    
++    dstmax = MAX(target_width, target_height);
++    srcmax = MAX(cinfo.image_width, cinfo.image_height);
++    
++    cinfo.scale_num   = 1;
++    cinfo.scale_denom = 1;
++    
++    if ((srcmax / cinfo.scale_denom) > dstmax) {
++      cinfo.scale_denom <<= 1;
++      while (cinfo.scale_denom <= 8 && ((srcmax / cinfo.scale_denom) > dstmax)) {
++        cinfo.scale_denom <<= 1;
++      }
++      
++      cinfo.scale_denom >>= 1;
++    }
++    
++#ifdef JPEG_DEBUG
++    fprintf(stderr, "gd-jpeg: using scale factor %d/%d from src %d x %d\n", cinfo.scale_num, cinfo.scale_denom, cinfo.image_width, cinfo.image_height);
++    fprintf(stderr, "gd-jpeg: new output dimensions: %d x %d\n", cinfo.output_width, cinfo.output_height);
++#endif
++
++    // Calculate new dimensions taking into account the scale factor
++  	jpeg_calc_output_dimensions(&cinfo);
++  }
++  else {
++    cinfo.output_width  = cinfo.image_width;
++    cinfo.output_height = cinfo.image_height;
++  }
+ 
+-  im = gdImageCreateTrueColor ((int) cinfo.image_width,
+-			       (int) cinfo.image_height);
++  im = gdImageCreateTrueColor ((int) cinfo.output_width,
++			       (int) cinfo.output_height);
+   if (im == 0)
+     {
+       fprintf (stderr, "gd-jpeg error: cannot allocate gdImage" " struct\n");
