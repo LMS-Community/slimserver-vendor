@@ -1,6 +1,6 @@
 diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4atom.c
 --- faad2-2.7/common/mp4ff/mp4atom.c	2009-01-19 18:56:30.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-04-15 17:33:05.000000000 -0400
 @@ -224,6 +224,8 @@
          return ATOM_DESCRIPTION;
      else if (mp4ff_atom_compare(a,b,c,d, 'p','c','s','t'))
@@ -95,7 +95,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4ato
          }
 diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
 --- faad2-2.7/common/mp4ff/mp4ff.c	2009-01-26 18:01:40.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-04-15 17:33:05.000000000 -0400
 @@ -312,6 +312,11 @@
  	return f->track[track]->sampleRate;
  }
@@ -110,7 +110,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
  	return f->track[track]->channelCount;
 diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
 --- faad2-2.7/common/mp4ff/mp4ff.h	2009-01-28 19:41:08.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-04-15 17:33:05.000000000 -0400
 @@ -54,6 +54,11 @@
  /* mp4 main file structure */
  typedef void* mp4ff_t;
@@ -133,7 +133,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
  
 diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ffint.h
 --- faad2-2.7/common/mp4ff/mp4ffint.h	2009-01-25 15:14:34.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-04-15 17:33:05.000000000 -0400
 @@ -40,10 +40,10 @@
  
  #define MAX_TRACKS 1024
@@ -157,7 +157,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ff
  #define ATOM_FREE ATOM_UNKNOWN
 diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
 --- faad2-2.7/frontend/Makefile.in	2009-02-10 03:36:11.000000000 -0500
-+++ faad2-2.7-patched/frontend/Makefile.in	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/frontend/Makefile.in	2010-04-15 17:33:05.000000000 -0400
 @@ -49,7 +49,7 @@
  am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(manmdir)"
  binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -186,7 +186,7 @@ diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
  @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
 diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 --- faad2-2.7/frontend/alac.c	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/alac.c	2010-04-13 11:12:25.000000000 -0400
++++ faad2-2.7-patched/frontend/alac.c	2010-04-15 17:33:05.000000000 -0400
 @@ -0,0 +1,1192 @@
 +/*
 + * ALAC (Apple Lossless Audio Codec) decoder
@@ -1382,7 +1382,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
 --- faad2-2.7/frontend/audio.c	2008-09-19 18:50:17.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.c	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.c	2010-04-15 17:33:05.000000000 -0400
 @@ -40,7 +40,7 @@
  
  
@@ -1443,7 +1443,7 @@ diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
      *p++ = (unsigned char)(word32 >>  8);
 diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
 --- faad2-2.7/frontend/audio.h	2007-11-01 08:33:29.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.h	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.h	2010-04-15 17:33:05.000000000 -0400
 @@ -54,8 +54,9 @@
  } audio_file;
  
@@ -1457,7 +1457,7 @@ diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
  static int write_wav_extensible_header(audio_file *aufile, long channelMask);
 diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 --- faad2-2.7/frontend/main.c	2008-09-22 13:55:09.000000000 -0400
-+++ faad2-2.7-patched/frontend/main.c	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/frontend/main.c	2010-04-15 17:39:16.000000000 -0400
 @@ -36,6 +36,8 @@
  #include <time.h>
  #endif
@@ -1475,15 +1475,176 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
  static int quiet = 0;
  
  static void faad_fprintf(FILE *stream, const char *fmt, ...)
-@@ -387,6 +388,7 @@
+@@ -137,6 +138,31 @@
+ 		b->bytes_into_buffer = 0;
+ }
+ 
++static void lookforheader(aac_buffer *b)
++{
++  int i = 0;
++	while (!b->at_eof ) 
++	{
++       		if (b->bytes_into_buffer > 4)
++        	{
++		    if( ((b->buffer[0+i] == 0xff) && ((b->buffer[1+i] & 0xf6) == 0xf0)) ||
++       			 (b->buffer[0+i] == 'A'    && b->buffer[1+i] == 'D' && b->buffer[2+i] == 'I' && b->buffer[3+i] == 'F'))
++			{
++				fill_buffer(b);
++				break;
++			} else {
++				i++;
++    				b->file_offset       += 1;
++    				b->bytes_consumed    += 1;
++    				b->bytes_into_buffer -= 1;
++			}
++		} else {
++			fill_buffer(b);
++			i = 0;
++		}
++	}
++}
++
+ static int adts_sample_rates[] = {96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350,0,0,0};
+ 
+ static int adts_parse(aac_buffer *b, int *bitrate, float *length)
+@@ -387,6 +413,8 @@
      faad_fprintf(stdout, " -w    Write output to stdio instead of a file.\n");
      faad_fprintf(stdout, " -g    Disable gapless decoding.\n");
      faad_fprintf(stdout, " -q    Quiet - suppresses status messages.\n");
 +    faad_fprintf(stdout, " -j X  Jump - start output X seconds into track (MP4 files only).\n");
++    faad_fprintf(stdout, " -e X  End  - end output X seconds into track (MP4 files only).\n");
      faad_fprintf(stdout, "Example:\n");
      faad_fprintf(stdout, "       %s infile.aac\n", progName);
      faad_fprintf(stdout, "       %s infile.mp4\n", progName);
-@@ -611,10 +613,10 @@
+@@ -424,6 +452,8 @@
+     float length = 0;
+ 
+     int first_time = 1;
++    int retval;
++    int streaminput = 0;
+ 
+     aac_buffer b;
+ 
+@@ -439,17 +469,39 @@
+         }
+     }
+ 
+-    b.infile = fopen(aacfile, "rb");
+-    if (b.infile == NULL)
++    if (0 == strcmp(aacfile, "-"))
+     {
+-        /* unable to open file */
+-        faad_fprintf(stderr, "Error opening file: %s\n", aacfile);
+-        return 1;
++	b.infile = stdin;
++#ifdef _WIN32
++        setmode(fileno(stdin), O_BINARY);
++#endif
++
++    } else 
++    {
++    	b.infile = fopen(aacfile, "rb");
++    	if (b.infile == NULL)
++    	{
++    	    /* unable to open file */
++    	    faad_fprintf(stderr, "Error opening file: %s\n", aacfile);
++    	    return 1;
++    	}
+     }
+ 
+-    fseek(b.infile, 0, SEEK_END);
+-    fileread = ftell(b.infile);
+-    fseek(b.infile, 0, SEEK_SET);
++    retval = fseek(b.infile, 0, SEEK_END);
++#ifdef _WIN32
++	if (0 == strcmp(aacfile, "-")) {
++	  retval = -1;
++	}
++#endif
++    if (retval )
++    {
++	 faad_fprintf(stderr, "Input not seekable %s\n", aacfile);
++	 fileread = -1;
++         streaminput = 1;
++    } else {
++    	fileread = ftell(b.infile);
++    	fseek(b.infile, 0, SEEK_SET);
++    };
+ 
+     if (!(b.buffer = (unsigned char*)malloc(FAAD_MIN_STREAMSIZE*MAX_CHANNELS)))
+     {
+@@ -494,19 +546,39 @@
+ 
+     /* get AAC infos for printing */
+     header_type = 0;
++    if (streaminput == 1 ) 
++	lookforheader(&b);
++
+     if ((b.buffer[0] == 0xFF) && ((b.buffer[1] & 0xF6) == 0xF0))
+     {
+-        adts_parse(&b, &bitrate, &length);
+-        fseek(b.infile, tagsize, SEEK_SET);
+-
+-        bread = fread(b.buffer, 1, FAAD_MIN_STREAMSIZE*MAX_CHANNELS, b.infile);
+-        if (bread != FAAD_MIN_STREAMSIZE*MAX_CHANNELS)
+-            b.at_eof = 1;
+-        else
+-            b.at_eof = 0;
+-        b.bytes_into_buffer = bread;
+-        b.bytes_consumed = 0;
+-        b.file_offset = tagsize;
++        if (streaminput ==1)
++	{
++	    int frames, frame_length;
++	    int samplerate;
++	    float frames_per_sec, bytes_per_frame;
++	    samplerate = adts_sample_rates[(b.buffer[2]&0x3c)>>2];
++	    frame_length = ((((unsigned int)b.buffer[3] & 0x3)) << 11)
++	        | (((unsigned int)b.buffer[4]) << 3) | (b.buffer[5] >> 5);
++
++	    frames_per_sec = (float)samplerate/1024.0f;
++	    bytes_per_frame = (float)frame_length/(float)(1000);
++	    bitrate = (int)(8. * bytes_per_frame * frames_per_sec + 0.5);
++	    length = 1;
++	    faad_fprintf(stderr, "Streamed input format  samplerate %d channels %d.\n",samplerate,channels);
++
++	} else {
++		adts_parse(&b, &bitrate, &length);
++        	fseek(b.infile, tagsize, SEEK_SET);
++
++        	bread = fread(b.buffer, 1, FAAD_MIN_STREAMSIZE*MAX_CHANNELS, b.infile);
++        	if (bread != FAAD_MIN_STREAMSIZE*MAX_CHANNELS)
++        	    b.at_eof = 1;
++        	else
++        	    b.at_eof = 0;
++        	b.bytes_into_buffer = bread;
++        	b.bytes_consumed = 0;
++        	b.file_offset = tagsize;
++	}
+ 
+         header_type = 1;
+     } else if (memcmp(b.buffer, "ADIF", 4) == 0) {
+@@ -538,7 +610,8 @@
+         if (b.buffer)
+             free(b.buffer);
+         NeAACDecClose(hDecoder);
+-        fclose(b.infile);
++        if (b.infile != stdin) 
++            fclose(b.infile);
+         return 1;
+     }
+     advance_buffer(&b, bread);
+@@ -564,7 +637,8 @@
+     if (infoOnly)
+     {
+         NeAACDecClose(hDecoder);
+-        fclose(b.infile);
++        if (b.infile != stdin) 
++            fclose(b.infile);
+         if (b.buffer)
+             free(b.buffer);
+         return 0;
+@@ -611,17 +685,18 @@
                  if (!to_stdout)
                  {
                      aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
@@ -1496,7 +1657,26 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
                  }
                  if (aufile == NULL)
                  {
-@@ -702,27 +704,27 @@
+                     if (b.buffer)
+                         free(b.buffer);
+                     NeAACDecClose(hDecoder);
+-                    fclose(b.infile);
++                    if (b.infile != stdin)
++                        fclose(b.infile);
+                     return 0;
+                 }
+             } else {
+@@ -662,7 +737,8 @@
+         fclose(adtsFile);
+     }
+ 
+-    fclose(b.infile);
++    if (b.infile != stdin)
++        fclose(b.infile);
+ 
+     if (!first_time && !adts_out)
+         close_audio_file(aufile);
+@@ -702,27 +778,27 @@
      return -1;
  }
  
@@ -1512,7 +1692,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +static int decodeMP4fileAAC(mp4ff_t *infile, char *sndfile, char *adts_fn, int to_stdout,
                    int outputFormat, int fileType, int downMatrix, int noGapless,
 -                  int infoOnly, int adts_out, float *song_length)
-+                  int infoOnly, int adts_out, float *song_length, float seek_to)
++                  int infoOnly, int adts_out, float *song_length, float seek_to, float seek_end)
  {
      int track;
      unsigned long samplerate;
@@ -1521,7 +1701,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
  
 -    mp4ff_t *infile;
 -    long sampleId, numSamples;
-+    long sampleId, numSamples, startSampleId;
++    long sampleId, numSamples, startSampleId, endSampleId;
  
      audio_file *aufile;
  
@@ -1529,7 +1709,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
      FILE *adtsFile;
      unsigned char *adtsData;
      int adtsDataSize;
-@@ -746,16 +748,6 @@
+@@ -746,16 +822,6 @@
      unsigned int framesize;
      unsigned long timescale;
  
@@ -1546,7 +1726,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
      hDecoder = NeAACDecOpen();
  
      /* Set configuration */
-@@ -775,21 +767,10 @@
+@@ -775,21 +841,10 @@
          }
      }
  
@@ -1568,7 +1748,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
          return 1;
      }
  
-@@ -803,9 +784,6 @@
+@@ -803,9 +858,6 @@
          /* If some error initializing occured, skip the file */
          faad_fprintf(stderr, "Error initializing decoder library.\n");
          NeAACDecClose(hDecoder);
@@ -1578,7 +1758,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
          return 1;
      }
  
-@@ -824,7 +802,7 @@
+@@ -824,7 +876,7 @@
      }
  
      /* print some mp4 file info */
@@ -1587,7 +1767,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
      {
          char *tag = NULL, *item = NULL;
          int k, j;
-@@ -865,15 +843,19 @@
+@@ -865,20 +917,35 @@
      if (infoOnly)
      {
          NeAACDecClose(hDecoder);
@@ -1601,17 +1781,33 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
  
 -    for (sampleId = 0; sampleId < numSamples; sampleId++)
 +    startSampleId = 0;
++    endSampleId = 0;
++    
 +    if (seek_to > 0.1) {
 +    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
 +    	if (sample > 0 && sample < numSamples)
-+			startSampleId = sample;
++			  startSampleId = sample;
++    }
++    
++    if (seek_end > 0.1) {
++      int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_end * timescale), NULL);
++    	if (sample > 0 && sample <= numSamples)
++			  endSampleId = sample;
 +    }
 +
 +    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
      {
          int rc;
          long dur;
-@@ -890,9 +872,6 @@
+         unsigned int sample_count;
+         unsigned int delay = 0;
++        
++        if (endSampleId && endSampleId == sampleId)
++          break;
+ 
+         /* get acces unit from MP4 file */
+         buffer = NULL;
+@@ -890,9 +957,6 @@
          {
              faad_fprintf(stderr, "Reading from MP4 file failed.\n");
              NeAACDecClose(hDecoder);
@@ -1621,7 +1817,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              return 1;
          }
  
-@@ -947,20 +926,19 @@
+@@ -947,20 +1011,19 @@
                  if(!to_stdout)
                  {
                      aufile = open_audio_file(sndfile, frameInfo.samplerate, frameInfo.channels,
@@ -1646,7 +1842,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
                      return 0;
                  }
              }
-@@ -973,7 +951,7 @@
+@@ -973,7 +1036,7 @@
          if (percent > old_percent)
          {
              old_percent = percent;
@@ -1655,7 +1851,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              faad_fprintf(stderr, "%s\r", percents);
  #ifdef _WIN32
              SetConsoleTitle(percents);
-@@ -1000,17 +978,209 @@
+@@ -1000,27 +1063,232 @@
          fclose(adtsFile);
      }
  
@@ -1695,7 +1891,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +
 +static int decodeMP4fileALAC(mp4ff_t *infile, char *sndfile, int to_stdout,
 +                  int fileType, int downMatrix,
-+                  int infoOnly, float *song_length, float seek_to)
++                  int infoOnly, float *song_length, float seek_to, float seek_end)
 +{
 +    int track;
 +    unsigned long samplerate;
@@ -1705,7 +1901,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +    int outputFormat;
 +    char sample_buffer[100*1024];
 +
-+    long sampleId, numSamples, startSampleId;
++    long sampleId, numSamples, startSampleId, endSampleId;
 +
 +    audio_file *aufile;
 +    struct alac_file *alac;
@@ -1807,10 +2003,18 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +    numSamples = mp4ff_num_samples(infile, track);
 +
 +    startSampleId = 0;
++    endSampleId = 0;
++    
 +    if (seek_to > 0.1) {
 +    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_to * timescale), NULL);
 +    	if (sample > 0 && sample < numSamples)
-+			startSampleId = sample;
++			  startSampleId = sample;
++    }
++    
++    if (seek_end > 0.1) {
++    	int32_t sample = mp4ff_find_sample(infile, track, (int64_t)(seek_end * timescale), NULL);
++    	if (sample > 0 && sample <= numSamples)
++			  endSampleId = sample;
 +    }
 +
 +    for (sampleId = startSampleId; sampleId < numSamples; sampleId++)
@@ -1824,6 +2028,9 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +        /* get acces unit from MP4 file */
 +        buffer = NULL;
 +        buffer_size = 0;
++        
++        if (endSampleId && endSampleId == sampleId)
++          break;
 +
 +        dur = mp4ff_get_sample_duration(infile, track, sampleId);
 +        rc = mp4ff_read_sample(infile, track, sampleId, &buffer,  &buffer_size);
@@ -1870,7 +2077,11 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
  int main(int argc, char *argv[])
  {
      int result;
-@@ -1021,6 +1191,7 @@
+     int infoOnly = 0;
+     int writeToStdio = 0;
++    int readFromStdin = 0;
+     int object_type = LC;
+     int def_srate = 0;
      int downMatrix = 0;
      int format = 1;
      int outputFormat = FAAD_FMT_16BIT;
@@ -1878,29 +2089,31 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
      int outfile_set = 0;
      int adts_out = 0;
      int old_format = 0;
-@@ -1031,6 +1202,7 @@
+@@ -1031,6 +1299,8 @@
      char aacFileName[255];
      char audioFileName[255];
      char adtsFileName[255];
 +    float seekTo = 0;
++    float seekEnd = 0;
      unsigned char header[8];
      float length = 0;
      FILE *hMP4File;
-@@ -1063,11 +1235,12 @@
+@@ -1063,11 +1333,13 @@
              { "info",       0, 0, 'i' },
              { "stdio",      0, 0, 'w' },
              { "stdio",      0, 0, 'g' },
 +            { "seek",       1, 0, 'j' },
++            { "seek_end",   1, 0, 'e' },
              { "help",       0, 0, 'h' },
              { 0, 0, 0, 0 }
          };
  
 -        c = getopt_long(argc, argv, "o:a:s:f:b:l:wgdhitq",
-+        c = getopt_long(argc, argv, "o:a:s:f:b:l:j:wgdhitq",
++        c = getopt_long(argc, argv, "o:a:s:f:b:l:j:e:wgdhitq",
              long_options, &option_index);
  
          if (c == -1)
-@@ -1124,6 +1297,7 @@
+@@ -1124,6 +1396,7 @@
                      outputFormat = atoi(dr);
                      if ((outputFormat < 1) || (outputFormat > 5))
                          showHelp = 1;
@@ -1908,7 +2121,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
                  }
              }
              break;
-@@ -1146,6 +1320,12 @@
+@@ -1146,6 +1419,18 @@
                  }
              }
              break;
@@ -1918,10 +2131,16 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +            	seekTo = atof(optarg);
 +            }
 +            break;
++        case 'e':
++            if (optarg)
++            {
++              seekEnd = atof(optarg);
++            }
++            break;
          case 't':
              old_format = 1;
              break;
-@@ -1167,7 +1347,7 @@
+@@ -1167,13 +1452,18 @@
          case 'q':
              quiet = 1;
              break;
@@ -1930,11 +2149,56 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              break;
          }
      }
-@@ -1241,10 +1421,79 @@
+ 
+ 
+     faad_fprintf(stderr, " *********** Ahead Software MPEG-4 AAC Decoder V%s ******************\n\n", FAAD2_VERSION);
++    faad_fprintf(stderr, " Patched for Squeezebox Server:\n");
++    faad_fprintf(stderr, " * ALAC decoder integrated\n");
++    faad_fprintf(stderr, " * Seeking support with -j and -e switches\n");
++    faad_fprintf(stderr, " * STDIN support\n");
++    faad_fprintf(stderr, " * Source at http://svn.slimdevices.com/repos/slim/7.5/trunk/vendor/faad2\n\n");
+     faad_fprintf(stderr, " Build: %s\n", __DATE__);
+     faad_fprintf(stderr, " Copyright 2002-2004: Ahead Software AG\n");
+     faad_fprintf(stderr, " http://www.audiocoding.com\n");
+@@ -1229,23 +1519,119 @@
+     }
+ 
+     /* check for mp4 file */
+-    mp4file = 0;
+-    hMP4File = fopen(aacFileName, "rb");
+-    if (!hMP4File)
+-    {
+-        faad_fprintf(stderr, "Error opening file: %s\n", aacFileName);
+-        return 1;
++    if (0 == strcmp(aacFileName, "-")) {
++   	faad_fprintf(stderr, "Reading from stdin: %s\n", aacFileName);
++	readFromStdin = 1;
++	hMP4File  = stdin;
++#ifdef _WIN32
++        setmode(fileno(stdin), O_BINARY);
++#endif
++
++    } else {
++
++    	mp4file = 0;
++    	hMP4File = fopen(aacFileName, "rb");
++    	if (!hMP4File)
++    	{
++    	    faad_fprintf(stderr, "Error opening file: %s\n", aacFileName);
++    	    return 1;
++    	}
+     }
++ 
+     fread(header, 1, 8, hMP4File);
+-    fclose(hMP4File);
++
++    if (! readFromStdin )
++      fclose(hMP4File);
++
      if (header[4] == 'f' && header[5] == 't' && header[6] == 'y' && header[7] == 'p')
          mp4file = 1;
  
-+    if (!mp4file && seekTo != 0) {
++    if (!mp4file && (seekTo != 0 || seekEnd != 0)) {
 +    	faad_fprintf(stderr, "Warning: can only seek in MP4 files");
 +    }
 +
@@ -1972,7 +2236,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +
 +        if (GetALACTrack(infile) < 0) {
 +			result = decodeMP4fileAAC(infile, audioFileName, adtsFileName, writeToStdio,
-+				outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length, seekTo);
++				outputFormat, format, downMatrix, noGapless, infoOnly, adts_out, &length, seekTo, seekEnd);
 +        } else {
 +
 +#ifdef WITH_ALAC
@@ -1995,7 +2259,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +            }
 +
 +           	result = decodeMP4fileALAC(infile, audioFileName, writeToStdio,
-+                    format, downMatrix, infoOnly, &length, seekTo);
++                    format, downMatrix, infoOnly, &length, seekTo, seekEnd);
 +#else
 +            faad_fprintf(stderr, "Unsupported ALAC file %s\n", aacFileName);
 +            mp4ff_close(infile);
@@ -2010,11 +2274,24 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 +        fclose(mp4File);
 +
      } else {
++
++	if (readFromStdin == 1) {
++		ungetc(header[7],hMP4File);
++		ungetc(header[6],hMP4File);
++		ungetc(header[5],hMP4File);
++		ungetc(header[4],hMP4File);
++		ungetc(header[3],hMP4File);
++		ungetc(header[2],hMP4File);
++		ungetc(header[1],hMP4File);
++		ungetc(header[0],hMP4File);
++	}
++
          result = decodeAACfile(aacFileName, audioFileName, adtsFileName, writeToStdio,
              def_srate, object_type, outputFormat, format, downMatrix, infoOnly, adts_out,
+             old_format, &length);
 diff -urN faad2-2.7/frontend/stdint_win.h faad2-2.7-patched/frontend/stdint_win.h
 --- faad2-2.7/frontend/stdint_win.h	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/stdint_win.h	2010-04-13 11:12:11.000000000 -0400
++++ faad2-2.7-patched/frontend/stdint_win.h	2010-04-15 17:33:05.000000000 -0400
 @@ -0,0 +1,14 @@
 +
 +#ifndef ALAC_STDINT_WIN_H__
