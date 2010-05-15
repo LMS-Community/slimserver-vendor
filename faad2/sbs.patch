@@ -1,6 +1,6 @@
 diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4atom.c
 --- faad2-2.7/common/mp4ff/mp4atom.c	2009-01-19 18:56:30.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-05-14 16:06:52.000000000 -0400
 @@ -224,6 +224,8 @@
          return ATOM_DESCRIPTION;
      else if (mp4ff_atom_compare(a,b,c,d, 'p','c','s','t'))
@@ -95,7 +95,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4ato
          }
 diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
 --- faad2-2.7/common/mp4ff/mp4ff.c	2009-01-26 18:01:40.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-05-14 16:06:52.000000000 -0400
 @@ -312,6 +312,11 @@
  	return f->track[track]->sampleRate;
  }
@@ -110,7 +110,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
  	return f->track[track]->channelCount;
 diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
 --- faad2-2.7/common/mp4ff/mp4ff.h	2009-01-28 19:41:08.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-05-14 16:06:52.000000000 -0400
 @@ -54,6 +54,11 @@
  /* mp4 main file structure */
  typedef void* mp4ff_t;
@@ -133,7 +133,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
  
 diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ffint.h
 --- faad2-2.7/common/mp4ff/mp4ffint.h	2009-01-25 15:14:34.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-05-14 16:06:52.000000000 -0400
 @@ -40,10 +40,10 @@
  
  #define MAX_TRACKS 1024
@@ -157,7 +157,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ff
  #define ATOM_FREE ATOM_UNKNOWN
 diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
 --- faad2-2.7/frontend/Makefile.in	2009-02-10 03:36:11.000000000 -0500
-+++ faad2-2.7-patched/frontend/Makefile.in	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/frontend/Makefile.in	2010-05-14 16:06:52.000000000 -0400
 @@ -49,7 +49,7 @@
  am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(manmdir)"
  binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -186,8 +186,8 @@ diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
  @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
 diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 --- faad2-2.7/frontend/alac.c	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/alac.c	2010-04-15 17:33:05.000000000 -0400
-@@ -0,0 +1,1192 @@
++++ faad2-2.7-patched/frontend/alac.c	2010-05-14 16:09:41.000000000 -0400
+@@ -0,0 +1,1237 @@
 +/*
 + * ALAC (Apple Lossless Audio Codec) decoder
 + * Copyright (c) 2005 David Hammerton
@@ -240,6 +240,28 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +#define _Swap16(v) do { \
 +                   v = (((v) & 0x00FF) << 0x08) | \
 +                       (((v) & 0xFF00) >> 0x08); } while (0)
++
++#if defined(PADRE)
++static __inline__ int32_t S32XS32(int32_t x, int32_t y)
++{
++    int32_t z;
++    __asm__ (
++	" nop\n"
++	" nop\n"
++	" smul %1,%2,%0"
++	: "=r"(z)
++	: "r"(x), "r"(y)
++	);
++    return z;
++}
++#else
++static __inline__ int32_t S32XS32(int32_t x, int32_t y)
++{
++    int32_t z;
++    z = x * y;
++    return z;
++}
++#endif
 +
 +struct {signed int x:24;} se_struct_24;
 +#define SignExtend24(val) (se_struct_24.x = val)
@@ -479,6 +501,20 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +    }
 +    return output;
 +}
++#elif defined(PADRE)
++static int count_leading_zeros(int input)
++{
++    int output;
++    if (!input)
++	return 32;
++    output = 1;
++    if (!((unsigned int)input >> 16)) {output += 16; input <<= 16;}
++    if (!((unsigned int)input >> 24)) {output +=  8; input <<=  8;}
++    if (!((unsigned int)input >> 28)) {output +=  4; input <<=  4;}
++    if (!((unsigned int)input >> 30)) {output +=  2; input <<=  2;}
++    output -= ((unsigned int)input >> 31);
++    return output;
++}
 +#else
 +#warning using generic count leading zeroes. You may wish to write one for your CPU / compiler
 +static int count_leading_zeros(int input)
@@ -609,8 +645,8 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +		signModifier = 0;
 +		
 +		// update history
-+		history += (decodedValue * rice_historymult)
-+				- ((history * rice_historymult) >> 9);
++		history += S32XS32(decodedValue, rice_historymult)
++                - (S32XS32(history, rice_historymult) >> 9);
 +		
 +		if (decodedValue > 0xFFFF)
 +			history = 0xFFFF;
@@ -622,7 +658,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +			
 +			signModifier = 1;
 +			
-+			k = count_leading_zeros(history) + ((history + 16) / 64) - 24;
++			k = count_leading_zeros(history) + ((history + 16) >> 6) - 24;
 +			
 +			// note: blockSize is always 16bit
 +			blockSize = entropy_decode_value(alac, 16, k, rice_kmodifier_mask);
@@ -665,7 +701,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +    if (!predictor_coef_num)
 +    {
 +        if (output_size <= 1) return;
-+        memcpy(buffer_out+1, error_buffer+1, (output_size-1) * 4);
++        memcpy(buffer_out+1, error_buffer+1, (output_size-1) << 2);
 +        return;
 +    }
 +
@@ -734,8 +770,10 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 +            for (j = 0; j < predictor_coef_num; j++)
 +            {
-+                sum += (buffer_out[predictor_coef_num-j] - buffer_out[0]) *
-+                       predictor_coef_table[j];
++                sum += S32XS32(
++                    buffer_out[predictor_coef_num-j] - buffer_out[0],
++                    predictor_coef_table[j]
++                );
 +            }
 +
 +            outval = (1 << (predictor_quantitization-1)) + sum;
@@ -756,10 +794,13 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 +                    predictor_coef_table[predictor_num] -= sign;
 +
++#if defined(PADRE)
++                    if (sign<0) val = -val;
++#else
 +                    val *= sign; /* absolute value */
++#endif
 +
-+                    error_val -= ((val >> predictor_quantitization) *
-+                                  (predictor_coef_num - predictor_num));
++                    error_val -= S32XS32(val >> predictor_quantitization, predictor_coef_num - predictor_num);
 +
 +                    predictor_num--;
 +                }
@@ -775,10 +816,13 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 +                    predictor_coef_table[predictor_num] -= sign;
 +
++#if defined(PADRE)
++                    if (sign<0) val = -val;
++#else
 +                    val *= sign; /* neg value */
++#endif
 +
-+                    error_val -= ((val >> predictor_quantitization) *
-+                                  (predictor_coef_num - predictor_num));
++                    error_val -= S32XS32(val >> predictor_quantitization, predictor_coef_num - predictor_num);
 +
 +                    predictor_num--;
 +                }
@@ -811,7 +855,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +            difference = buffer_b[i];
 +
 +
-+            right = midright - ((difference * interlacing_leftweight) >> interlacing_shift);
++            right = midright - (S32XS32(difference, interlacing_leftweight) >> interlacing_shift);
 +            left = right + difference;
 +
 +            /* output is always little endian */
@@ -940,7 +984,8 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 +    channels = readbits(alac, 3);
 +
-+    *outputsize = outputsamples * alac->bytespersample;
++    *outputsize = S32XS32(outputsamples, alac->bytespersample);
++    
 +    if (*outputsize > max_outputsize) {
 +        fprintf(stderr, "Output sample buffer size %d, needed %d\n", max_outputsize, *outputsize);
 +    	return 0;
@@ -975,7 +1020,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +            /* now read the number of samples,
 +             * as a 32bit integer */
 +            outputsamples = readbits(alac, 32);
-+            *outputsize = outputsamples * alac->bytespersample;
++            *outputsize = S32XS32(outputsamples, alac->bytespersample);
 +            if (*outputsize > max_outputsize) {
 +                fprintf(stderr, "Output sample buffer size %d, needed %d\n", max_outputsize, *outputsize);
 +            	return 0;
@@ -1024,7 +1069,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +								readsamplesize,
 +								alac->setinfo_rice_initialhistory,
 +								alac->setinfo_rice_kmodifier,
-+								ricemodifier * alac->setinfo_rice_historymult / 4,
++								S32XS32(ricemodifier, alac->setinfo_rice_historymult >> 2),
 +								(1 << alac->setinfo_rice_kmodifier) - 1);
 +
 +            if (prediction_type == 0)
@@ -1156,7 +1201,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +            /* now read the number of samples,
 +             * as a 32bit integer */
 +            outputsamples = readbits(alac, 32);
-+            *outputsize = outputsamples * alac->bytespersample;
++            *outputsize = S32XS32(outputsamples, alac->bytespersample);
 +        }
 +
 +        readsamplesize = alac->setinfo_sample_size - (uncompressed_bytes * 8) + 1;
@@ -1224,7 +1269,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +								readsamplesize,
 +								alac->setinfo_rice_initialhistory,
 +								alac->setinfo_rice_kmodifier,
-+								ricemodifier_a * alac->setinfo_rice_historymult / 4,
++								S32XS32(ricemodifier_a, alac->setinfo_rice_historymult >> 2),
 +								(1 << alac->setinfo_rice_kmodifier) - 1);
 +
 +            if (prediction_type_a == 0)
@@ -1249,7 +1294,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +								readsamplesize,
 +								alac->setinfo_rice_initialhistory,
 +								alac->setinfo_rice_kmodifier,
-+								ricemodifier_b * alac->setinfo_rice_historymult / 4,
++								S32XS32(ricemodifier_b, alac->setinfo_rice_historymult >> 2),
 +								(1 << alac->setinfo_rice_kmodifier) - 1);
 +
 +            if (prediction_type_b == 0)
@@ -1382,7 +1427,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
 --- faad2-2.7/frontend/audio.c	2008-09-19 18:50:17.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.c	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.c	2010-05-14 16:06:52.000000000 -0400
 @@ -40,7 +40,7 @@
  
  
@@ -1443,7 +1488,7 @@ diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
      *p++ = (unsigned char)(word32 >>  8);
 diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
 --- faad2-2.7/frontend/audio.h	2007-11-01 08:33:29.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.h	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.h	2010-05-14 16:06:52.000000000 -0400
 @@ -54,8 +54,9 @@
  } audio_file;
  
@@ -1457,7 +1502,7 @@ diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
  static int write_wav_extensible_header(audio_file *aufile, long channelMask);
 diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 --- faad2-2.7/frontend/main.c	2008-09-22 13:55:09.000000000 -0400
-+++ faad2-2.7-patched/frontend/main.c	2010-04-15 17:39:16.000000000 -0400
++++ faad2-2.7-patched/frontend/main.c	2010-05-14 16:06:52.000000000 -0400
 @@ -36,6 +36,8 @@
  #include <time.h>
  #endif
@@ -2291,7 +2336,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              old_format, &length);
 diff -urN faad2-2.7/frontend/stdint_win.h faad2-2.7-patched/frontend/stdint_win.h
 --- faad2-2.7/frontend/stdint_win.h	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/stdint_win.h	2010-04-15 17:33:05.000000000 -0400
++++ faad2-2.7-patched/frontend/stdint_win.h	2010-05-14 16:06:52.000000000 -0400
 @@ -0,0 +1,14 @@
 +
 +#ifndef ALAC_STDINT_WIN_H__
