@@ -1,4 +1,4 @@
 To build faad on ReadyNAS sparc, the libfaad/Makefile needs to be changed to remove the use of -iquote which is not
 available in the version of gcc on ReadyNAS.  Replace -iquote with -I.
 
-You also want to add -DFIXED_POINT to the configure command to build the fixed-point version.
+You also want to add -DFIXED_POINT -DPADRE to the configure command to build the fixed-point version as well as Padre-specific ASM.
