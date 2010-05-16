@@ -1,6 +1,6 @@
 diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4atom.c
 --- faad2-2.7/common/mp4ff/mp4atom.c	2009-01-19 18:56:30.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4atom.c	2010-05-16 18:36:31.000000000 -0400
 @@ -224,6 +224,8 @@
          return ATOM_DESCRIPTION;
      else if (mp4ff_atom_compare(a,b,c,d, 'p','c','s','t'))
@@ -95,7 +95,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4atom.c faad2-2.7-patched/common/mp4ff/mp4ato
          }
 diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
 --- faad2-2.7/common/mp4ff/mp4ff.c	2009-01-26 18:01:40.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.c	2010-05-16 18:36:31.000000000 -0400
 @@ -312,6 +312,11 @@
  	return f->track[track]->sampleRate;
  }
@@ -110,7 +110,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.c faad2-2.7-patched/common/mp4ff/mp4ff.c
  	return f->track[track]->channelCount;
 diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
 --- faad2-2.7/common/mp4ff/mp4ff.h	2009-01-28 19:41:08.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ff.h	2010-05-16 18:36:31.000000000 -0400
 @@ -54,6 +54,11 @@
  /* mp4 main file structure */
  typedef void* mp4ff_t;
@@ -133,7 +133,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ff.h faad2-2.7-patched/common/mp4ff/mp4ff.h
  
 diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ffint.h
 --- faad2-2.7/common/mp4ff/mp4ffint.h	2009-01-25 15:14:34.000000000 -0500
-+++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/common/mp4ff/mp4ffint.h	2010-05-16 18:36:31.000000000 -0400
 @@ -40,10 +40,10 @@
  
  #define MAX_TRACKS 1024
@@ -157,7 +157,7 @@ diff -urN faad2-2.7/common/mp4ff/mp4ffint.h faad2-2.7-patched/common/mp4ff/mp4ff
  #define ATOM_FREE ATOM_UNKNOWN
 diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
 --- faad2-2.7/frontend/Makefile.in	2009-02-10 03:36:11.000000000 -0500
-+++ faad2-2.7-patched/frontend/Makefile.in	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/frontend/Makefile.in	2010-05-16 18:36:31.000000000 -0400
 @@ -49,7 +49,7 @@
  am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(manmdir)"
  binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -186,7 +186,7 @@ diff -urN faad2-2.7/frontend/Makefile.in faad2-2.7-patched/frontend/Makefile.in
  @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
 diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 --- faad2-2.7/frontend/alac.c	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/alac.c	2010-05-14 16:09:41.000000000 -0400
++++ faad2-2.7-patched/frontend/alac.c	2010-05-16 18:36:31.000000000 -0400
 @@ -0,0 +1,1237 @@
 +/*
 + * ALAC (Apple Lossless Audio Codec) decoder
@@ -1427,7 +1427,7 @@ diff -urN faad2-2.7/frontend/alac.c faad2-2.7-patched/frontend/alac.c
 +
 diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
 --- faad2-2.7/frontend/audio.c	2008-09-19 18:50:17.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.c	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.c	2010-05-16 18:36:31.000000000 -0400
 @@ -40,7 +40,7 @@
  
  
@@ -1488,7 +1488,7 @@ diff -urN faad2-2.7/frontend/audio.c faad2-2.7-patched/frontend/audio.c
      *p++ = (unsigned char)(word32 >>  8);
 diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
 --- faad2-2.7/frontend/audio.h	2007-11-01 08:33:29.000000000 -0400
-+++ faad2-2.7-patched/frontend/audio.h	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/frontend/audio.h	2010-05-16 18:36:31.000000000 -0400
 @@ -54,8 +54,9 @@
  } audio_file;
  
@@ -1502,7 +1502,7 @@ diff -urN faad2-2.7/frontend/audio.h faad2-2.7-patched/frontend/audio.h
  static int write_wav_extensible_header(audio_file *aufile, long channelMask);
 diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
 --- faad2-2.7/frontend/main.c	2008-09-22 13:55:09.000000000 -0400
-+++ faad2-2.7-patched/frontend/main.c	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/frontend/main.c	2010-05-16 18:36:31.000000000 -0400
 @@ -36,6 +36,8 @@
  #include <time.h>
  #endif
@@ -2336,7 +2336,7 @@ diff -urN faad2-2.7/frontend/main.c faad2-2.7-patched/frontend/main.c
              old_format, &length);
 diff -urN faad2-2.7/frontend/stdint_win.h faad2-2.7-patched/frontend/stdint_win.h
 --- faad2-2.7/frontend/stdint_win.h	1969-12-31 19:00:00.000000000 -0500
-+++ faad2-2.7-patched/frontend/stdint_win.h	2010-05-14 16:06:52.000000000 -0400
++++ faad2-2.7-patched/frontend/stdint_win.h	2010-05-16 18:36:31.000000000 -0400
 @@ -0,0 +1,14 @@
 +
 +#ifndef ALAC_STDINT_WIN_H__
@@ -2353,3 +2353,136 @@ diff -urN faad2-2.7/frontend/stdint_win.h faad2-2.7-patched/frontend/stdint_win.
 +
 +#endif // ALAC_STDINT_WIN_H__
 \ No newline at end of file
+diff -urN faad2-2.7/libfaad/fixed.h faad2-2.7-patched/libfaad/fixed.h
+--- faad2-2.7/libfaad/fixed.h	2007-11-01 08:33:30.000000000 -0400
++++ faad2-2.7-patched/libfaad/fixed.h	2010-05-16 18:36:38.000000000 -0400
+@@ -152,7 +152,7 @@
+     *y1 = MUL_F(x1, c1) + MUL_F(x2, c2);
+     *y2 = MUL_F(x2, c1) - MUL_F(x1, c2);
+ }
+-#endif
++#endif /* defined(_WIN32) && !defined(_WIN32_WCE) */
+ 
+ #elif defined(__GNUC__) && defined (__arm__)
+ 
+@@ -230,12 +230,15 @@
+     *y2 = yt2 << (FRAC_SIZE-FRAC_BITS);
+ }
+ 
+-#else
++#else /* defined(__GNUC__) && defined (__arm__) */
+ 
++#ifndef PADRE
+   /* multiply with real shift */
+   #define MUL_R(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (REAL_BITS-1))) >> REAL_BITS)
+   /* multiply with coef shift */
+   #define MUL_C(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (COEF_BITS-1))) >> COEF_BITS)
++#endif
++
+   /* multiply with fractional shift */
+ #if defined(_WIN32_WCE) && defined(_ARM_)
+   /* eVC for PocketPC has an intrinsic function that returns only the high 32 bits of a 32x32 bit multiply */
+@@ -243,7 +246,7 @@
+   {
+       return _MulHigh(A,B) << (32-FRAC_BITS);
+   }
+-#else
++#else /* defined(_WIN32_WCE) && defined(_ARM_) */
+ #ifdef __BFIN__
+ #define _MulHigh(X,Y) ({ int __xxo;                      \
+      asm (                                               \
+@@ -260,12 +263,93 @@
+          "a1 = a1 >>> 16;\n\t"                           \
+          "%0 = (a0 += a1);\n\t"                          \
+          : "=d" (__xxo) : "d" (X), "d" (Y) : "A0","A1"); __xxo; })
+-#else
++#elif defined(__GNUC__) && defined (PADRE)
++static INLINE real_t MUL_R(real_t A, real_t B)
++{
++    real_t __hi;
++    real_t __lo;
++    real_t __result;
++    __asm__ __volatile__ (
++        " nop\n"
++        " nop\n"
++        " smul %3, %4, %0\n"
++        " mov %%y, %1\n"
++        " srl %0, %5, %0\n"
++        " sll %1, %6, %1\n"
++        " add %0, %1, %2\n"
++        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
++        : "%r"(A), "r"(B), "r"(REAL_BITS), "r"(32 - REAL_BITS)
++        : "cc"
++    );
++    return __result;
++}
++
++static INLINE real_t MUL_C(real_t A, real_t B)
++{
++    real_t __hi;
++    real_t __lo;
++    real_t __result;
++    __asm__ __volatile__ (
++        " nop\n"
++        " nop\n"
++        " smul %3, %4, %0\n"
++        " mov %%y, %1\n"
++        " srl %0, %5, %0\n"
++        " sll %1, %6, %1\n"
++        " add %0, %1, %2\n"
++        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
++        : "%r"(A), "r"(B), "r"(COEF_BITS), "r"(32 - COEF_BITS)
++        : "cc"
++    );
++    return __result;
++}
++
++static INLINE real_t MUL_Q2(real_t A, real_t B)
++{
++    real_t __hi;
++    real_t __lo;
++    real_t __result;
++    __asm__ __volatile__ (
++        " nop\n"
++        " nop\n"
++        " smul %3, %4, %0\n"
++        " mov %%y, %1\n"
++        " srl %0, %5, %0\n"
++        " sll %1, %6, %1\n"
++        " add %0, %1, %2\n"
++        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
++        : "%r"(A), "r"(B), "r"(Q2_BITS), "r"(32 - Q2_BITS)
++        : "cc"
++    );
++    return __result;
++}
++
++static INLINE real_t _MulHigh(real_t x, real_t y)
++{
++    register int z;
++    __asm__ __volatile__ (
++        " nop\n"
++        " nop\n"
++        " smul %1,%2,%%g0\n"
++        " mov %%y,%0\n"
++        : "=r"(z)
++        : "r"(x), "r"(y)
++    );
++    return z;
++}
++
++static INLINE real_t MUL_F(real_t A, real_t B)
++{
++    return _MulHigh(A, B) << (FRAC_SIZE-FRAC_BITS);
++}
++#else /* __BFIN__ */
+   #define _MulHigh(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (FRAC_SIZE-1))) >> FRAC_SIZE)
+   #define MUL_F(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (FRAC_BITS-1))) >> FRAC_BITS)
+ #endif
+ #endif
++#ifndef PADRE
+   #define MUL_Q2(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (Q2_BITS-1))) >> Q2_BITS)
++#endif
+   #define MUL_SHIFT6(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (6-1))) >> 6)
+   #define MUL_SHIFT23(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (23-1))) >> 23)
+ 
