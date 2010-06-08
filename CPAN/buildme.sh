@@ -173,6 +173,7 @@ function build_all {
     build Linux::Inotify2
     build Locale::Hebrew
     build Mac::FSEvents
+    build MP3::Cut::Gapless
     build Sub::Name
     build Template
     build XML::Parser
@@ -348,6 +349,10 @@ function build {
         Audio::Scan)
             build_module Audio-Scan-0.82
             ;;
+
+        MP3::Cut::Gapless)
+            build_module MP3-Cut-Gapless-0.01
+            ;;  
         
         Template)
             # Template, custom build due to 2 Makefile.PL's
