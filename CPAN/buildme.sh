@@ -351,6 +351,7 @@ function build {
             ;;
 
         MP3::Cut::Gapless)
+            build_module Audio-Cuefile-Parser-0.02
             build_module MP3-Cut-Gapless-0.01
             ;;  
         
