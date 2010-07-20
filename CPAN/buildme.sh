@@ -412,8 +412,8 @@ function build {
             tar jxvf mysql-5.1.37.tar.bz2
             cd mysql-5.1.37
             CC=gcc CXX=gcc \
-            CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS" \
-            CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti $FLAGS" \
+            CFLAGS="-O3 -fno-omit-frame-pointer -fPIC $FLAGS" \
+            CXXFLAGS="-O3 -fno-omit-frame-pointer -fPIC -felide-constructors -fno-exceptions -fno-rtti $FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking \
                 --enable-thread-safe-client \
