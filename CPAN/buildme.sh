@@ -149,7 +149,6 @@ function build_all {
     build AutoXS::Header
     build Class::C3::XS
     build Class::XSAccessor
-    build Class::XSAccessor::Array
     build Compress::Raw::Zlib
     build DBI
     build DBD::mysql
@@ -203,11 +202,7 @@ function build {
             ;;
         
         Class::XSAccessor)
-            build_module Class-XSAccessor-1.03
-            ;;
-        
-        Class::XSAccessor::Array)
-            build_module Class-XSAccessor-Array-1.04
+            build_module Class-XSAccessor-1.05
             ;;
         
         Compress::Raw::Zlib)
