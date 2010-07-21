@@ -6,7 +6,7 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8 & 5.10.0)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.1)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
@@ -60,12 +60,26 @@ fi
 # Install dir for 5.10
 BASE_510=$BUILD/5.10
 
+# Path to Perl 5.12.1
+if [ -x "/usr/bin/perl5.12.1" ]; then
+    PERL_512=/usr/bin/perl5.12.1
+elif [ -x "/usr/local/bin/perl5.12.1" ]; then
+    PERL_512=/usr/local/bin/perl5.12.1
+fi
+
+if [ $PERL_512 ]; then
+    echo "Building with Perl 5.12 at $PERL_512"
+fi
+
+# Install dir for 5.12
+BASE_512=$BUILD/5.12
+
 # Require modules to pass tests
 RUN_TESTS=1
 
 USE_HINTS=1
 
-FLAGS=""
+FLAGS="-fPIC"
 # Mac-specific flags
 if [ $OS = "Darwin" ]; then
     if [ $PERL_58 ]; then
@@ -136,6 +150,26 @@ function build_module {
         export PERL5LIB=$BASE_510/lib/perl5
         
         $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
+        if [ $RUN_TESTS -eq 1 ]; then
+            make test
+        else
+            make
+        fi
+        if [ $? != 0 ]; then
+            if [ $RUN_TESTS -eq 1 ]; then
+                echo "make test failed, aborting"
+            else
+                echo "make failed, aborting"
+            fi
+            exit $?
+        fi
+        make install
+    fi
+    if [ $PERL_512 ]; then
+        # Running 5.12
+        export PERL5LIB=$BASE_512/lib/perl5
+
+        $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
         if [ $RUN_TESTS -eq 1 ]; then
             make test
         else
@@ -286,6 +320,26 @@ function build {
                 fi
                 make install
             fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                export PERL5LIB=$BASE_512/lib/perl5
+
+                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
+                if [ $RUN_TESTS -eq 1 ]; then
+                    make test
+                else
+                    make
+                fi
+                if [ $? != 0 ]; then
+                    if [ $RUN_TESTS -eq 1 ]; then
+                        echo "make test failed, aborting"
+                    else
+                        echo "make failed, aborting"
+                    fi
+                    exit $?
+                fi
+                make install
+            fi
             cd ..
             rm -rf EV-3.9
             
@@ -382,6 +436,16 @@ function build {
                 fi
                 make install
             fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
+                make # minor test failure, so don't test
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
             cd ..
             rm -rf Template-Toolkit-2.21
             ;;
@@ -437,6 +501,18 @@ function build {
                 fi
                 make install
             fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                export PERL5LIB=$BASE_512/lib/perl5
+
+                $PERL_512 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_512
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
             cd ..
             rm -rf DBD-mysql-3.0002
             ;;
@@ -482,6 +558,16 @@ function build {
             if [ $PERL_510 ]; then
                 # Running 5.10
                 $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
+                make test
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
                 make test
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
@@ -612,6 +698,18 @@ function build {
                 fi
                 make install
             fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                PATH="$BUILD/bin:$PATH" \
+                    $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512
+            
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
 
             cd ..
             rm -rf GD-2.44
@@ -657,8 +755,13 @@ if [ $PERL_510 ]; then
     mkdir -p $BUILD/arch/5.10/$ARCH
     cp -R $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
 fi
+if [ $PERL_512 ]; then
+    mkdir -p $BUILD/arch/5.12/$ARCH
+    cp -R $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
+fi
 
 # could remove rest of build data, but let's leave it around in case
 #rm -rf $BASE_58
 #rm -rf $BASE_510
+#rm -rf $BASE_512
 #rm -rf $BUILD/bin $BUILD/etc $BUILD/include $BUILD/lib $BUILD/man $BUILD/share $BUILD/var
