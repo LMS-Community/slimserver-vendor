@@ -372,7 +372,7 @@ function build {
             ;;
         
         JSON::XS)
-            build_module JSON-XS-2.27
+            build_module JSON-XS-2.3
             ;;
         
         Linux::Inotify2)
