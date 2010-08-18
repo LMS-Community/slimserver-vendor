@@ -372,6 +372,7 @@ function build {
             ;;
         
         JSON::XS)
+            build_module common-sense-2.0
             build_module JSON-XS-2.3
             ;;
         
