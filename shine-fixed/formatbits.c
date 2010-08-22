@@ -231,8 +231,6 @@ typedef struct side_info_link
 static struct side_info_link *side_queue_head   = NULL;
 static struct side_info_link *side_queue_free   = NULL;
 
-static void free_side_info_link( side_info_link *l );
-
 
 int store_side_info( BF_FrameData *info )
 {

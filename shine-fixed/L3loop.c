@@ -460,7 +460,7 @@ void L3_loop_initialise(void)
  */
 int quantize(int ix[samp_per_frame2], int stepsize )
 {
-  int i, max, ln, lnf, scalei;
+  int i, max, ln, scalei;
   double scale, dbl;
 
   scalei = steptabi[stepsize+127]; /* 2**(-stepsize/4) */
