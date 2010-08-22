@@ -6,7 +6,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <math.h>
 
 /* #define DEBUG if you want the library to dump info to stdout */
@@ -81,6 +80,8 @@ typedef struct {
 
 typedef struct {
     time_t start_time;
+    
+    int quiet;
 
     char* infile;   /* For calling app's convenience */
     wave_t wave;

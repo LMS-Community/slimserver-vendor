@@ -247,7 +247,7 @@ int store_side_info( BF_FrameData *info )
 #ifdef DEBUG
         static int n_si = 0;
         n_si += 1;
-        printf("allocating side_info_link number %d\n", n_si );
+        fprintf(stderr, "allocating side_info_link number %d\n", n_si );
 #endif
         l = (side_info_link *) calloc( 1, sizeof(side_info_link) );
         l->next = NULL;
@@ -382,7 +382,7 @@ BF_PartHolder *BF_resizePartHolder( BF_PartHolder *oldPH, int max_elements )
     BF_PartHolder *newPH;
 
 #ifdef DEBUG
-    printf("Resizing part holder from %d to %d\n",
+    fprintf(stderr, "Resizing part holder from %d to %d\n",
              oldPH->max_elements, max_elements );
 #endif
     /* create new holder of the right length */

@@ -18,7 +18,8 @@
  */
 void wave_close(config_t *config)
 {
-  fclose(config->wave.file);
+  if (config->wave.file != stdin)
+    fclose(config->wave.file);
 }
 
 /*
@@ -37,25 +38,29 @@ void wave_open(config_t *config)
   struct wave_header
   {
     char riff[4];             /* "RIFF" */
-    unsigned long size;       /* length of rest of file = size of rest of header(36) + data length */
+    unsigned int size;       /* length of rest of file = size of rest of header(36) + data length */
     char wave[4];             /* "WAVE" */
     char fmt[4];              /* "fmt " */
-    unsigned long fmt_len;    /* length of rest of fmt chunk = 16 */
+    unsigned int fmt_len;    /* length of rest of fmt chunk = 16 */
     unsigned short tag;       /* MS PCM = 1 */
     unsigned short channels;  /* channels, mono = 1, stereo = 2 */
-    unsigned long samp_rate;  /* samples per second = 44100 */
-    unsigned long byte_rate;  /* bytes per second = samp_rate * byte_samp = 176400 */
+    unsigned int samp_rate;  /* samples per second = 44100 */
+    unsigned int byte_rate;  /* bytes per second = samp_rate * byte_samp = 176400 */
     unsigned short byte_samp; /* block align (bytes per sample) = channels * bits_per_sample / 8 = 4 */
     unsigned short bit_samp;  /* bits per sample = 16 for MS PCM (format specific) */
     char data[4];             /* "data" */
-    unsigned long length;     /* data length (bytes) */
+    unsigned int length;     /* data length (bytes) */
   } header;
 
-  if((config->wave.file = fopen(config->infile,"rb")) == NULL)
+  // Read from stdin or file
+  if (!strcmp(config->infile, "-"))
+    config->wave.file = stdin;
+  else if((config->wave.file = fopen(config->infile,"rb")) == NULL)
     error("Unable to open file");
 
     if (fread(&header, sizeof(header), 1, config->wave.file) != 1)
       error("Invalid Header");
+    
     if(strncmp(header.riff,"RIFF",4) != 0) error("Not a MS-RIFF file");
     if(strncmp(header.wave,"WAVE",4) != 0) error("Not a WAVE audio");
     if(strncmp(header.fmt, "fmt ",4) != 0) error("Can't find format chunk");
@@ -74,7 +79,8 @@ void wave_open(config_t *config)
   config->wave.total_samples = header.length / header.byte_samp;
   config->wave.length        = header.length / header.byte_rate;
 
-  printf("%s, %s %ldHz %dbit, Length: %2ld:%2ld:%2ld\n", 
+  if (!config->quiet)
+    fprintf(stderr, "%s, %s %dHz %dbit, Length: %2ld:%2ld:%2ld\n", 
           "WAV PCM DATA",channel_mappings[header.channels],header.samp_rate,header.bit_samp,
           config->wave.length/3600,(config->wave.length/60)%60,config->wave.length%60);
 }

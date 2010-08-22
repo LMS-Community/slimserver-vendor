@@ -6,9 +6,11 @@ The quality is not as good as LAME but it's better than nothing.
 Changes for use with Squeezebox Server:
 
 Removed cross-compiling stuff from Makefile.
-Added __arm__ check, the StrongARM asm works fine on ARMv5+
+Enable ARM assembly when __arm__ is defined.
+Added stdin and stdout support via "-".
+Changed text output from stdout to stderr.
+Added -q switch to suppress all output.
 
 TODO:
-stdin/stdout support 
 See if it will work on ReadyNAS (big-endian issues, needs asm)
 

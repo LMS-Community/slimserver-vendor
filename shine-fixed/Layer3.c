@@ -15,7 +15,7 @@
  #ifdef DEBUG
 static void update_status(int frames_processed, config_t *config)
 {
-  printf("\015[Frame %6d of %6ld] (%2.2f%%)", 
+  fprintf(stderr, "\015[Frame %6d of %6ld] (%2.2f%%)", 
             frames_processed,config->mpeg.total_frames,
             (double)((double)frames_processed/config->mpeg.total_frames)*100); 
   fflush(stdout);

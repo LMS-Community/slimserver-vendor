@@ -42,7 +42,7 @@ int  write_mp3(long bytes, void *buffer, void *config_in) {
  */
 void error(char *s)
 {
-  printf("[ERROR] %s\n",s);
+  fprintf(stderr, "[ERROR] %s\n",s);
   exit(1);
 }
 
@@ -52,11 +52,14 @@ void error(char *s)
  */
 static void print_usage()
 {
-  printf("USAGE   :  shineenc [options] <infile> <outfile>\n");
-  printf("options : -h            this help message\n");
-  printf("          -b <bitrate>  set the bitrate [32-320], default 128kbit\n");
-  printf("          -c            set copyright flag, default off\n");
-  printf("\n"); 
+  fprintf(stderr, "USAGE   :  shineenc [options] <infile> <outfile>\n");
+  fprintf(stderr, "options : -h            this help message\n");
+  fprintf(stderr, "          -b <bitrate>  set the bitrate [32-320], default 128kbit\n");
+  fprintf(stderr, "          -c            set copyright flag, default off\n");
+  fprintf(stderr, "          -q            don't print anything on screen\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "<infile> and/or <outfile> can be \"-\", which means stdin/stdout.\n");
+  fprintf(stderr, "\n"); 
 }
 
 /*
@@ -68,7 +71,7 @@ static void set_defaults(config_t *config)
   L3_set_config_mpeg_defaults(&config->mpeg);
     
     /* Could set overrides here, if any - see Layer3.c */
-    
+  config->quiet = 0;
 }
 
 /*
@@ -81,7 +84,10 @@ static bool parse_command(int argc, char** argv, config_t *config)
 
   if(argc<3) return false;
   
-  while(argv[++i][0]=='-')
+  while(argv[++i][0]=='-') {    
+    if (!argv[i][1]) // stdin/stdout
+      break;
+    
     switch(argv[i][1])
     {
       case 'b':
@@ -91,11 +97,16 @@ static bool parse_command(int argc, char** argv, config_t *config)
       case 'c':
         config->mpeg.copyright = 1;
         break;
+      
+      case 'q':
+        config->quiet = 1;
+        break;
         
       case 'h':
       default :
         return false;
     }
+  }
 
   if((argc-i)!=2) return false;
   config->infile  = argv[i++];
@@ -116,18 +127,20 @@ static void check_config(config_t *config)
   static char *psy_names[3]     = { "", "MUSICAM", "Shine" };
   static char *demp_names[4]    = { "none", "50/15us", "", "CITT" };
   
-  printf("%s layer %s, %s  Psychoacoustic Model: %s\n",
-           version_names[config->mpeg.type],
-           layer_names[config->mpeg.layr], 
-           mode_names[config->mpeg.mode],
-           psy_names[config->mpeg.psyc]);
-  printf("Bitrate=%d kbps  ",config->mpeg.bitr );
-  printf("De-emphasis: %s   %s %s\n",
-          demp_names[config->mpeg.emph], 
-          ((config->mpeg.original)?"Original":""),
-          ((config->mpeg.copyright)?"(C)":""));
+  if (!config->quiet) {
+    fprintf(stderr, "%s layer %s, %s  Psychoacoustic Model: %s\n",
+             version_names[config->mpeg.type],
+             layer_names[config->mpeg.layr], 
+             mode_names[config->mpeg.mode],
+             psy_names[config->mpeg.psyc]);
+    fprintf(stderr, "Bitrate=%d kbps  ",config->mpeg.bitr );
+    fprintf(stderr, "De-emphasis: %s   %s %s\n",
+            demp_names[config->mpeg.emph], 
+            ((config->mpeg.original)?"Original":""),
+            ((config->mpeg.copyright)?"(C)":""));
   
-    printf("Encoding \"%s\" to \"%s\"\n", config->infile, config->outfile);
+    fprintf(stderr, "Encoding \"%s\" to \"%s\"\n", config->infile, config->outfile);
+  }
 }
 
 /*
@@ -141,7 +154,9 @@ int main(int argc, char **argv)
 
 
   time(&config.start_time);
-  printf("shineenc v1.01 2007-01-02\n");
+  
+  if (!config.quiet)
+    fprintf(stderr, "shineenc v1.01 2007-01-02\n");
 
   /* Set the default MPEG encoding paramters - basically init the struct */
   set_defaults(&config);
@@ -164,8 +179,10 @@ int main(int argc, char **argv)
   if(config.mpeg.bitrate_index < 0) error("invalid bitrate");
 
   /* open the output file */
-  if ((config.mpeg.file = fopen(config.outfile, "wb")) == NULL) {
-      printf("Could not create \"%s\".\n", config.outfile);
+  if (!strcmp(config.outfile, "-"))
+    config.mpeg.file = stdout;
+  else if ((config.mpeg.file = fopen(config.outfile, "wb")) == NULL) {
+      fprintf(stderr, "Could not create \"%s\".\n", config.outfile);
       exit(1);
    }
   
@@ -184,11 +201,14 @@ int main(int argc, char **argv)
   wave_close(&config);
 
   /* Close the MP3 file */
-  fclose(config.mpeg.file);
+  if (config.mpeg.file != stdout)
+    fclose(config.mpeg.file);
    
   time(&end_time);
   end_time -= config.start_time;
-  printf(" Finished in %2ld:%2ld:%2ld\n",
+  
+  if (!config.quiet)
+    fprintf(stderr, " Finished in %2ld:%2ld:%2ld\n",
             end_time/3600,(end_time/60)%60,end_time%60);
   exit(0);
 } 

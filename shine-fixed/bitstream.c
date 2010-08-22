@@ -42,7 +42,7 @@ int size;               /* size of the buffer */
 /* NO LONGER DONE HERE
     if ((bs->pt = fopen(bs_filenam, "wb")) == NULL) {
       #ifdef DEBUG
-      printf("Could not create \"%s\".\n", bs_filenam);
+      fprintf(stderr, "Could not create \"%s\".\n", bs_filenam);
       #endif
       exit(1);
    }
@@ -80,7 +80,7 @@ void putbits(bitstream_t *bs, unsigned long int val, unsigned int N, config_t *c
 
   #ifdef DEBUG
   if (N > MAX_LENGTH)
-    printf("Cannot read or write more than %d bits at a time.\n", MAX_LENGTH);
+    fprintf(stderr, "Cannot read or write more than %d bits at a time.\n", MAX_LENGTH);
   #endif
   
   bs->totbit += N;
