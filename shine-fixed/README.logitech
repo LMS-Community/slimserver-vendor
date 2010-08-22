@@ -10,6 +10,7 @@ Enable ARM assembly when __arm__ is defined.
 Added stdin and stdout support via "-".
 Changed text output from stdout to stderr.
 Added -q switch to suppress all output.
+Shutdown gracefully on broken stdout pipe.
 
 TODO:
 See if it will work on ReadyNAS (big-endian issues, needs asm)
