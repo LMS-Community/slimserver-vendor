@@ -29,10 +29,15 @@ extern int wave_get(short buffer[2][samp_per_frame], void *config_in);
 
 /* Routine we tell libshine-fxp to call to write out the MP3 file */
 int  write_mp3(long bytes, void *buffer, void *config_in) {
-    
+    int n;
     config_t *config=(config_t *)config_in;
-    return fwrite(buffer, sizeof(unsigned char), bytes, config->mpeg.file);
+    n = fwrite(buffer, sizeof(unsigned char), bytes, config->mpeg.file);
     
+    if (n == 0 && config->mpeg.file == stdout)
+      // broken pipe, shut down gracefully
+      exit(1);
+    
+    return n;    
 }
     
 
