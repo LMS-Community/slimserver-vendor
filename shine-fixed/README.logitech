@@ -1,0 +1,14 @@
+Please see the README file for more info about this encoder.
+
+Shine can be used on non-floating-point systems such as the SheevaPlug.
+The quality is not as good as LAME but it's better than nothing.
+
+Changes for use with Squeezebox Server:
+
+Removed cross-compiling stuff from Makefile.
+Added __arm__ check, the StrongARM asm works fine on ARMv5+
+
+TODO:
+stdin/stdout support 
+See if it will work on ReadyNAS (big-endian issues, needs asm)
+
