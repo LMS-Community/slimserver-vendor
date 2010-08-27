@@ -258,7 +258,7 @@ function build {
             ;;
         
         DBD::SQLite)
-            build_module DBD-SQLite-1.29
+            build_module DBD-SQLite-1.30_05
             ;;
         
         Digest::SHA1)
