@@ -259,7 +259,7 @@ function build {
         
         DBD::SQLite)
             RUN_TESTS=0
-            build_module DBI
+            build_module DBI-1.608
             RUN_TESTS=1
             build_module DBD-SQLite-1.30_05
             ;;
