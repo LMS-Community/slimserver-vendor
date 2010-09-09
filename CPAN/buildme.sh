@@ -247,7 +247,7 @@ function build {
             ;;
         
         Class::XSAccessor)
-            build_module Class-XSAccessor-1.07_03
+            build_module Class-XSAccessor-1.05
             ;;
         
         Compress::Raw::Zlib)
