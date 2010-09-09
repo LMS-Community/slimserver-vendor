@@ -202,6 +202,7 @@ function build_all {
     build Encode::Detect
     build GD
     build HTML::Parser
+    build Image::Scale
     build IO::AIO
     build JSON::XS
     build Linux::Inotify2
@@ -261,7 +262,7 @@ function build {
             RUN_TESTS=0
             build_module DBI-1.608
             RUN_TESTS=1
-            build_module DBD-SQLite-1.30_05
+            build_module DBD-SQLite-1.30_06
             ;;
         
         Digest::SHA1)
@@ -361,6 +362,10 @@ function build {
         HTML::Parser)
             build_module HTML-Tagset-3.20
             build_module HTML-Parser-3.60
+            ;;
+
+        Image::Scale)
+            # TODO
             ;;
         
         IO::AIO)
