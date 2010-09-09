@@ -408,7 +408,19 @@ function build {
                 
             elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
                 # build libjpeg-turbo
-                echo "TODO"
+                tar zxvf libjpeg-turbo-1.0.0.tar.gz
+                cd libjpeg-turbo-1.0.0
+                
+                CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS="$FLAGS" \
+                    ./configure --prefix=$BUILD --disable-dependency-tracking
+                make && make test
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                
+                make install
+                cd ..
                 
             # build libjpeg v8 on other platforms
             else
