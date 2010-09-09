@@ -762,12 +762,12 @@ function build {
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD
-            make
+            $MAKE # needed for FreeBSD to use gmake 
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
-            make install
+            $MAKE install
             cd ..
 
             # build gd
