@@ -365,7 +365,160 @@ function build {
             ;;
 
         Image::Scale)
-            # TODO
+            # build libjpeg-turbo on x86 platforms
+            if [ 0 = 1 ]; then
+            if [ $OS = "Darwin" -a $PERL_510 ]; then
+                # Only build turbo for Snow Leopard, because it doesn't need a ppc version
+                tar zxvf libjpeg-turbo-1.0.0.tar.gz
+                cd libjpeg-turbo-1.0.0
+                
+                # Build 64-bit fork
+                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
+                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
+                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+                    ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
+                    --disable-dependency-tracking
+                make && make test
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                cp .libs/libjpeg.a libjpeg-x86_64.a
+                
+                # Build 32-bit fork
+                make clean
+                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
+                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
+                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -m32" \
+                    ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
+                    --disable-dependency-tracking
+                make && make test
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                cp .libs/libjpeg.a libjpeg-i386.a
+                
+                # Combine the forks
+                lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
+                
+                # Install and replace libjpeg.a with universal version
+                make install
+                cp -f libjpeg.a $BUILD/lib/libjpeg.a
+                cd ..       
+                
+            elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
+                # build libjpeg-turbo
+                echo "TODO"
+                
+            # build libjpeg v8 on other platforms
+            else
+                tar zxvf jpegsrc.v8b.tar.gz
+                cd jpeg-8b
+                CFLAGS="$FLAGS -O3" \
+                LDFLAGS="$FLAGS -O3" \
+                    ./configure --prefix=$BUILD \
+                    --disable-dependency-tracking
+                make && make test
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                make install
+                cd ..
+            fi
+            
+            # build libpng
+            tar zxvf libpng-1.4.3.tar.gz
+            cd libpng-1.4.3
+            CFLAGS="$FLAGS -O3" \
+            LDFLAGS="$FLAGS -O3" \
+                ./configure --prefix=$BUILD \
+                --disable-dependency-tracking
+            make && make check
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+            make install
+            cd ..
+            
+            # build giflib
+            tar zxvf giflib-4.1.6.tar.gz
+            cd giflib-4.1.6
+            CFLAGS="$FLAGS -O3" \
+            LDFLAGS="$FLAGS -O3" \
+                ./configure --prefix=$BUILD \
+                --disable-dependency-tracking
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+            make install
+            cd ..
+            
+            fi
+            
+            # build Image::Scale
+            RUN_TESTS=0
+            build_module Test-NoWarnings-1.02
+            RUN_TESTS=1
+            
+            tar zxvf Image-Scale-0.01.tar.gz
+            cd Image-Scale-0.01
+            if [ $PERL_58 ]; then
+                # Running 5.8
+                $PERL_58 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+                    --with-png-includes="$BUILD/include" --with-png-static \
+                    --with-gif-includes="$BUILD/include" --with-gif-static \
+                    INSTALL_BASE=$BASE_58
+
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_510 ]; then
+                # Running 5.10
+                # XXX Snow Leopard will build ppc version but doesn't need to
+                $PERL_510 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+                    --with-png-includes="$BUILD/include" --with-png-static \
+                    --with-gif-includes="$BUILD/include" --with-gif-static \
+                    INSTALL_BASE=$BASE_510
+
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                $PERL_512 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+                    --with-png-includes="$BUILD/include" --with-png-static \
+                    --with-gif-includes="$BUILD/include" --with-gif-static \
+                    INSTALL_BASE=$BASE_512
+            
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
+            cd ..
+            
+            rm -rf Image-Scale-0.01
+            rm -rf giflib-4.1.6
+            rm -rf libpng-1.4.3
+            rm -rf jpeg-8b
+            rm -rf libjpeg-turbo-1.0.0
             ;;
         
         IO::AIO)
