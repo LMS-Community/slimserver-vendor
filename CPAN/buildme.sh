@@ -483,11 +483,12 @@ function build {
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$BASE_58
 
-                make test
+                make
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
+                make test
                 make install
                 make clean
             fi
@@ -500,11 +501,12 @@ function build {
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$BASE_510
 
-                make test
+                make
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
+                make test
                 make install
                 make clean
             fi
@@ -515,11 +517,12 @@ function build {
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$BASE_512
             
-                make test
+                make
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
+                make test
                 make install
             fi
             cd ..
