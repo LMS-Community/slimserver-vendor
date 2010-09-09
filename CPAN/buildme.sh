@@ -761,8 +761,7 @@ function build {
             cd freetype-2.4.2
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
+                ./configure --prefix=$BUILD
             make
             if [ $? != 0 ]; then
                 echo "make failed"
