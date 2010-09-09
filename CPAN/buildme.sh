@@ -484,7 +484,8 @@ function build {
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
-                # XXX Snow Leopard will build ppc version but doesn't need to
+                # Replace hints file so we don't build ppc version
+                cp -f ../hints/darwin.pl hints/darwin.pl
                 $PERL_510 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static \
@@ -743,32 +744,14 @@ function build {
             ;;
         
         GD)
-            # build libjpeg
-            # Makefile doesn't create directories properly, so make sure they exist
-            # Note none of these directories are deleted until GD is built
-            mkdir -p build/bin build/lib build/include build/man/man1
-            tar zxvf jpegsrc.v6b.tar.gz
-            cd jpeg-6b
+            # build freetype
+            tar zxvf freetype-2.4.2.tar.gz
+            cd freetype-2.4.2
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking
-            make && make test
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install-lib
-            cd ..
-
-            # build libpng
-            tar zxvf libpng-1.2.39.tar.gz
-            cd libpng-1.2.39
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
-            make && make test
+            make
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
@@ -776,28 +759,9 @@ function build {
             make install
             cd ..
 
-            # build freetype
-            tar zxvf freetype-2.3.9.tar.gz
-            cd freetype-2.3.9
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
-            patch -p0 < ../freetype-arm-asm.patch # patch to fix ARM asm
-            $MAKE
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            $MAKE install
-            cd ..
-
             # build gd
             tar zxvf gd-2.0.35.tar.gz
             cd gd-2.0.35
-            
-            # patch libgd to add support for libjpeg scale factor
-            patch -p1 < ../gd-jpeg-scaling.patch
             
             # gd's configure is really dumb, adjust PATH so it can find the correct libpng config scripts
             # and need to manually specify include dir
@@ -805,11 +769,11 @@ function build {
             CFLAGS="-I$BUILD/include $FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD \
-                --disable-dependency-tracking --without-xpm --without-x --without-fontconfig \
+                --disable-dependency-tracking \
                 --with-libiconv-prefix=/usr \
-                --with-jpeg=$BUILD \
-                --with-png=$BUILD \
-                --with-freetype=$BUILD
+                --with-freetype=$BUILD \
+                --without-jpeg --without-png \
+                --without-xpm --without-x --without-fontconfig
             PATH="$BUILD/bin:$PATH" \
             CFLAGS="-I$BUILD/include $FLAGS" \
             LDFLAGS="$FLAGS" \
@@ -823,8 +787,6 @@ function build {
 
             # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
             cd build/lib
-            ln -sf libjpeg.a libjpeg_s.a
-            ln -sf libpng12.a libpng12_s.a
             ln -sf libgd.a libgd_s.a
             ln -sf libfreetype.a libfreetype_s.a
             cd ../..
@@ -833,7 +795,6 @@ function build {
             tar zxvf GD-2.44.tar.gz
             cd GD-2.44
             patch -p0 < ../GD-Makefile.patch # patch to build statically
-            patch -p1 < ../GD-Scaling.patch  # patch to add scaling methods for JPEG
             cp -R ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
@@ -876,9 +837,7 @@ function build {
             cd ..
             rm -rf GD-2.44
             rm -rf gd-2.0.35
-            rm -rf freetype-2.3.9
-            rm -rf libpng-1.2.39
-            rm -rf jpeg-6b
+            rm -rf freetype-2.4.2
             ;;
     esac
 }
