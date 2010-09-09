@@ -366,7 +366,6 @@ function build {
 
         Image::Scale)
             # build libjpeg-turbo on x86 platforms
-            if [ 0 = 1 ]; then
             if [ $OS = "Darwin" -a $PERL_510 ]; then
                 # Only build turbo for Snow Leopard, because it doesn't need a ppc version
                 tar zxvf libjpeg-turbo-1.0.0.tar.gz
@@ -457,8 +456,6 @@ function build {
             fi
             make install
             cd ..
-            
-            fi
             
             # build Image::Scale
             RUN_TESTS=0
