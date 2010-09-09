@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FLAC=1.2.1
-SOX=14.3.0
+SOX=14.3.1
 OGG=1.1.4
 VORBIS=1.2.3
 MAD=0.15.1b
