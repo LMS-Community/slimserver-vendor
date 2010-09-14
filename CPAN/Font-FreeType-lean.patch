@@ -1,0 +1,35 @@
+--- FreeType.xs.orig	2010-09-14 17:54:52.000000000 -0400
++++ FreeType.xs	2010-09-14 17:56:48.000000000 -0400
+@@ -520,6 +520,7 @@
+         RETVAL
+ 
+ 
++#if 0
+ bool
+ qefft2_face_has_reliable_glyph_names (Font_FreeType_Face face)
+     CODE:
+@@ -532,6 +533,7 @@
+     OUTPUT:
+         RETVAL
+ 
++#endif
+ 
+ bool
+ qefft2_face_is_italic (Font_FreeType_Face face)
+@@ -940,7 +942,7 @@
+     OUTPUT:
+         RETVAL
+ 
+-
++#if 0
+ void
+ qefft2_glyph_outline_bbox (Font_FreeType_Glyph glyph)
+     PREINIT:
+@@ -963,6 +965,7 @@
+         PUSHs(sv_2mortal(newSVnv((double) bbox.xMax / 64.0)));
+         PUSHs(sv_2mortal(newSVnv((double) bbox.yMax / 64.0)));
+ 
++#endif
+ 
+ void
+ qefft2_glyph_outline_decompose_ (Font_FreeType_Glyph glyph, HV *args)

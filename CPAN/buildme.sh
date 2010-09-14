@@ -200,7 +200,7 @@ function build_all {
     build Digest::SHA1
     build EV
     build Encode::Detect
-    build GD
+    build Font::FreeType
     build HTML::Parser
     build Image::Scale
     build IO::AIO
@@ -755,10 +755,24 @@ function build {
             rm -rf expat-2.0.1
             ;;
         
-        GD)
+        Font::FreeType)
             # build freetype
             tar zxvf freetype-2.4.2.tar.gz
             cd freetype-2.4.2
+            
+            # Disable features we don't need for CODE2000
+            # libfreetype.a size (i386/x86_64 universal binary):
+            #   1634288 (default)
+            #   1358360 (with custom ftoption.h)
+            cp -fv ../freetype-ftoption.h objs/ftoption.h
+            
+            # Disable modules we don't need for CODE2000
+            cp -fv ../freetype-modules.cfg modules.cfg
+            
+            # libfreetype.a size (i386/x86_64 universal binary):
+            #   1634288 (default)
+            #    461984 (with custom ftoption.h/modules.cfg)
+            
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure --prefix=$BUILD
@@ -769,52 +783,29 @@ function build {
             fi
             $MAKE install
             cd ..
-
-            # build gd
-            tar zxvf gd-2.0.35.tar.gz
-            cd gd-2.0.35
             
-            # gd's configure is really dumb, adjust PATH so it can find the correct libpng config scripts
-            # and need to manually specify include dir
-            PATH="$BUILD/bin:$PATH" \
-            CFLAGS="-I$BUILD/include $FLAGS" \
-            LDFLAGS="$FLAGS" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking \
-                --with-libiconv-prefix=/usr \
-                --with-freetype=$BUILD \
-                --without-jpeg --without-png \
-                --without-xpm --without-x --without-fontconfig
-            PATH="$BUILD/bin:$PATH" \
-            CFLAGS="-I$BUILD/include $FLAGS" \
-            LDFLAGS="$FLAGS" \
-                make
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
-
-            # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
+            # Symlink static version of library to avoid OSX linker choosing dynamic versions
             cd build/lib
-            ln -sf libgd.a libgd_s.a
             ln -sf libfreetype.a libfreetype_s.a
             cd ../..
 
-            # GD
-            tar zxvf GD-2.44.tar.gz
-            cd GD-2.44
-            patch -p0 < ../GD-Makefile.patch # patch to build statically
+            tar zxvf Font-FreeType-0.03.tar.gz
+            cd Font-FreeType-0.03
+            
+            # Build statically
+            patch -p0 < ../Font-FreeType-Makefile.patch
+            
+            # Disable some functions so we can compile out more freetype modules
+            patch -p0 < ../Font-FreeType-lean.patch
+            
             cp -R ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
-                PATH="$BUILD/bin:$PATH" \
-                    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
+                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
 
-                make test
+                make # tests fail
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
                 make install
@@ -822,32 +813,30 @@ function build {
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
-                PATH="$BUILD/bin:$PATH" \
-                    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
+                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
 
-                make test
+                make 
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
-                PATH="$BUILD/bin:$PATH" \
-                    $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512
-            
-                make test
+                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512
+                
+                make
                 if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
+                    echo "make failed, aborting"
                     exit $?
                 fi
                 make install
             fi
 
             cd ..
-            rm -rf GD-2.44
-            rm -rf gd-2.0.35
+            rm -rf Font-FreeType-0.03
             rm -rf freetype-2.4.2
             ;;
     esac
