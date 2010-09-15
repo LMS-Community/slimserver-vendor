@@ -371,13 +371,16 @@ function build {
                 tar zxvf libjpeg-turbo-1.0.0.tar.gz
                 cd libjpeg-turbo-1.0.0
                 
+                # Disable features we don't need
+                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+                
                 # Build 64-bit fork
                 CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
                 CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
                 LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
                     ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
                     --disable-dependency-tracking
-                make && make test
+                make
                 if [ $? != 0 ]; then
                     echo "make failed"
                     exit $?
@@ -391,7 +394,7 @@ function build {
                 LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -m32" \
                     ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
                     --disable-dependency-tracking
-                make && make test
+                make
                 if [ $? != 0 ]; then
                     echo "make failed"
                     exit $?
@@ -411,9 +414,12 @@ function build {
                 tar zxvf libjpeg-turbo-1.0.0.tar.gz
                 cd libjpeg-turbo-1.0.0
                 
+                # Disable features we don't need
+                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+                
                 CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS="$FLAGS" \
                     ./configure --prefix=$BUILD --disable-dependency-tracking
-                make && make test
+                make
                 if [ $? != 0 ]; then
                     echo "make failed"
                     exit $?
@@ -426,11 +432,15 @@ function build {
             else
                 tar zxvf jpegsrc.v8b.tar.gz
                 cd jpeg-8b
+                
+                # Disable features we don't need
+                cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
+                
                 CFLAGS="$FLAGS -O3" \
                 LDFLAGS="$FLAGS -O3" \
                     ./configure --prefix=$BUILD \
                     --disable-dependency-tracking
-                make && make test
+                make
                 if [ $? != 0 ]; then
                     echo "make failed"
                     exit $?
