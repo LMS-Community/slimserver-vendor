@@ -761,9 +761,6 @@ function build {
             cd freetype-2.4.2
             
             # Disable features we don't need for CODE2000
-            # libfreetype.a size (i386/x86_64 universal binary):
-            #   1634288 (default)
-            #   1358360 (with custom ftoption.h)
             cp -fv ../freetype-ftoption.h objs/ftoption.h
             
             # Disable modules we don't need for CODE2000
