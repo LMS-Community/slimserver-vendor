@@ -452,6 +452,10 @@ function build {
             # build libpng
             tar zxvf libpng-1.4.3.tar.gz
             cd libpng-1.4.3
+            
+            # Disable features we don't need
+            cp -fv ../libpng-pngconf.h pngconf.h
+            
             CFLAGS="$FLAGS -O3" \
             LDFLAGS="$FLAGS -O3" \
                 ./configure --prefix=$BUILD \
