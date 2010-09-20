@@ -367,7 +367,7 @@ function build {
         Image::Scale)
             # build libjpeg-turbo on x86 platforms
             if [ $OS = "Darwin" -a $PERL_510 ]; then
-                # Only build turbo for Snow Leopard, because it doesn't need a ppc version
+                # Build i386/x86_64 versions of turbo
                 tar zxvf libjpeg-turbo-1.0.0.tar.gz
                 cd libjpeg-turbo-1.0.0
                 
@@ -385,7 +385,7 @@ function build {
                     echo "make failed"
                     exit $?
                 fi
-                cp .libs/libjpeg.a libjpeg-x86_64.a
+                cp -fv .libs/libjpeg.a libjpeg-x86_64.a
                 
                 # Build 32-bit fork
                 make clean
@@ -399,7 +399,7 @@ function build {
                     echo "make failed"
                     exit $?
                 fi
-                cp .libs/libjpeg.a libjpeg-i386.a
+                cp -fv .libs/libjpeg.a libjpeg-i386.a
                 
                 # Combine the forks
                 lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
@@ -407,7 +407,57 @@ function build {
                 # Install and replace libjpeg.a with universal version
                 make install
                 cp -f libjpeg.a $BUILD/lib/libjpeg.a
-                cd ..       
+                cd ..
+            
+            elif [ $OS = "Darwin" -a $PERL_58 ]; then
+                # combine i386 turbo with ppc libjpeg
+                
+                # build i386 turbo
+                tar zxvf libjpeg-turbo-1.0.0.tar.gz
+                cd libjpeg-turbo-1.0.0
+                
+                # Disable features we don't need
+                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+                
+                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
+                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
+                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -m32" \
+                    ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
+                    --disable-dependency-tracking
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                make install
+                cp -fv .libs/libjpeg.a ../libjpeg-i386.a
+                cd ..
+                
+                # build ppc libjpeg 6b
+                tar zxvf jpegsrc.v6b.tar.gz
+                cd jpeg-6b
+                
+                # Disable features we don't need
+                cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
+                
+                CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
+                LDFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
+                    ./configure --prefix=$BUILD \
+                    --disable-dependency-tracking
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                cp -fv libjpeg.a ../libjpeg-ppc.a
+                cd ..
+                
+                # Combine the forks
+                lipo -create libjpeg-i386.a libjpeg-ppc.a -output libjpeg.a
+                
+                # Replace libjpeg library
+                mv -fv libjpeg.a $BUILD/lib/libjpeg.a
+                rm -fv libjpeg-i386.a libjpeg-ppc.a
                 
             elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
                 # build libjpeg-turbo
@@ -503,6 +553,16 @@ function build {
                     exit $?
                 fi
                 make test
+                
+                # Also test under PPC mode on OSX 10.5
+                if [ $OS = "Darwin" ]; then
+                    arch -ppc prove -Iblib/lib -Iblib/arch t/*.t
+                    if [ $? != 0 ]; then
+                        echo "PPC make test failed, aborting"
+                        exit $?
+                    fi
+                fi
+                
                 make install
                 make clean
             fi
@@ -521,6 +581,16 @@ function build {
                     exit $?
                 fi
                 make test
+                
+                # Also test in 32-bit mode on OSX 10.6
+                if [ $OS = "Darwin" ]; then
+                    VERSIONER_PERL_PREFER_32_BIT=yes make test
+                    if [ $? != 0 ]; then
+                        echo "32-bit make test failed, aborting"
+                        exit $?
+                    fi
+                fi
+                
                 make install
                 make clean
             fi
@@ -545,6 +615,7 @@ function build {
             rm -rf giflib-4.1.6
             rm -rf libpng-1.4.3
             rm -rf jpeg-8b
+            rm -rf jpeg-6b
             rm -rf libjpeg-turbo-1.0.0
             ;;
         
