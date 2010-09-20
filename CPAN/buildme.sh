@@ -488,8 +488,8 @@ function build {
             build_module Test-NoWarnings-1.02
             RUN_TESTS=1
             
-            tar zxvf Image-Scale-0.05.tar.gz
-            cd Image-Scale-0.05
+            tar zxvf Image-Scale-0.06.tar.gz
+            cd Image-Scale-0.06
             if [ $PERL_58 ]; then
                 # Running 5.8
                 $PERL_58 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
@@ -541,7 +541,7 @@ function build {
             fi
             cd ..
             
-            rm -rf Image-Scale-0.05
+            rm -rf Image-Scale-0.06
             rm -rf giflib-4.1.6
             rm -rf libpng-1.4.3
             rm -rf jpeg-8b
