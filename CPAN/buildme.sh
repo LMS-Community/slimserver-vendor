@@ -661,7 +661,7 @@ function build {
             ;;
         
         Audio::Scan)
-            build_module Audio-Scan-0.85
+            build_module Audio-Scan-0.84
             ;;
 
         MP3::Cut::Gapless)
