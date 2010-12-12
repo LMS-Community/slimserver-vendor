@@ -267,8 +267,8 @@ function build {
             if [ $OS = "Darwin" ]; then
                 tar zxvf icu4c-4_6-src.tgz
                 cd icu/source
-                CFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1" CXXFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1" LDFLAGS="$FLAGS" \
-                    ./runConfigureICU MacOSX --prefix=$BUILD --enable-static --with-data-packaging=archive
+                CFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0" CXXFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0" LDFLAGS="$FLAGS" \
+                    ./runConfigureICU MacOSX --prefix=$BUILD --enable-static --with-data-packaging=archive --disable-samples
                 make
                 if [ $? != 0 ]; then
                     echo "make failed"
