@@ -1,0 +1,38 @@
+--- Makefile.PL.orig	2010-12-11 21:48:40.000000000 -0500
++++ Makefile.PL	2010-12-11 22:05:16.000000000 -0500
+@@ -204,6 +204,7 @@
+ my @CC_INC = (
+ 	'-I.',
+ 	'-I$(DBI_INSTARCH_DIR)',
++	'-I../build/include',
+ );
+ if ( $sqlite_inc ) {
+ 	push @CC_INC, "-I$sqlite_inc";
+@@ -221,6 +222,7 @@
+ 	'-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
+ 
+ 	'-DSQLITE_ENABLE_COLUMN_METADATA',
++	'-DSQLITE_ENABLE_ICU',
+ 	'-DNDEBUG=1',
+ );
+ if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
+@@ -236,12 +238,19 @@
+ 	push @CC_DEFINE, '-DSQLITE_ENABLE_LOCKING_STYLE=0';
+ }
+ 
++my $MYEXTLIB = join( ' ', (
++	'../build/lib/libicuuc.a',
++	'../build/lib/libicudata.a',
++	'../build/lib/libicui18n.a',
++) );
++
+ my @CC_OPTIONS = (
+ 	INC          => join( ' ', @CC_INC    ),
+ 	DEFINE       => join( ' ', @CC_DEFINE ),
+ 	( @CC_LIBS ? (
+ 		LIBS => join( ' ', @CC_LIBS )
+ 	) : () ),
++	MYEXTLIB     => $MYEXTLIB,
+ );
+ 
+ #####################################################################
