@@ -263,66 +263,91 @@ function build {
             build_module DBI-1.608
             RUN_TESTS=1
             
-            # build ICU on OSX
-            if [ $OS = "Darwin" ]; then
-                tar zxvf icu4c-4_6-src.tgz
-                cd icu/source
-                CFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0" CXXFLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0" LDFLAGS="$FLAGS" \
-                    ./runConfigureICU MacOSX --prefix=$BUILD --enable-static --with-data-packaging=archive --disable-samples
-                make
+            # build ICU
+            tar zxvf icu4c-4_6-src.tgz
+            cd icu/source
+            if [ $OS = 'Darwin' ]; then
+                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
+                ICUOS="MacOSX"
+            elif [ $OS = 'Linux' ]; then
+                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                ICUOS="Linux"
+            elif [ $OS = 'FreeBSD' ]; then
+                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                ICUOS="FreeBSD"
+            fi
+            CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS" \
+                ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+            make install
+            
+            cd ../..                
+            rm -rf icu
+
+            # Symlink static versions of libraries
+            cd build/lib
+            ln -sf libicudata.a libicudata_s.a
+            ln -sf libicui18n.a libicui18n_s.a
+            ln -sf libicuuc.a libicuuc_s.a 
+            cd ../..
+            
+            # Point to data directory for test suite
+            export ICU_DATA=$BUILD/share/icu/4.6
+            
+            # Replace huge data file with smaller one containing only our collations
+            rm -f $BUILD/share/icu/4.6/icudt46*.dat
+            unzip icudt46l.zip
+            mv -v icudt46l.dat $BUILD/share/icu/4.6
+            
+            # Custom build for ICU support
+            tar zxvf DBD-SQLite-1.30_06.tar.gz
+            cd DBD-SQLite-1.30_06
+            patch -p0 < ../DBD-SQLite-ICU.patch
+            cp -R ../hints .
+            if [ $PERL_58 ]; then
+                # Running 5.8
+                export PERL5LIB=$BASE_58/lib/perl5
+
+                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+                make test
                 if [ $? != 0 ]; then
-                    echo "make failed"
+                    echo "make test failed, aborting"
                     exit $?
                 fi
                 make install
-                
-                cd ../..                
-                rm -rf icu
-                
-                # Point to data directory for test suite
-                export ICU_DATA=$BUILD/share/icu/4.6
-                
-                # Replace huge data file with smaller one containing only our collations
-                rm -f $BUILD/share/icu/4.6/icudt46*.dat
-                unzip icudt46l.zip
-                mv -v icudt46l.dat $BUILD/share/icu/4.6
-                
-                # Custom build for ICU support
-                tar zxvf DBD-SQLite-1.30_06.tar.gz
-                cd DBD-SQLite-1.30_06
-                patch -p0 < ../DBD-SQLite-ICU.patch
-                cp -R ../hints .
-                if [ $PERL_58 ]; then
-                    # Running 5.8
-                    export PERL5LIB=$BASE_58/lib/perl5
-
-                    $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
-                    make test
-                    if [ $? != 0 ]; then
-                        echo "make test failed, aborting"
-                        exit $?
-                    fi
-                    make install
-                    make clean
-                fi
-                if [ $PERL_510 ]; then
-                    # Running 5.10
-                    export PERL5LIB=$BASE_510/lib/perl5
-
-                    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
-                    make test
-                    if [ $? != 0 ]; then
-                        echo "make test failed, aborting"
-                        exit $?
-                    fi
-                    make install
-                fi
-                
-                cd ..
-                rm -rf DBD-SQLite-1.30_06              
-            else
-                build_module DBD-SQLite-1.30_06
+                make clean
             fi
+            if [ $PERL_510 ]; then
+                # Running 5.10
+                export PERL5LIB=$BASE_510/lib/perl5
+
+                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                export PERL5LIB=$BASE_512/lib/perl5
+
+                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
+                make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
+            
+            cd ..
+            rm -rf DBD-SQLite-1.30_06
             ;;
         
         Digest::SHA1)

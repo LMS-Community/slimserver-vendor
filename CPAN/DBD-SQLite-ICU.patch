@@ -1,6 +1,11 @@
---- Makefile.PL.orig	2010-12-11 21:48:40.000000000 -0500
-+++ Makefile.PL	2010-12-11 22:05:16.000000000 -0500
-@@ -204,6 +204,7 @@
+--- Makefile.PL.orig	2010-12-12 23:21:37.000000000 -0500
++++ Makefile.PL	2010-12-12 23:21:15.000000000 -0500
+@@ -201,9 +201,12 @@
+ 	push @CC_LIBS, '-lsqlite3';
+ }
+ 
++push @CC_LIBS, '-L../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++';
++
  my @CC_INC = (
  	'-I.',
  	'-I$(DBI_INSTARCH_DIR)',
@@ -8,7 +13,7 @@
  );
  if ( $sqlite_inc ) {
  	push @CC_INC, "-I$sqlite_inc";
-@@ -221,6 +222,7 @@
+@@ -221,6 +224,7 @@
  	'-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
  
  	'-DSQLITE_ENABLE_COLUMN_METADATA',
@@ -16,7 +21,7 @@
  	'-DNDEBUG=1',
  );
  if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
-@@ -236,12 +238,19 @@
+@@ -236,12 +240,19 @@
  	push @CC_DEFINE, '-DSQLITE_ENABLE_LOCKING_STYLE=0';
  }
  
