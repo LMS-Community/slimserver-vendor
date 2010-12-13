@@ -304,8 +304,8 @@ function build {
             mv -v icudt46l.dat $BUILD/share/icu/4.6
             
             # Custom build for ICU support
-            tar zxvf DBD-SQLite-1.30_06.tar.gz
-            cd DBD-SQLite-1.30_06
+            tar zxvf DBD-SQLite-1.32_01.tar.gz
+            cd DBD-SQLite-1.32_01
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -R ../hints .
             if [ $PERL_58 ]; then
@@ -353,7 +353,7 @@ function build {
             fi
             
             cd ..
-            rm -rf DBD-SQLite-1.30_06
+            rm -rf DBD-SQLite-1.32_01
             ;;
         
         Digest::SHA1)
