@@ -300,8 +300,7 @@ function build {
             
             # Replace huge data file with smaller one containing only our collations
             rm -f $BUILD/share/icu/4.6/icudt46*.dat
-            unzip icudt46l.zip
-            mv -v icudt46l.dat $BUILD/share/icu/4.6
+            cp -v icudt46l.dat $BUILD/share/icu/4.6
             
             # Custom build for ICU support
             tar zxvf DBD-SQLite-1.32_01.tar.gz
