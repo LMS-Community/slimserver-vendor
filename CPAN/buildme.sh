@@ -278,18 +278,25 @@ function build {
             fi
             CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS" \
                 ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
-            make
+            $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
-            make install
+            $MAKE install
             
             cd ../..                
             rm -rf icu
 
             # Symlink static versions of libraries
             cd build/lib
+            if [ $OS = 'FreeBSD' ]; then
+                # FreeBSD has different library names (?)
+                ln -sf libsicudata.a libicudata.a
+                ln -sf libsicui18n.a libicui18n.a
+                ln -sf libsicuuc.a libicuuc.a
+            fi
+            
             ln -sf libicudata.a libicudata_s.a
             ln -sf libicui18n.a libicui18n_s.a
             ln -sf libicuuc.a libicuuc_s.a 
@@ -318,13 +325,13 @@ function build {
                     $PERL_58 -p -i -e "s{^LDLOADLIBS =.+}{LDLOADLIBS = -L$PWD/../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++}" Makefile
                 fi
 
-                make test
+                $MAKE test
                 if [ $? != 0 ]; then
                     echo "make test failed, aborting"
                     exit $?
                 fi
-                make install
-                make clean
+                $MAKE install
+                $MAKE clean
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
