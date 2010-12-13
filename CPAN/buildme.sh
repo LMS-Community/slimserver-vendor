@@ -313,6 +313,12 @@ function build {
                 export PERL5LIB=$BASE_58/lib/perl5
 
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+
+                if [ $OS = 'Darwin' ]; then
+                    # OSX does not seem to properly find -lstdc++, so we need to hack the Makefile to add it
+                    $PERL_58 -p -i -e "s{^LDLOADLIBS =.+}{LDLOADLIBS = -L$PWD/../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++}" Makefile
+                fi
+
                 make test
                 if [ $? != 0 ]; then
                     echo "make test failed, aborting"
