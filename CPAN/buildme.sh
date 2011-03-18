@@ -758,7 +758,11 @@ function build {
             ;;
         
         Audio::Scan)
+            RUN_TESTS=0
+            build_module Sub-Uplevel-0.22
+            build_module Tree-DAG_Node-1.06
             build_module Test-Warn-0.23
+            RUN_TESTS=1
             build_module Audio-Scan-0.86
             ;;
 
