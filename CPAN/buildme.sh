@@ -758,6 +758,7 @@ function build {
             ;;
         
         Audio::Scan)
+            build_module Test-Warn-0.23
             build_module Audio-Scan-0.86
             ;;
 
