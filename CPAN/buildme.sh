@@ -263,44 +263,47 @@ function build {
             build_module DBI-1.608
             RUN_TESTS=1
             
-            # build ICU
-            tar zxvf icu4c-4_6-src.tgz
-            cd icu/source
-            if [ $OS = 'Darwin' ]; then
-                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
-                ICUOS="MacOSX"
-            elif [ $OS = 'Linux' ]; then
-                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
-                ICUOS="Linux"
-            elif [ $OS = 'FreeBSD' ]; then
-                ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
-                ICUOS="FreeBSD"
-            fi
-            CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS" \
-                ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
-            $MAKE
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            $MAKE install
+            # build ICU, but only if it doesn't exist in the build dir,
+            # because it takes so damn long on slow platforms
+            if [ ! -f build/lib/libicudata_s.a ]; then
+                tar zxvf icu4c-4_6-src.tgz
+                cd icu/source
+                if [ $OS = 'Darwin' ]; then
+                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
+                    ICUOS="MacOSX"
+                elif [ $OS = 'Linux' ]; then
+                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                    ICUOS="Linux"
+                elif [ $OS = 'FreeBSD' ]; then
+                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                    ICUOS="FreeBSD"
+                fi
+                CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS" \
+                    ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+                $MAKE
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi
+                $MAKE install
             
-            cd ../..                
-            rm -rf icu
+                cd ../..                
+                rm -rf icu
 
-            # Symlink static versions of libraries
-            cd build/lib
-            if [ $OS = 'FreeBSD' ]; then
-                # FreeBSD has different library names (?)
-                ln -sf libsicudata.a libicudata.a
-                ln -sf libsicui18n.a libicui18n.a
-                ln -sf libsicuuc.a libicuuc.a
-            fi
+                # Symlink static versions of libraries
+                cd build/lib
+                if [ $OS = 'FreeBSD' ]; then
+                    # FreeBSD has different library names (?)
+                    ln -sf libsicudata.a libicudata.a
+                    ln -sf libsicui18n.a libicui18n.a
+                    ln -sf libsicuuc.a libicuuc.a
+                fi
             
-            ln -sf libicudata.a libicudata_s.a
-            ln -sf libicui18n.a libicui18n_s.a
-            ln -sf libicuuc.a libicuuc_s.a 
-            cd ../..
+                ln -sf libicudata.a libicudata_s.a
+                ln -sf libicui18n.a libicui18n_s.a
+                ln -sf libicuuc.a libicuuc_s.a 
+                cd ../..
+            fi
             
             # Point to data directory for test suite
             export ICU_DATA=$BUILD/share/icu/4.6
