@@ -195,7 +195,7 @@ function build_all {
     build Class::XSAccessor
     build Compress::Raw::Zlib
     build DBI
-    build DBD::mysql
+#   build DBD::mysql
     build DBD::SQLite
     build Digest::SHA1
     build EV
