@@ -310,8 +310,8 @@ function build {
             cp -v icudt46*.dat $BUILD/share/icu/4.6
             
             # Custom build for ICU support
-            tar zxvf DBD-SQLite-1.32_01.tar.gz
-            cd DBD-SQLite-1.32_01
+            tar zxvf DBD-SQLite-1.32_02.tar.gz
+            cd DBD-SQLite-1.32_02
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -R ../hints .
             if [ $PERL_58 ]; then
@@ -359,7 +359,7 @@ function build {
             fi
             
             cd ..
-            rm -rf DBD-SQLite-1.32_01
+            rm -rf DBD-SQLite-1.32_02
             ;;
         
         Digest::SHA1)
@@ -372,8 +372,8 @@ function build {
             # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
             
-            tar zxvf EV-3.9.tar.gz
-            cd EV-3.9
+            tar zxvf EV-4.03.tar.gz
+            cd EV-4.03
             if [ $OS = "Darwin" ]; then
                 if [ $PERL_58 ]; then
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
@@ -442,7 +442,7 @@ function build {
                 make install
             fi
             cd ..
-            rm -rf EV-3.9
+            rm -rf EV-4.03
             
             export PERL_MM_USE_DEFAULT=
             ;;
@@ -722,7 +722,7 @@ function build {
             
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
                 USE_HINTS=0
-                build_module IO-AIO-3.5
+                build_module IO-AIO-3.71
                 USE_HINTS=1
             fi
             ;;
@@ -758,7 +758,7 @@ function build {
             ;;
         
         Audio::Scan)
-            build_module Audio-Scan-0.84
+            build_module Audio-Scan-0.86
             ;;
 
         MP3::Cut::Gapless)
