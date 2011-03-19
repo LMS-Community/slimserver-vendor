@@ -110,7 +110,7 @@ fi
 
 # Clean up
 # XXX command-line flag to skip cleanup
-rm -rf $BUILD
+rm -rf $BUILD/arch
 
 mkdir $BUILD
 
