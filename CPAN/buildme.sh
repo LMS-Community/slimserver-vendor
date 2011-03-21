@@ -363,7 +363,7 @@ function build {
             ;;
         
         Audio::Scan)
-            build_module Audio-Scan-0.84
+            build_module Audio-Scan-0.87
             ;;
         
         Template)
@@ -673,7 +673,7 @@ function build {
             if [ $PERL_510 ]; then
                 # Running 5.10
                 PATH="$BUILD/bin:$PATH" \
-                    $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
+                    $PERL_510 Makefile.PL
 
                 make test
                 if [ $? != 0 ]; then
