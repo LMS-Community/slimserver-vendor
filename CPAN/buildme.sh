@@ -86,8 +86,12 @@ if [ $OS = "Darwin" ]; then
         # build 32-bit version 
         FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
     elif [ $PERL_510 ]; then
-        # Build 64-bit version    
-        FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+        # Build 64-bit version
+        if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+            FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+        else
+            FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
+        fi
     fi
 fi
 
@@ -208,6 +212,7 @@ function build_all {
     build Linux::Inotify2
     build Locale::Hebrew
     build Mac::FSEvents
+    build Media::Scan
     build MP3::Cut::Gapless
     build Sub::Name
     build Template
@@ -1025,6 +1030,91 @@ function build {
             cd ..
             rm -rf Font-FreeType-0.03
             rm -rf freetype-2.4.2
+            ;;
+        
+        Media::Scan)
+            build_module XS-Object-Magic-0.02
+            
+            # build ffmpeg, enabling only the things libmediascan uses
+            tar jxvf ffmpeg-git-3c8493.tar.bz2
+            cd ffmpeg
+            echo "Configuring FFmpeg..."
+            
+            if [ $OS = "Darwin" -a $PERL_510 ]; then
+                SAVED_FLAGS=$FLAGS
+                
+                # Build 64-bit fork
+                if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+                    FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+                else
+                    FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
+                fi
+                
+                CFLAGS="$FLAGS" \
+                LDFLAGS="$FLAGS" \
+                    ./configure --prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
+                        --disable-avdevice --disable-swscale --enable-pic \
+                        --disable-everything \
+                        --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
+                        --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
+                        --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
+                        --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
+                        --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
+                        --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
+                        --enable-decoder=wmav2 --enable-decoder=wmavoice \
+                        --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
+                        --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
+                        --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
+                        --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
+                        --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
+                        --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
+                        --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
+                        --enable-protocol=file                        
+                
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi                
+                make install
+                cd ..
+                
+                # build libmediascan
+                tar zxvf libmediascan-0.1.tar.gz
+                cd libmediascan-0.1
+                CFLAGS="-I$BUILD/include $FLAGS" \
+                LDFLAGS="-L$BUILD/lib $FLAGS" \
+                    ./configure --prefix=$BUILD --disable-shared --disable-dependency-tracking
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed"
+                    exit $?
+                fi            
+                make install
+                cd ..
+
+                # build Media::Scan
+                cd libmediascan-0.1/bindings/perl
+                $PERL_510 Makefile.PL --with-ffmpeg-includes="$BUILD/include" \
+                    --with-lms-includes="$BUILD/include" --with-static \
+                    INSTALL_BASE=$BASE_510
+                make 
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+                
+                # XXX build 32-bit fork
+                
+                cd ../../..
+                FLAGS=$SAVED_FLAGS
+            else
+                exit
+            fi
+            
+            rm -rf libmediascan-0.1
+            rm -rf ffmpeg
             ;;
     esac
 }
