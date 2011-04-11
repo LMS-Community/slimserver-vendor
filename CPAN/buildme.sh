@@ -470,173 +470,9 @@ function build {
             ;;
 
         Image::Scale)
-            # build libjpeg-turbo on x86 platforms
-            if [ $OS = "Darwin" -a $PERL_510 ]; then
-                # Build i386/x86_64 versions of turbo
-                tar zxvf libjpeg-turbo-1.0.0.tar.gz
-                cd libjpeg-turbo-1.0.0
-                
-                # Disable features we don't need
-                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-                
-                # Build 64-bit fork
-                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
-                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
-                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
-                    ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
-                    --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                cp -fv .libs/libjpeg.a libjpeg-x86_64.a
-                
-                # Build 32-bit fork
-                make clean
-                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
-                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
-                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -m32" \
-                    ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
-                    --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                cp -fv .libs/libjpeg.a libjpeg-i386.a
-                
-                # Combine the forks
-                lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
-                
-                # Install and replace libjpeg.a with universal version
-                make install
-                cp -f libjpeg.a $BUILD/lib/libjpeg.a
-                cd ..
-            
-            elif [ $OS = "Darwin" -a $PERL_58 ]; then
-                # combine i386 turbo with ppc libjpeg
-                
-                # build i386 turbo
-                tar zxvf libjpeg-turbo-1.0.0.tar.gz
-                cd libjpeg-turbo-1.0.0
-                
-                # Disable features we don't need
-                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-                
-                CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
-                CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
-                LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -m32" \
-                    ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
-                    --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                make install
-                cp -fv .libs/libjpeg.a ../libjpeg-i386.a
-                cd ..
-                
-                # build ppc libjpeg 6b
-                tar zxvf jpegsrc.v6b.tar.gz
-                cd jpeg-6b
-                
-                # Disable features we don't need
-                cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
-                
-                CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
-                LDFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
-                    ./configure --prefix=$BUILD \
-                    --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                cp -fv libjpeg.a ../libjpeg-ppc.a
-                cd ..
-                
-                # Combine the forks
-                lipo -create libjpeg-i386.a libjpeg-ppc.a -output libjpeg.a
-                
-                # Replace libjpeg library
-                mv -fv libjpeg.a $BUILD/lib/libjpeg.a
-                rm -fv libjpeg-i386.a libjpeg-ppc.a
-                
-            elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
-                # build libjpeg-turbo
-                tar zxvf libjpeg-turbo-1.0.0.tar.gz
-                cd libjpeg-turbo-1.0.0
-                
-                # Disable features we don't need
-                cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-                
-                CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS="$FLAGS" \
-                    ./configure --prefix=$BUILD --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                
-                make install
-                cd ..
-                
-            # build libjpeg v8 on other platforms
-            else
-                tar zxvf jpegsrc.v8b.tar.gz
-                cd jpeg-8b
-                
-                # Disable features we don't need
-                cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
-                
-                CFLAGS="$FLAGS -O3" \
-                LDFLAGS="$FLAGS -O3" \
-                    ./configure --prefix=$BUILD \
-                    --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi
-                make install
-                cd ..
-            fi
-            
-            # build libpng
-            tar zxvf libpng-1.4.3.tar.gz
-            cd libpng-1.4.3
-            
-            # Disable features we don't need
-            cp -fv ../libpng-pngconf.h pngconf.h
-            
-            CFLAGS="$FLAGS -O3" \
-            LDFLAGS="$FLAGS -O3" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
-            make && make check
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
-            
-            # build giflib
-            tar zxvf giflib-4.1.6.tar.gz
-            cd giflib-4.1.6
-            CFLAGS="$FLAGS -O3" \
-            LDFLAGS="$FLAGS -O3" \
-                ./configure --prefix=$BUILD \
-                --disable-dependency-tracking
-            make
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
-            make install
-            cd ..
+            build_libjpeg
+            build_libpng
+            build_giflib
             
             # build Image::Scale
             RUN_TESTS=0
@@ -717,11 +553,6 @@ function build {
             cd ..
             
             rm -rf Image-Scale-0.06
-            rm -rf giflib-4.1.6
-            rm -rf libpng-1.4.3
-            rm -rf jpeg-8b
-            rm -rf jpeg-6b
-            rm -rf libjpeg-turbo-1.0.0
             ;;
         
         IO::AIO)
@@ -1035,50 +866,22 @@ function build {
         Media::Scan)
             build_module XS-Object-Magic-0.02
             
-            # build ffmpeg, enabling only the things libmediascan uses
-            tar jxvf ffmpeg-git-3c8493.tar.bz2
-            cd ffmpeg
-            echo "Configuring FFmpeg..."
+            build_ffmpeg
+            build_libexif
+            build_libjpeg
+            build_libpng
+            build_giflib
             
             if [ $OS = "Darwin" -a $PERL_510 ]; then
                 SAVED_FLAGS=$FLAGS
-                
+
                 # Build 64-bit fork
                 if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
                     FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
                 else
                     FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
                 fi
-                
-                CFLAGS="$FLAGS" \
-                LDFLAGS="$FLAGS" \
-                    ./configure --prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
-                        --disable-avdevice --disable-swscale --enable-pic \
-                        --disable-everything \
-                        --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
-                        --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
-                        --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
-                        --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
-                        --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
-                        --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
-                        --enable-decoder=wmav2 --enable-decoder=wmavoice \
-                        --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
-                        --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
-                        --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
-                        --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
-                        --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
-                        --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
-                        --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
-                        --enable-protocol=file                        
-                
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi                
-                make install
-                cd ..
-                
+                          
                 # build libmediascan
                 tar zxvf libmediascan-0.1.tar.gz
                 cd libmediascan-0.1
@@ -1095,8 +898,12 @@ function build {
 
                 # build Media::Scan
                 cd libmediascan-0.1/bindings/perl
-                $PERL_510 Makefile.PL --with-ffmpeg-includes="$BUILD/include" \
-                    --with-lms-includes="$BUILD/include" --with-static \
+                $PERL_510 Makefile.PL --with-static \
+                    --with-ffmpeg-includes="$BUILD/include" \
+                    --with-lms-includes="$BUILD/include" \
+                    --with-exif-includes="$BUILD/include" \
+                    --with-jpeg-includes="$BUILD/include" \
+                    --with-png-includes="$BUILD/include" \
                     INSTALL_BASE=$BASE_510
                 make 
                 if [ $? != 0 ]; then
@@ -1114,9 +921,263 @@ function build {
             fi
             
             rm -rf libmediascan-0.1
-            rm -rf ffmpeg
             ;;
     esac
+}
+
+function build_libexif {
+    # build libexif
+    tar jxvf libexif-0.6.20.tar.bz2
+    cd libexif-0.6.20
+    
+    CFLAGS="$FLAGS -O3" \
+    LDFLAGS="$FLAGS -O3" \
+        ./configure --prefix=$BUILD \
+        --disable-dependency-tracking
+    make
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
+    cd ..
+    
+    rm -rf libexif-0.6.20
+}    
+
+function build_libjpeg {
+    # build libjpeg-turbo on x86 platforms
+    if [ $OS = "Darwin" -a $PERL_510 ]; then
+        # Build i386/x86_64 versions of turbo
+        tar zxvf libjpeg-turbo-1.0.0.tar.gz
+        cd libjpeg-turbo-1.0.0
+        
+        # Disable features we don't need
+        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        
+        # Build 64-bit fork
+        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
+        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
+        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+            ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
+            --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        cp -fv .libs/libjpeg.a libjpeg-x86_64.a
+        
+        # Build 32-bit fork
+        make clean
+        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
+        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
+        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -m32" \
+            ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
+            --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        cp -fv .libs/libjpeg.a libjpeg-i386.a
+        
+        # Combine the forks
+        lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
+        
+        # Install and replace libjpeg.a with universal version
+        make install
+        cp -f libjpeg.a $BUILD/lib/libjpeg.a
+        cd ..
+    
+    elif [ $OS = "Darwin" -a $PERL_58 ]; then
+        # combine i386 turbo with ppc libjpeg
+        
+        # build i386 turbo
+        tar zxvf libjpeg-turbo-1.0.0.tar.gz
+        cd libjpeg-turbo-1.0.0
+        
+        # Disable features we don't need
+        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        
+        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
+        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
+        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -m32" \
+            ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
+            --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        make install
+        cp -fv .libs/libjpeg.a ../libjpeg-i386.a
+        cd ..
+        
+        # build ppc libjpeg 6b
+        tar zxvf jpegsrc.v6b.tar.gz
+        cd jpeg-6b
+        
+        # Disable features we don't need
+        cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
+        
+        CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
+        LDFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        cp -fv libjpeg.a ../libjpeg-ppc.a
+        cd ..
+        
+        # Combine the forks
+        lipo -create libjpeg-i386.a libjpeg-ppc.a -output libjpeg.a
+        
+        # Replace libjpeg library
+        mv -fv libjpeg.a $BUILD/lib/libjpeg.a
+        rm -fv libjpeg-i386.a libjpeg-ppc.a
+        
+    elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
+        # build libjpeg-turbo
+        tar zxvf libjpeg-turbo-1.0.0.tar.gz
+        cd libjpeg-turbo-1.0.0
+        
+        # Disable features we don't need
+        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        
+        CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS="$FLAGS" \
+            ./configure --prefix=$BUILD --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        
+        make install
+        cd ..
+        
+    # build libjpeg v8 on other platforms
+    else
+        tar zxvf jpegsrc.v8b.tar.gz
+        cd jpeg-8b
+        
+        # Disable features we don't need
+        cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
+        
+        CFLAGS="$FLAGS -O3" \
+        LDFLAGS="$FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        make install
+        cd ..
+    fi
+    
+    rm -rf jpeg-8b
+    rm -rf jpeg-6b
+    rm -rf libjpeg-turbo-1.0.0
+}
+
+function build_libpng {
+    # build libpng
+    tar zxvf libpng-1.4.3.tar.gz
+    cd libpng-1.4.3
+    
+    # Disable features we don't need
+    cp -fv ../libpng-pngconf.h pngconf.h
+    
+    CFLAGS="$FLAGS -O3" \
+    LDFLAGS="$FLAGS -O3" \
+        ./configure --prefix=$BUILD \
+        --disable-dependency-tracking
+    make && make check
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
+    cd ..
+    
+    rm -rf libpng-1.4.3
+}
+
+function build_giflib {
+    # build giflib
+    tar zxvf giflib-4.1.6.tar.gz
+    cd giflib-4.1.6
+    CFLAGS="$FLAGS -O3" \
+    LDFLAGS="$FLAGS -O3" \
+        ./configure --prefix=$BUILD \
+        --disable-dependency-tracking
+    make
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
+    cd ..
+    
+    rm -rf giflib-4.1.6
+}
+
+function build_ffmpeg {
+    # build ffmpeg, enabling only the things libmediascan uses
+    tar jxvf ffmpeg-git-3c8493.tar.bz2
+    cd ffmpeg
+    echo "Configuring FFmpeg..."
+    
+    if [ $OS = "Darwin" -a $PERL_510 ]; then
+        SAVED_FLAGS=$FLAGS
+        
+        # Build 64-bit fork
+        if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+            FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+        else
+            FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
+        fi
+        
+        CFLAGS="$FLAGS" \
+        LDFLAGS="$FLAGS" \
+            ./configure --prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
+                --disable-avdevice --enable-pic \
+                --disable-everything --enable-swscale \
+                --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
+                --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
+                --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
+                --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
+                --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
+                --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
+                --enable-decoder=wmav2 --enable-decoder=wmavoice \
+                --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
+                --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
+                --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
+                --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
+                --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
+                --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
+                --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
+                --enable-protocol=file                        
+        
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi                
+        make install
+        cd ..
+        
+        # XXX Build 32-bit fork
+        
+        FLAGS=$SAVED_FLAGS
+    fi
+    
+    rm -rf ffmpeg
 }
 
 # Build a single module if requested, or all
