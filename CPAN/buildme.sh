@@ -908,6 +908,7 @@ function build {
                     --with-exif-includes="$BUILD/include" \
                     --with-jpeg-includes="$BUILD/include" \
                     --with-png-includes="$BUILD/include" \
+                    --with-gif-includes="$BUILD/include" \
                     INSTALL_BASE=$BASE_510
                 make 
                 if [ $? != 0 ]; then
