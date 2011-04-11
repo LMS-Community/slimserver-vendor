@@ -881,6 +881,7 @@ function build {
                 fi
                           
                 # build libmediascan
+                # XXX does not link correctly with libjpeg due to missing x86_64 in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
                 tar zxvf libmediascan-0.1.tar.gz
                 cd libmediascan-0.1
                 CFLAGS="-I$BUILD/include $FLAGS" \
