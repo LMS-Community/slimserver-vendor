@@ -865,7 +865,10 @@ function build {
         
         Media::Scan)
             build_module ExtUtils-Depends-0.304
+            build_module parent-0.225
+            RUN_TESTS=0
             build_module XS-Object-Magic-0.02
+            RUN_TESTS=1
             
             build_ffmpeg
             build_libexif
