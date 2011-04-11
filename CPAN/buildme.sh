@@ -863,13 +863,7 @@ function build {
             rm -rf freetype-2.4.2
             ;;
         
-        Media::Scan)
-            build_module ExtUtils-Depends-0.304
-            build_module parent-0.225
-            RUN_TESTS=0
-            build_module XS-Object-Magic-0.02
-            RUN_TESTS=1
-            
+        Media::Scan)            
             build_ffmpeg
             build_libexif
             build_libjpeg
@@ -931,6 +925,10 @@ function build {
 }
 
 function build_libexif {
+    if [ -d $BUILD/include/libexif/exif-data.h ]; then
+        return
+    fi
+    
     # build libexif
     tar jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
@@ -951,6 +949,10 @@ function build_libexif {
 }    
 
 function build_libjpeg {
+    if [ -d $BUILD/include/jpeglib.h ]; then
+        return
+    fi
+    
     # build libjpeg-turbo on x86 platforms
     if [ $OS = "Darwin" -a $PERL_510 ]; then
         # Build i386/x86_64 versions of turbo
@@ -1091,6 +1093,10 @@ function build_libjpeg {
 }
 
 function build_libpng {
+    if [ -d $BUILD/include/png.h ]; then
+        return
+    fi
+    
     # build libpng
     tar zxvf libpng-1.4.3.tar.gz
     cd libpng-1.4.3
@@ -1114,6 +1120,10 @@ function build_libpng {
 }
 
 function build_giflib {
+    if [ -d $BUILD/include/gif_lib.h ]; then
+        return
+    fi
+    
     # build giflib
     tar zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
@@ -1133,6 +1143,10 @@ function build_giflib {
 }
 
 function build_ffmpeg {
+    if [ -d $BUILD/include/libavformat/avformat.h ]; then
+        return
+    fi
+    
     # build ffmpeg, enabling only the things libmediascan uses
     tar jxvf ffmpeg-git-3c8493.tar.bz2
     cd ffmpeg
