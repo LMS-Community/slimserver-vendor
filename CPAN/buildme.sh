@@ -955,7 +955,8 @@ function build_libjpeg {
     fi
     
     # build libjpeg-turbo on x86 platforms
-    if [ $OS = "Darwin" -a $PERL_510 ]; then
+    # XXX turbo is broken with lms right now
+    if [ 0 -eq 1 -a $OS = "Darwin" -a $PERL_510 ]; then
         # Build i386/x86_64 versions of turbo
         tar zxvf libjpeg-turbo-1.0.0.tar.gz
         cd libjpeg-turbo-1.0.0
@@ -998,7 +999,7 @@ function build_libjpeg {
         cp -f libjpeg.a $BUILD/lib/libjpeg.a
         cd ..
     
-    elif [ $OS = "Darwin" -a $PERL_58 ]; then
+    elif [ 0 -eq 1 -a $OS = "Darwin" -a $PERL_58 ]; then
         # combine i386 turbo with ppc libjpeg
         
         # build i386 turbo
@@ -1048,7 +1049,7 @@ function build_libjpeg {
         mv -fv libjpeg.a $BUILD/lib/libjpeg.a
         rm -fv libjpeg-i386.a libjpeg-ppc.a
         
-    elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
+    elif [ 0 -eq 1 -a $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
         # build libjpeg-turbo
         tar zxvf libjpeg-turbo-1.0.0.tar.gz
         cd libjpeg-turbo-1.0.0
