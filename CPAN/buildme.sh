@@ -925,7 +925,7 @@ function build {
 }
 
 function build_libexif {
-    if [ -d $BUILD/include/libexif/exif-data.h ]; then
+    if [ -f $BUILD/include/libexif/exif-data.h ]; then
         return
     fi
     
@@ -949,7 +949,7 @@ function build_libexif {
 }    
 
 function build_libjpeg {
-    if [ -d $BUILD/include/jpeglib.h ]; then
+    if [ -f $BUILD/include/jpeglib.h ]; then
         return
     fi
     
@@ -1093,7 +1093,7 @@ function build_libjpeg {
 }
 
 function build_libpng {
-    if [ -d $BUILD/include/png.h ]; then
+    if [ -f $BUILD/include/png.h ]; then
         return
     fi
     
@@ -1120,7 +1120,7 @@ function build_libpng {
 }
 
 function build_giflib {
-    if [ -d $BUILD/include/gif_lib.h ]; then
+    if [ -f $BUILD/include/gif_lib.h ]; then
         return
     fi
     
@@ -1143,7 +1143,7 @@ function build_giflib {
 }
 
 function build_ffmpeg {
-    if [ -d $BUILD/include/libavformat/avformat.h ]; then
+    if [ -f $BUILD/include/libavformat/avformat.h ]; then
         return
     fi
     
