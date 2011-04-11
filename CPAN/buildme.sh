@@ -864,6 +864,7 @@ function build {
             ;;
         
         Media::Scan)
+            build_module ExtUtils-Depends-0.304
             build_module XS-Object-Magic-0.02
             
             build_ffmpeg
