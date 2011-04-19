@@ -1231,9 +1231,9 @@ function build_ffmpeg {
         # Install and replace libs with universal versions
         make install
         cp -f libavcodec.a $BUILD/lib/libavcodec.a
-        cp -f libavcodec.a $BUILD/lib/libavformat.a
-        cp -f libavcodec.a $BUILD/lib/libavutil.a
-        cp -f libavcodec.a $BUILD/lib/libswscale.a
+        cp -f libavformat.a $BUILD/lib/libavformat.a
+        cp -f libavutil.a $BUILD/lib/libavutil.a
+        cp -f libswscale.a $BUILD/lib/libswscale.a
         
         FLAGS=$SAVED_FLAGS
         cd ..
