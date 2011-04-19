@@ -906,6 +906,12 @@ function build {
                     echo "make failed, aborting"
                     exit $?
                 fi
+                # XXX hack until regular test works
+                $PERL_58 -Iblib/lib -Iblib/arch t/01use.t
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
                 make install
                 make clean
             fi
@@ -917,7 +923,14 @@ function build {
                     echo "make failed, aborting"
                     exit $?
                 fi
+                # XXX hack until regular test works
+                $PERL_510 -Iblib/lib -Iblib/arch t/01use.t
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -925,6 +938,12 @@ function build {
                 make
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
+                    exit $?
+                fi
+                # XXX hack until regular test works
+                $PERL_512 -Iblib/lib -Iblib/arch t/01use.t
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
                     exit $?
                 fi
                 make install
