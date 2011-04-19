@@ -1173,7 +1173,6 @@ function build_ffmpeg {
             echo "make failed"
             exit $?
         fi
-        cd ..
         
         cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
         cp -fv libavfilter/libavfilter.a libavfilter-x86_64.a
@@ -1193,7 +1192,6 @@ function build_ffmpeg {
             echo "make failed"
             exit $?
         fi
-        cd ..
         
         cp -fv libavcodec/libavcodec.a libavcodec-i386.a
         cp -fv libavfilter/libavfilter.a libavfilter-i386.a
@@ -1217,6 +1215,7 @@ function build_ffmpeg {
         cp -f libavcodec.a $BUILD/lib/libswscale.a
         
         FLAGS=$SAVED_FLAGS
+        cd ..
     fi
     
     rm -rf ffmpeg
