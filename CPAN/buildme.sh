@@ -1199,7 +1199,6 @@ function build_ffmpeg {
         fi
         
         cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
-        cp -fv libavfilter/libavfilter.a libavfilter-x86_64.a
         cp -fv libavformat/libavformat.a libavformat-x86_64.a
         cp -fv libavutil/libavutil.a libavutil-x86_64.a
         cp -fv libswscale/libswscale.a libswscale-x86_64.a
@@ -1219,14 +1218,12 @@ function build_ffmpeg {
         fi
         
         cp -fv libavcodec/libavcodec.a libavcodec-i386.a
-        cp -fv libavfilter/libavfilter.a libavfilter-i386.a
         cp -fv libavformat/libavformat.a libavformat-i386.a
         cp -fv libavutil/libavutil.a libavutil-i386.a
         cp -fv libswscale/libswscale.a libswscale-i386.a
         
         # Combine the forks
         lipo -create libavcodec-x86_64.a libavcodec-i386.a -output libavcodec.a
-        lipo -create libavfilter-x86_64.a libavfilter-i386.a -output libavfilter.a
         lipo -create libavformat-x86_64.a libavformat-i386.a -output libavformat.a
         lipo -create libavutil-x86_64.a libavutil-i386.a -output libavutil.a
         lipo -create libswscale-x86_64.a libswscale-i386.a -output libswscale.a
@@ -1234,7 +1231,6 @@ function build_ffmpeg {
         # Install and replace libs with universal versions
         make install
         cp -f libavcodec.a $BUILD/lib/libavcodec.a
-        cp -f libavcodec.a $BUILD/lib/libavfilter.a
         cp -f libavcodec.a $BUILD/lib/libavformat.a
         cp -f libavcodec.a $BUILD/lib/libavutil.a
         cp -f libavcodec.a $BUILD/lib/libswscale.a
@@ -1242,6 +1238,8 @@ function build_ffmpeg {
         FLAGS=$SAVED_FLAGS
         cd ..
     else
+        # XXX May need to disable some ASM e.g. SSE3 to be most compatible on x86 systems with older CPUs
+        
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
