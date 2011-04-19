@@ -1216,6 +1216,18 @@ function build_ffmpeg {
         
         FLAGS=$SAVED_FLAGS
         cd ..
+    else
+        CFLAGS="$FLAGS -O3" \
+        LDFLAGS="$FLAGS -O3" \
+            ./configure $FFOPTS
+        
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        make install
+        cd ..
     fi
     
     rm -rf ffmpeg
