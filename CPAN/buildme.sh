@@ -869,56 +869,43 @@ function build {
             build_libjpeg
             build_libpng
             build_giflib
+            build_bdb
             
-            if [ $OS = "Darwin" -a $PERL_510 ]; then
-                SAVED_FLAGS=$FLAGS
+            # build libmediascan
+            # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
+            # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
+            tar zxvf libmediascan-0.1.tar.gz
+            cd libmediascan-0.1
+            CFLAGS="-I$BUILD/include $FLAGS -O3" \
+            LDFLAGS="-L$BUILD/lib $FLAGS -O3" \
+                ./configure --prefix=$BUILD --disable-shared --disable-dependency-tracking
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi            
+            make install
+            cd ..
 
-                # Build 64-bit fork
-                if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
-                    FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-                else
-                    FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
-                fi
-                          
-                # build libmediascan
-                # XXX does not link correctly with libjpeg due to missing x86_64 in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
-                tar zxvf libmediascan-0.1.tar.gz
-                cd libmediascan-0.1
-                CFLAGS="-I$BUILD/include $FLAGS" \
-                LDFLAGS="-L$BUILD/lib $FLAGS" \
-                    ./configure --prefix=$BUILD --disable-shared --disable-dependency-tracking
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed"
-                    exit $?
-                fi            
-                make install
-                cd ..
-
-                # build Media::Scan
-                cd libmediascan-0.1/bindings/perl
-                $PERL_510 Makefile.PL --with-static \
-                    --with-ffmpeg-includes="$BUILD/include" \
-                    --with-lms-includes="$BUILD/include" \
-                    --with-exif-includes="$BUILD/include" \
-                    --with-jpeg-includes="$BUILD/include" \
-                    --with-png-includes="$BUILD/include" \
-                    --with-gif-includes="$BUILD/include" \
-                    INSTALL_BASE=$BASE_510
-                make 
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                
-                # XXX build 32-bit fork
-                
-                cd ../../..
-                FLAGS=$SAVED_FLAGS
-            else
-                exit
+            # build Media::Scan
+            cd libmediascan-0.1/bindings/perl
+            $PERL_510 Makefile.PL --with-static \
+                --with-ffmpeg-includes="$BUILD/include" \
+                --with-lms-includes="$BUILD/include" \
+                --with-exif-includes="$BUILD/include" \
+                --with-jpeg-includes="$BUILD/include" \
+                --with-png-includes="$BUILD/include" \
+                --with-gif-includes="$BUILD/include" \
+                --with-bdb-includes="$BUILD/include" \
+                INSTALL_BASE=$BASE_510
+            make 
+            if [ $? != 0 ]; then
+                echo "make failed, aborting"
+                exit $?
             fi
+            make install
+            
+            cd ../../..
             
             rm -rf libmediascan-0.1
             ;;
@@ -955,8 +942,7 @@ function build_libjpeg {
     fi
     
     # build libjpeg-turbo on x86 platforms
-    # XXX turbo is broken with lms right now
-    if [ 0 -eq 1 -a $OS = "Darwin" -a $PERL_510 ]; then
+    if [ $OS = "Darwin" -a $PERL_510 ]; then
         # Build i386/x86_64 versions of turbo
         tar zxvf libjpeg-turbo-1.0.0.tar.gz
         cd libjpeg-turbo-1.0.0
@@ -999,7 +985,7 @@ function build_libjpeg {
         cp -f libjpeg.a $BUILD/lib/libjpeg.a
         cd ..
     
-    elif [ 0 -eq 1 -a $OS = "Darwin" -a $PERL_58 ]; then
+    elif [ $OS = "Darwin" -a $PERL_58 ]; then
         # combine i386 turbo with ppc libjpeg
         
         # build i386 turbo
@@ -1049,7 +1035,7 @@ function build_libjpeg {
         mv -fv libjpeg.a $BUILD/lib/libjpeg.a
         rm -fv libjpeg-i386.a libjpeg-ppc.a
         
-    elif [ 0 -eq 1 -a $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
+    elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
         # build libjpeg-turbo
         tar zxvf libjpeg-turbo-1.0.0.tar.gz
         cd libjpeg-turbo-1.0.0
@@ -1154,51 +1140,110 @@ function build_ffmpeg {
     cd ffmpeg
     echo "Configuring FFmpeg..."
     
+    FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
+        --disable-avdevice --enable-pic \
+        --disable-everything --enable-swscale \
+        --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
+        --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
+        --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
+        --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
+        --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
+        --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
+        --enable-decoder=wmav2 --enable-decoder=wmavoice \
+        --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
+        --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
+        --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
+        --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
+        --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
+        --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
+        --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
+        --enable-protocol=file"
+    
     if [ $OS = "Darwin" -a $PERL_510 ]; then
         SAVED_FLAGS=$FLAGS
         
         # Build 64-bit fork
-        if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
-            FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-        else
-            FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
-        fi
-        
+        FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
-            ./configure --prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
-                --disable-avdevice --enable-pic \
-                --disable-everything --enable-swscale \
-                --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
-                --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
-                --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
-                --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
-                --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
-                --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
-                --enable-decoder=wmav2 --enable-decoder=wmavoice \
-                --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
-                --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
-                --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
-                --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
-                --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
-                --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
-                --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
-                --enable-protocol=file                        
+            ./configure $FFOPTS
         
         make
         if [ $? != 0 ]; then
             echo "make failed"
             exit $?
-        fi                
-        make install
+        fi
         cd ..
         
-        # XXX Build 32-bit fork
+        cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
+        cp -fv libavfilter/libavfilter.a libavfilter-x86_64.a
+        cp -fv libavformat/libavformat.a libavformat-x86_64.a
+        cp -fv libavutil/libavutil.a libavutil-x86_64.a
+        cp -fv libswscale/libswscale.a libswscale-x86_64.a
+        
+        # Build 32-bit fork
+        make clean
+        FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3"      
+        CFLAGS="$FLAGS" \
+        LDFLAGS="$FLAGS" \
+            ./configure $FFOPTS
+        
+        make
+        if [ $? != 0 ]; then
+            echo "make failed"
+            exit $?
+        fi
+        cd ..
+        
+        cp -fv libavcodec/libavcodec.a libavcodec-i386.a
+        cp -fv libavfilter/libavfilter.a libavfilter-i386.a
+        cp -fv libavformat/libavformat.a libavformat-i386.a
+        cp -fv libavutil/libavutil.a libavutil-i386.a
+        cp -fv libswscale/libswscale.a libswscale-i386.a
+        
+        # Combine the forks
+        lipo -create libavcodec-x86_64.a libavcodec-i386.a -output libavcodec.a
+        lipo -create libavfilter-x86_64.a libavfilter-i386.a -output libavfilter.a
+        lipo -create libavformat-x86_64.a libavformat-i386.a -output libavformat.a
+        lipo -create libavutil-x86_64.a libavutil-i386.a -output libavutil.a
+        lipo -create libswscale-x86_64.a libswscale-i386.a -output libswscale.a
+        
+        # Install and replace libs with universal versions
+        make install
+        cp -f libavcodec.a $BUILD/lib/libavcodec.a
+        cp -f libavcodec.a $BUILD/lib/libavfilter.a
+        cp -f libavcodec.a $BUILD/lib/libavformat.a
+        cp -f libavcodec.a $BUILD/lib/libavutil.a
+        cp -f libavcodec.a $BUILD/lib/libswscale.a
         
         FLAGS=$SAVED_FLAGS
     fi
     
     rm -rf ffmpeg
+}
+
+function build_bdb {
+    if [ -f $BUILD/include/db.h ]; then
+        return
+    fi
+    
+    # build bdb
+    tar zxvf db-5.1.25.tar.gz
+    cd db-5.1.25/build_unix
+    CFLAGS="$FLAGS -O3" \
+    LDFLAGS="$FLAGS -O3" \
+        ../dist/configure --prefix=$BUILD \
+        --with-cryptography=no -disable-hash --disable-queue --disable-replication --disable-statistics --disable-verify \
+        --disable-dependency-tracking --disable-shared
+    make
+    if [ $? != 0 ]; then
+        echo "make failed"
+        exit $?
+    fi
+    make install
+    cd ../..
+    
+    rm -rf db-5.1.25
 }
 
 # Build a single module if requested, or all
