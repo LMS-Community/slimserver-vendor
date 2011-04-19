@@ -889,24 +889,48 @@ function build {
 
             # build Media::Scan
             cd libmediascan-0.1/bindings/perl
-            $PERL_510 Makefile.PL --with-static \
-                --with-ffmpeg-includes="$BUILD/include" \
-                --with-lms-includes="$BUILD/include" \
-                --with-exif-includes="$BUILD/include" \
-                --with-jpeg-includes="$BUILD/include" \
-                --with-png-includes="$BUILD/include" \
-                --with-gif-includes="$BUILD/include" \
-                --with-bdb-includes="$BUILD/include" \
-                INSTALL_BASE=$BASE_510
-            make 
-            if [ $? != 0 ]; then
-                echo "make failed, aborting"
-                exit $?
+            
+            MSOPTS="--with-static \
+                --with-ffmpeg-includes=$BUILD/include \
+                --with-lms-includes=$BUILD/include \
+                --with-exif-includes=$BUILD/include \
+                --with-jpeg-includes=$BUILD/include \
+                --with-png-includes=$BUILD/include \
+                --with-gif-includes=$BUILD/include \
+                --with-bdb-includes=$BUILD/include"
+                
+            if [ $PERL_58 ]; then
+                $PERL_58 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_58
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
             fi
-            make install
+            if [ $PERL_510 ]; then
+                # Running 5.10
+                $PERL_510 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_510
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
+            if [ $PERL_512 ]; then
+                # Running 5.12
+                $PERL_512 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_512
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+            fi
             
             cd ../../..
-            
             rm -rf libmediascan-0.1
             ;;
     esac
@@ -1180,12 +1204,13 @@ function build_ffmpeg {
         cp -fv libavutil/libavutil.a libavutil-x86_64.a
         cp -fv libswscale/libswscale.a libswscale-x86_64.a
         
-        # Build 32-bit fork
+        # Build 32-bit fork, ASM does not compile here for some reason, e.g.:
+        # libavcodec/cabac.h:527: error: PIC register '%ebx' clobbered in 'asm'
         make clean
         FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
-            ./configure $FFOPTS
+            ./configure $FFOPTS --disable-asm
         
         make
         if [ $? != 0 ]; then
