@@ -1237,7 +1237,7 @@ function build_ffmpeg {
         FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
-            ./configure $FFOPTS
+            ./configure $FFOPTS --disable-asm
         
         make
         if [ $? != 0 ]; then
