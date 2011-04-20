@@ -1206,7 +1206,7 @@ function build_ffmpeg {
         SAVED_FLAGS=$FLAGS
         
         # Build 64-bit fork
-        FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3"      
+        FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
             ./configure $FFOPTS
@@ -1225,7 +1225,7 @@ function build_ffmpeg {
         # Build 32-bit fork, ASM does not compile here for some reason, e.g.:
         # libavcodec/cabac.h:527: error: PIC register '%ebx' clobbered in 'asm'
         make clean
-        FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3"      
+        FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
             ./configure $FFOPTS --disable-asm
@@ -1257,8 +1257,11 @@ function build_ffmpeg {
         FLAGS=$SAVED_FLAGS
         cd ..
     else
-        # XXX May need to disable some ASM e.g. SSE3 to be most compatible on x86 systems with older CPUs
-        
+        # No x86 ASM for maximum compatibility
+        if [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
+            FFOPTS="$FFOPTS --disable-asm"
+        fi
+           
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
