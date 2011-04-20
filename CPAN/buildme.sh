@@ -1183,8 +1183,9 @@ function build_ffmpeg {
     cd ffmpeg
     echo "Configuring FFmpeg..."
     
+    # We don't build any ASM to avoid compatibility problems
     FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
-        --disable-avdevice --enable-pic \
+        --disable-avdevice --enable-pic --disable-asm \
         --disable-everything --enable-swscale \
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
@@ -1222,13 +1223,12 @@ function build_ffmpeg {
         cp -fv libavutil/libavutil.a libavutil-x86_64.a
         cp -fv libswscale/libswscale.a libswscale-x86_64.a
         
-        # Build 32-bit fork, ASM does not compile here for some reason, e.g.:
-        # libavcodec/cabac.h:527: error: PIC register '%ebx' clobbered in 'asm'
+        # Build 32-bit fork
         make clean
         FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
-            ./configure $FFOPTS --disable-asm
+            ./configure $FFOPTS
         
         make
         if [ $? != 0 ]; then
@@ -1256,12 +1256,7 @@ function build_ffmpeg {
         
         FLAGS=$SAVED_FLAGS
         cd ..
-    else
-        # No x86 ASM for maximum compatibility
-        if [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
-            FFOPTS="$FFOPTS --disable-asm"
-        fi
-           
+    else           
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
