@@ -1183,9 +1183,13 @@ function build_ffmpeg {
     cd ffmpeg
     echo "Configuring FFmpeg..."
     
-    # We don't build any ASM to avoid compatibility problems
+    # x86: Disable all but the lowend MMX ASM
+    # ARM: Disable all but ARMv5te
     FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
-        --disable-avdevice --enable-pic --disable-asm \
+        --disable-avdevice --enable-pic \
+        --disable-amd3dnow --disable-amd3dnowext --disable-mmx2 --disable-sse --disable-ssse3 --disable-avx \
+        --disable-armv6 --disable-armv6t2 --disable-armvfp --disable-iwmmxt --disable-mmi --disable-neon \
+        --disable-vis \
         --disable-everything --enable-swscale \
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
