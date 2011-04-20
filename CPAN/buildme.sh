@@ -1207,6 +1207,11 @@ function build_ffmpeg {
         --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
         --enable-protocol=file"
     
+    # ASM doesn't work right on x86_64
+    if [ $ARCH = "x86_64-linux-thread-multi" ]; then
+        FFOPTS="$FFOPTS --disable-mmx"
+    fi
+    
     if [ $OS = "Darwin" -a $PERL_510 ]; then
         SAVED_FLAGS=$FLAGS
         
