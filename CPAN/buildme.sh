@@ -1194,7 +1194,7 @@ function build_ffmpeg {
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
         --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
-        --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 \
+        --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 --enable-decoder=rawvideo \
         --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
         --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
         --enable-decoder=wmav2 --enable-decoder=wmavoice \
