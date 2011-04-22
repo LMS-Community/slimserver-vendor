@@ -1179,7 +1179,7 @@ function build_ffmpeg {
     fi
     
     # build ffmpeg, enabling only the things libmediascan uses
-    tar jxvf ffmpeg-git-3c8493.tar.bz2
+    tar jxvf ffmpeg-git-22180e.tar.bz2
     cd ffmpeg
     echo "Configuring FFmpeg..."
     
