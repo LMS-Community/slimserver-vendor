@@ -734,7 +734,9 @@ function build {
             
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
                 USE_HINTS=0
+                RUN_TESTS=0
                 build_module IO-AIO-3.71
+                RUN_TESTS=1
                 USE_HINTS=1
             fi
             ;;
@@ -757,7 +759,9 @@ function build {
 
         Mac::FSEvents)
             if [ $OS = 'Darwin' ]; then
+                RUN_TESTS=0
                 build_module Mac-FSEvents-0.04
+                RUN_TESTS=1
             fi
             ;;
         
