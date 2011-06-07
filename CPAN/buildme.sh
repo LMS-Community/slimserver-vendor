@@ -13,6 +13,7 @@
 # Mac OSX 10.5, 10.6, (Perl 5.8.8 & 5.10.0)
 #   Under 10.5, builds Universal Binaries for i386/ppc
 #   Under 10.6, builds Universal Binaries for i386/x86_64
+#   Under 10.7, builds Universal Binaries for i386/x86_64
 # FreeBSD 7.2 (Perl 5.8.9)
 
 OS=`uname`
@@ -65,6 +66,9 @@ if [ -x "/usr/bin/perl5.12.1" ]; then
     PERL_512=/usr/bin/perl5.12.1
 elif [ -x "/usr/local/bin/perl5.12.1" ]; then
     PERL_512=/usr/local/bin/perl5.12.1
+elif [ -x "/usr/bin/perl5.12" ]; then
+    # OSX Lion uses this path
+    PERL_512=/usr/bin/perl5.12
 fi
 
 if [ $PERL_512 ]; then
@@ -88,6 +92,8 @@ if [ $OS = "Darwin" ]; then
     elif [ $PERL_510 ]; then
         # Build 64-bit version    
         FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+    elif [ $PERL_512 ]; then
+        FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7"
     fi
 fi
 
@@ -426,6 +432,8 @@ function build {
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
+                RUN_TESTS=0
+
                 export PERL5LIB=$BASE_512/lib/perl5
 
                 $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
@@ -443,6 +451,7 @@ function build {
                     exit $?
                 fi
                 make install
+                RUN_TESTS=1
             fi
             cd ..
             rm -rf EV-4.03
