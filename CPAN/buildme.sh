@@ -383,6 +383,7 @@ function build {
             
             tar zxvf EV-4.03.tar.gz
             cd EV-4.03
+            patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
             if [ $OS = "Darwin" ]; then
                 if [ $PERL_58 ]; then
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
@@ -432,8 +433,6 @@ function build {
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
-                RUN_TESTS=0
-
                 export PERL5LIB=$BASE_512/lib/perl5
 
                 $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
@@ -451,7 +450,6 @@ function build {
                     exit $?
                 fi
                 make install
-                RUN_TESTS=1
             fi
             cd ..
             rm -rf EV-4.03
