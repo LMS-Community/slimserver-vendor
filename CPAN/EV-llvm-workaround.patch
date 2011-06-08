@@ -1,0 +1,11 @@
+--- EV.xs.orig	2011-06-08 11:43:32.000000000 -0400
++++ EV.xs	2011-06-08 11:43:38.000000000 -0400
+@@ -347,7 +347,7 @@
+ {
+   HV *stash = gv_stashpv ("EV", 1);
+ 
+-  static const struct {
++  const struct {
+     const char *name;
+     IV iv;
+   } *civ, const_iv[] = {
