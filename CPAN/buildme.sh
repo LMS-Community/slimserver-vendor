@@ -6,7 +6,7 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8, 5.10.0, 5.12.1)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.3)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
@@ -61,11 +61,13 @@ fi
 # Install dir for 5.10
 BASE_510=$BUILD/5.10
 
-# Path to Perl 5.12.1
-if [ -x "/usr/bin/perl5.12.1" ]; then
-    PERL_512=/usr/bin/perl5.12.1
-elif [ -x "/usr/local/bin/perl5.12.1" ]; then
-    PERL_512=/usr/local/bin/perl5.12.1
+# Path to Perl 5.12.3
+if [ -x "/usr/bin/perl5.12.3" ]; then
+    PERL_512=/usr/bin/perl5.12.3
+elif [ -x "/usr/local/bin/perl5.12.3" ]; then
+    PERL_512=/usr/local/bin/perl5.12.3
+elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3" ]; then
+    PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3
 elif [ -x "/usr/bin/perl5.12" ]; then
     # OSX Lion uses this path
     PERL_512=/usr/bin/perl5.12
@@ -109,7 +111,7 @@ fi
 
 # Clean up
 # XXX command-line flag to skip cleanup
-rm -rf $BUILD
+rm -rf $BUILD/arch
 
 mkdir $BUILD
 
