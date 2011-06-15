@@ -3,16 +3,13 @@
 use Config;
 
 if ( $Config{myarchname} =~ /i386/ ) {
-    my $arch;
-    
-    # Match arch options with the running perl
-    if ( my @archs = $Config{ccflags} =~ /-arch ([^ ]+)/g ) {
-        $arch = join( '', map { "-arch $_ " } @archs );
-        
-        if ( -e 'MANIFEST.SKIP' ) {
-            # XXX for development, use only one arch to speed up compiles
-            $arch = '-arch x86_64 ';
-        }
+    if ( $Config{version} =~ /^5\.12/ ) {
+        # 5.12, Lion
+        $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7";
+    }
+    elsif ( $Config{version} =~ /^5\.10/ ) {
+        # 5.10, build as 10.5+ with Snow Leopard 64-bit support
+        $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
     }
     
     # Read OS version

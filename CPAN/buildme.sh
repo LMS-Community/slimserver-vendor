@@ -6,13 +6,14 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8, 5.10.0, 5.12.1)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.3)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
 # Mac OSX 10.5, 10.6, (Perl 5.8.8 & 5.10.0)
 #   Under 10.5, builds Universal Binaries for i386/ppc
 #   Under 10.6, builds Universal Binaries for i386/x86_64
+#   Under 10.7, builds Universal Binaries for i386/x86_64
 # FreeBSD 7.2 (Perl 5.8.9)
 
 OS=`uname`
@@ -60,11 +61,16 @@ fi
 # Install dir for 5.10
 BASE_510=$BUILD/5.10
 
-# Path to Perl 5.12.1
-if [ -x "/usr/bin/perl5.12.1" ]; then
-    PERL_512=/usr/bin/perl5.12.1
-elif [ -x "/usr/local/bin/perl5.12.1" ]; then
-    PERL_512=/usr/local/bin/perl5.12.1
+# Path to Perl 5.12.3
+if [ -x "/usr/bin/perl5.12.3" ]; then
+    PERL_512=/usr/bin/perl5.12.3
+elif [ -x "/usr/local/bin/perl5.12.3" ]; then
+    PERL_512=/usr/local/bin/perl5.12.3
+elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3" ]; then
+    PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3
+elif [ -x "/usr/bin/perl5.12" ]; then
+    # OSX Lion uses this path
+    PERL_512=/usr/bin/perl5.12
 fi
 
 if [ $PERL_512 ]; then
@@ -92,6 +98,8 @@ if [ $OS = "Darwin" ]; then
         else
             FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
         fi
+    elif [ $PERL_512 ]; then
+        FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7"
     fi
 fi
 
@@ -382,6 +390,7 @@ function build {
             
             tar zxvf EV-4.03.tar.gz
             cd EV-4.03
+            patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
             if [ $OS = "Darwin" ]; then
                 if [ $PERL_58 ]; then
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
@@ -561,7 +570,9 @@ function build {
             
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
                 USE_HINTS=0
+                RUN_TESTS=0
                 build_module IO-AIO-3.71
+                RUN_TESTS=1
                 USE_HINTS=1
             fi
             ;;
@@ -584,7 +595,9 @@ function build {
 
         Mac::FSEvents)
             if [ $OS = 'Darwin' ]; then
+                RUN_TESTS=0
                 build_module Mac-FSEvents-0.04
+                RUN_TESTS=1
             fi
             ;;
         
