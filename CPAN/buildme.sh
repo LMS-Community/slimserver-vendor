@@ -908,6 +908,7 @@ function build {
 
             # build Media::Scan
             cd libmediascan-0.1/bindings/perl
+            cp -Rv ../../../hints .
             
             MSOPTS="--with-static \
                 --with-ffmpeg-includes=$BUILD/include \
@@ -1228,6 +1229,7 @@ function build_ffmpeg {
         --enable-protocol=file"
     
     # ASM doesn't work right on x86_64
+    # XXX test --arch options on Linux
     if [ $ARCH = "x86_64-linux-thread-multi" ]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
@@ -1240,7 +1242,7 @@ function build_ffmpeg {
             FLAGS="-arch x86_64 -O3 -fPIC $OSX_FLAGS"      
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
-                ./configure $FFOPTS
+                ./configure $FFOPTS --arch=x86_64
         
             make
             if [ $? != 0 ]; then
@@ -1259,7 +1261,7 @@ function build_ffmpeg {
         FLAGS="-arch i386 -O3 $OSX_FLAGS"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
-            ./configure $FFOPTS --disable-asm
+            ./configure $FFOPTS --arch=x86_32
         
         make
         if [ $? != 0 ]; then
