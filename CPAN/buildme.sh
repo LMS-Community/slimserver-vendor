@@ -1278,7 +1278,7 @@ function build_ffmpeg {
             FLAGS="-arch ppc -O3 $OSX_FLAGS"      
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
-                ./configure $FFOPTS
+                ./configure $FFOPTS --arch=ppc --disable-altivec
         
             make
             if [ $? != 0 ]; then
