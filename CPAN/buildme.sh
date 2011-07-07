@@ -28,6 +28,35 @@ else
     exit
 fi
 
+# figure out OSX version and customize SDK options
+OSX_VER=
+OSX_FLAGS=
+OSX_ARCH=
+if [ $OS = "Darwin" ]; then
+    OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
+    REGEX='Mac OS X.* (10\.[567])'
+    if [[ $OSX_VER =~ $REGEX ]]; then
+        OSX_VER=${BASH_REMATCH[1]}
+    else
+        echo "Unable to determine OSX version"
+        exit 0
+    fi
+    
+    if [ $OSX_VER = "10.5" ]; then
+        # Leopard, build for i386/ppc with support back to 10.4
+        OSX_ARCH="-arch i386 -arch ppc"
+        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4"
+    elif [ $OSX_VER = "10.6" ]; then
+        # Snow Leopard, build for x86_64/i386 with support back to 10.5
+        OSX_ARCH="-arch x86_64 -arch i386"
+        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
+    elif [ $OSX_VER = "10.7" ]; then
+        # Lion, build for x86_64/i386 with support back to 10.6
+        OSX_ARCH="-arch x86_64 -arch i386"
+        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
+    fi
+fi
+
 # Build dir
 BUILD=$PWD/build
 
@@ -86,27 +115,6 @@ RUN_TESTS=1
 USE_HINTS=1
 
 FLAGS="-fPIC"
-# Mac-specific flags
-if [ $OS = "Darwin" ]; then
-    if [ $PERL_58 ]; then
-        # build 32-bit version 
-        FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-    elif [ $PERL_510 ]; then
-        # Build 64-bit version
-        if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
-            FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-        else
-            FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
-        fi
-    elif [ $PERL_512 ]; then
-        FLAGS="-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7"
-    fi
-fi
-
-# Enable fPIC on 64-bit Linux
-if [ $ARCH = "x86_64-linux-thread-multi" ]; then
-    FLAGS="-fPIC"
-fi
 
 # FreeBSD's make sucks
 if [ $OS = "FreeBSD" ]; then
@@ -132,9 +140,8 @@ function build_module {
     tar zxvf $1.tar.gz
     cd $1
     if [ $USE_HINTS -eq 1 ]; then
-        if [ ! -f hints/darwin.pl ]; then
-            cp -R ../hints .
-        fi
+        # Always copy in our custom hints for OSX
+        cp -Rv ../hints .
     fi
     if [ $PERL_58 ]; then
         # Running 5.8
@@ -235,7 +242,7 @@ function build {
                 tar zxvf Class-C3-XS-0.11.tar.gz
                 cd Class-C3-XS-0.11
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
-                cp -R ../hints .
+                cp -Rv ../hints .
                 export PERL5LIB=$BASE_58/lib/perl5
 
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
@@ -282,7 +289,7 @@ function build {
                 tar zxvf icu4c-4_6-src.tgz
                 cd icu/source
                 if [ $OS = 'Darwin' ]; then
-                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
+                    ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
                     ICUOS="MacOSX"
                 elif [ $OS = 'Linux' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
@@ -291,7 +298,7 @@ function build {
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
                 fi
-                CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS" \
+                CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
                 $MAKE
                 if [ $? != 0 ]; then
@@ -329,7 +336,7 @@ function build {
             tar zxvf DBD-SQLite-1.32_02.tar.gz
             cd DBD-SQLite-1.32_02
             patch -p0 < ../DBD-SQLite-ICU.patch
-            cp -R ../hints .
+            cp -Rv ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
                 export PERL5LIB=$BASE_58/lib/perl5
@@ -396,7 +403,7 @@ function build {
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
                 fi
             fi
-            cp -R ../hints .
+            cp -Rv ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
                 export PERL5LIB=$BASE_58/lib/perl5
@@ -490,6 +497,7 @@ function build {
             
             tar zxvf Image-Scale-0.06.tar.gz
             cd Image-Scale-0.06
+            cp -Rv ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
                 $PERL_58 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
@@ -518,8 +526,6 @@ function build {
             fi
             if [ $PERL_510 ]; then
                 # Running 5.10
-                # Replace hints file so we don't build ppc version
-                cp -f ../hints/darwin.pl hints/darwin.pl
                 $PERL_510 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static \
@@ -627,8 +633,8 @@ function build {
             # Template, custom build due to 2 Makefile.PL's
             tar zxvf Template-Toolkit-2.21.tar.gz
             cd Template-Toolkit-2.21
-            cp -R ../hints .
-            cp -R ../hints ./xs
+            cp -Rv ../hints .
+            cp -Rv ../hints ./xs
             if [ $PERL_58 ]; then
                 # Running 5.8
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
@@ -669,8 +675,8 @@ function build {
             tar jxvf mysql-5.1.37.tar.bz2
             cd mysql-5.1.37
             CC=gcc CXX=gcc \
-            CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS" \
-            CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti $FLAGS" \
+            CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS $OSX_ARCH $OSX_FLAGS" \
+            CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti $FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking \
                 --enable-thread-safe-client \
@@ -687,7 +693,7 @@ function build {
             # DBD::mysql custom, statically linked with libmysqlclient
             tar zxvf DBD-mysql-3.0002.tar.gz
             cd DBD-mysql-3.0002
-            cp -R ../hints .
+            cp -Rv ../hints .
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             if [ $PERL_58 ]; then
@@ -735,8 +741,8 @@ function build {
             # build expat
             tar zxvf expat-2.0.1.tar.gz
             cd expat-2.0.1
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
+            CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+            LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking
             make
@@ -755,8 +761,8 @@ function build {
             # XML::Parser custom, built against expat
             tar zxvf XML-Parser-2.36.tar.gz
             cd XML-Parser-2.36
-            cp -R ../hints .
-            cp -R ../hints ./Expat # needed for second Makefile.PL
+            cp -Rv ../hints .
+            cp -Rv ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
             if [ $PERL_58 ]; then
                 # Running 5.8
@@ -809,8 +815,8 @@ function build {
             #   1634288 (default)
             #    461984 (with custom ftoption.h/modules.cfg)
             
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
+            CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+            LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD
             $MAKE # needed for FreeBSD to use gmake 
             if [ $? != 0 ]; then
@@ -834,7 +840,7 @@ function build {
             # Disable some functions so we can compile out more freetype modules
             patch -p0 < ../Font-FreeType-lean.patch
             
-            cp -R ../hints .
+            cp -Rv ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
                 $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
@@ -889,8 +895,8 @@ function build {
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
             tar zxvf libmediascan-0.1.tar.gz
             cd libmediascan-0.1
-            CFLAGS="-I$BUILD/include $FLAGS -O3" \
-            LDFLAGS="-L$BUILD/lib $FLAGS -O3" \
+            CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
                 ./configure --prefix=$BUILD --disable-shared --disable-dependency-tracking
             make
             if [ $? != 0 ]; then
@@ -977,8 +983,8 @@ function build_libexif {
     tar jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     
-    CFLAGS="$FLAGS -O3" \
-    LDFLAGS="$FLAGS -O3" \
+    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
     make
@@ -998,7 +1004,7 @@ function build_libjpeg {
     fi
     
     # build libjpeg-turbo on x86 platforms
-    if [ $OS = "Darwin" -a $PERL_510 ]; then
+    if [ $OS = "Darwin" -a $OSX_VER != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
         tar zxvf libjpeg-turbo-1.1.0.tar.gz
         cd libjpeg-turbo-1.1.0
@@ -1007,9 +1013,9 @@ function build_libjpeg {
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
         
         # Build 64-bit fork
-        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
-        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3" \
-        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" \
+        CFLAGS="-O3 $OSX_FLAGS" \
+        CXXFLAGS="-O3 $OSX_FLAGS" \
+        LDFLAGS="$OSX_FLAGS" \
             ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
         make
@@ -1021,9 +1027,9 @@ function build_libjpeg {
         
         # Build 32-bit fork
         make clean
-        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
-        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -m32" \
-        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -m32" \
+        CFLAGS="-O3 -m32 $OSX_FLAGS" \
+        CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
+        LDFLAGS="-m32 $OSX_FLAGS" \
             ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
         make
@@ -1041,7 +1047,7 @@ function build_libjpeg {
         cp -f libjpeg.a $BUILD/lib/libjpeg.a
         cd ..
     
-    elif [ $OS = "Darwin" -a $PERL_58 ]; then
+    elif [ $OS = "Darwin" -a $OSX_VER = "10.5" ]; then
         # combine i386 turbo with ppc libjpeg
         
         # build i386 turbo
@@ -1051,9 +1057,9 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
         
-        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
-        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3 -m32" \
-        LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -m32" \
+        CFLAGS="-O3 -m32 $OSX_FLAGS" \
+        CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
+        LDFLAGS="-m32 $OSX_FLAGS" \
             ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
         make
@@ -1072,8 +1078,8 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
         
-        CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
-        LDFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3 -O3" \
+        CFLAGS="-arch ppc -O3 $OSX_FLAGS" \
+        LDFLAGS="-arch ppc -O3 $OSX_FLAGS" \
             ./configure --prefix=$BUILD \
             --disable-dependency-tracking
         make
@@ -1099,7 +1105,7 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
         
-        CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS="$FLAGS" \
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
         make
         if [ $? != 0 ]; then
@@ -1118,8 +1124,8 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
         
-        CFLAGS="$FLAGS -O3" \
-        LDFLAGS="$FLAGS -O3" \
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             ./configure --prefix=$BUILD \
             --disable-dependency-tracking
         make
@@ -1148,8 +1154,8 @@ function build_libpng {
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
     
-    CFLAGS="$FLAGS -O3" \
-    LDFLAGS="$FLAGS -O3" \
+    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
     make && make check
@@ -1171,8 +1177,8 @@ function build_giflib {
     # build giflib
     tar zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
-    CFLAGS="$FLAGS -O3" \
-    LDFLAGS="$FLAGS -O3" \
+    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
     make
@@ -1208,6 +1214,7 @@ function build_ffmpeg {
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
         --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
         --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 --enable-decoder=rawvideo \
+        --enable-decoder=mjpeg --enable-decoder=mjpegb \
         --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
         --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
         --enable-decoder=wmav2 --enable-decoder=wmavoice \
@@ -1225,29 +1232,31 @@ function build_ffmpeg {
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     
-    if [ $OS = "Darwin" -a $PERL_510 ]; then
+    if [ $OS = "Darwin" ]; then
         SAVED_FLAGS=$FLAGS
         
-        # Build 64-bit fork
-        FLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
-        CFLAGS="$FLAGS" \
-        LDFLAGS="$FLAGS" \
-            ./configure $FFOPTS
+        # Build 64-bit fork (10.6/10.7)
+        if [ $OSX_VER != "10.5" ]; then
+            FLAGS="-arch x86_64 -O3 -fPIC $OSX_FLAGS"      
+            CFLAGS="$FLAGS" \
+            LDFLAGS="$FLAGS" \
+                ./configure $FFOPTS
         
-        make
-        if [ $? != 0 ]; then
-            echo "make failed"
-            exit $?
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+        
+            cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
+            cp -fv libavformat/libavformat.a libavformat-x86_64.a
+            cp -fv libavutil/libavutil.a libavutil-x86_64.a
+            cp -fv libswscale/libswscale.a libswscale-x86_64.a
         fi
         
-        cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
-        cp -fv libavformat/libavformat.a libavformat-x86_64.a
-        cp -fv libavutil/libavutil.a libavutil-x86_64.a
-        cp -fv libswscale/libswscale.a libswscale-x86_64.a
-        
-        # Build 32-bit fork
+        # Build 32-bit fork (all OSX versions)
         make clean
-        FLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5 -O3 -fPIC"      
+        FLAGS="-arch i386 -O3 $OSX_FLAGS"      
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
             ./configure $FFOPTS --disable-asm
@@ -1263,11 +1272,38 @@ function build_ffmpeg {
         cp -fv libavutil/libavutil.a libavutil-i386.a
         cp -fv libswscale/libswscale.a libswscale-i386.a
         
+        # Build PPC fork (10.5)
+        if [ $OSX_VER = "10.5" ]; then
+            make clean
+            FLAGS="-arch ppc -O3 $OSX_FLAGS"      
+            CFLAGS="$FLAGS" \
+            LDFLAGS="$FLAGS" \
+                ./configure $FFOPTS
+        
+            make
+            if [ $? != 0 ]; then
+                echo "make failed"
+                exit $?
+            fi
+        
+            cp -fv libavcodec/libavcodec.a libavcodec-ppc.a
+            cp -fv libavformat/libavformat.a libavformat-ppc.a
+            cp -fv libavutil/libavutil.a libavutil-ppc.a
+            cp -fv libswscale/libswscale.a libswscale-ppc.a
+        fi
+        
         # Combine the forks
-        lipo -create libavcodec-x86_64.a libavcodec-i386.a -output libavcodec.a
-        lipo -create libavformat-x86_64.a libavformat-i386.a -output libavformat.a
-        lipo -create libavutil-x86_64.a libavutil-i386.a -output libavutil.a
-        lipo -create libswscale-x86_64.a libswscale-i386.a -output libswscale.a
+        if [ $OSX_VER = "10.5" ]; then
+            lipo -create libavcodec-i386.a libavcodec-ppc.a -output libavcodec.a
+            lipo -create libavformat-i386.a libavformat-ppc.a -output libavformat.a
+            lipo -create libavutil-i386.a libavutil-ppc.a -output libavutil.a
+            lipo -create libswscale-i386.a libswscale-ppc.a -output libswscale.a
+        else
+            lipo -create libavcodec-x86_64.a libavcodec-i386.a -output libavcodec.a
+            lipo -create libavformat-x86_64.a libavformat-i386.a -output libavformat.a
+            lipo -create libavutil-x86_64.a libavutil-i386.a -output libavutil.a
+            lipo -create libswscale-x86_64.a libswscale-i386.a -output libswscale.a
+        fi
         
         # Install and replace libs with universal versions
         make install
@@ -1303,8 +1339,8 @@ function build_bdb {
     # build bdb
     tar zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
-    CFLAGS="$FLAGS -O3" \
-    LDFLAGS="$FLAGS -O3" \
+    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ../dist/configure --prefix=$BUILD \
         --with-cryptography=no -disable-hash --disable-queue --disable-replication --disable-statistics --disable-verify \
         --disable-dependency-tracking --disable-shared
