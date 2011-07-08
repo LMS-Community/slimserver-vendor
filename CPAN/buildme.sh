@@ -908,7 +908,7 @@ function build {
 
             # build Media::Scan
             cd libmediascan-0.1/bindings/perl
-            cp -Rv ../../../hints .
+            # LMS's hints file is OK and also has custom frameworks added
             
             MSOPTS="--with-static \
                 --with-ffmpeg-includes=$BUILD/include \
