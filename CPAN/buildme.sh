@@ -1215,15 +1215,15 @@ function build_ffmpeg {
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
         --enable-decoder=msmpeg4v3 --enable-decoder=vp6f --enable-decoder=vp8 \
         --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 --enable-decoder=rawvideo \
-        --enable-decoder=mjpeg --enable-decoder=mjpegb \
+        --enable-decoder=mjpeg --enable-decoder=mjpegb --enable-decoder=vc1 \
         --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
         --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
         --enable-decoder=wmav2 --enable-decoder=wmavoice \
         --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
         --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
         --enable-decoder=ass --enable-decoder=dvbsub --enable-decoder=dvdsub --enable-decoder=pgssub --enable-decoder=xsub \
-        --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 \
-        --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo \
+        --enable-parser=aac --enable-parser=ac3 --enable-parser=dca --enable-parser=h264 --enable-parser=mjpeg \
+        --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo --enable-parser=vc1 \
         --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
         --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
         --enable-protocol=file"
