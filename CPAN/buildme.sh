@@ -15,6 +15,13 @@
 #   Under 10.6, builds Universal Binaries for i386/x86_64
 #   Under 10.7, builds Universal Binaries for i386/x86_64
 # FreeBSD 7.2 (Perl 5.8.9)
+#
+# Perl 5.12.3 note:
+#   You should build 5.12.3 using perlbrew and the following command. GCC's stack protector must be disabled
+#   so the binaries will not be dynamically linked to libssp.so which is not available on some distros.
+#
+#   perlbrew install perl-5.12.3 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#
 
 OS=`uname`
 
