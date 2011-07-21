@@ -1207,7 +1207,7 @@ function build_ffmpeg {
     
     # build ffmpeg, enabling only the things libmediascan uses
     tar jxvf ffmpeg-0.8.tar.bz2
-    cd ffmpeg
+    cd ffmpeg-0.8
     echo "Configuring FFmpeg..."
     
     # x86: Disable all but the lowend MMX ASM
