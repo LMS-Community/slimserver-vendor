@@ -1206,7 +1206,7 @@ function build_ffmpeg {
     fi
     
     # build ffmpeg, enabling only the things libmediascan uses
-    tar jxvf ffmpeg-git-22180e.tar.bz2
+    tar jxvf ffmpeg-0.8.tar.bz2
     cd ffmpeg
     echo "Configuring FFmpeg..."
     
@@ -1337,7 +1337,7 @@ function build_ffmpeg {
         cd ..
     fi
     
-    rm -rf ffmpeg
+    rm -rf ffmpeg-0.8
 }
 
 function build_bdb {
