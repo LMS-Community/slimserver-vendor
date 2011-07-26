@@ -1,19 +1,28 @@
 #!/usr/bin/perl
 
 use Config;
+use Cwd;
 
-if ( $Config{myarchname} =~ /i386/ ) {
-    if ( $Config{version} =~ /^5\.12/ ) {
-        # 5.12, Lion
-        $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7";
+if ( $Config{myarchname} =~ /i386/ ) {    
+    # Read OS version
+    my $sys = `/usr/sbin/system_profiler SPSoftwareDataType`;
+    my ($osx_ver) = $sys =~ /Mac OS X.*(10\.[567])/;
+    if ($osx_ver eq '10.5' ) {
+        if ( getcwd() =~ /FSEvents/ ) { # FSEvents is not available in 10.4
+            $arch = "-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
+        }
+        else {
+            $arch = "-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4";
+        }
     }
-    elsif ( $Config{version} =~ /^5\.10/ ) {
-        # 5.10, build as 10.5+ with Snow Leopard 64-bit support
+    elsif ( $osx_ver eq '10.6' ) {
         $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
     }
+    elsif ( $osx_ver eq '10.7' ) {
+        $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6";
+    }
     else {
-        # 5.8.x, build for 10.3+ 32-bit universal
-        $arch = "-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3";
+        die "Unsupported OSX version $osx_ver\n";
     }
     
     print "Adding $arch\n";
@@ -26,8 +35,8 @@ if ( $Config{myarchname} =~ /i386/ ) {
     $ccflags  =~ s/-arch\s+\w+//g;
     $ldflags  =~ s/-arch\s+\w+//g;
     $lddlflags =~ s/-arch\s+\w+//g;
-
-    $self->{CCFLAGS} = "$arch $ccflags";
+    
+    $self->{CCFLAGS} = "$arch -I/usr/include $ccflags";
     $self->{LDFLAGS} = "$arch -L/usr/lib $ldflags";
-    $self->{LDDLFLAGS} = "$arch $lddlflags";
+    $self->{LDDLFLAGS} = "$arch -L/usr/lib $lddlflags";
 }
