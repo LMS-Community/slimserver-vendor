@@ -1224,7 +1224,7 @@ function build_ffmpeg {
         --enable-decoder=wmv1 --enable-decoder=wmv2 --enable-decoder=wmv3 --enable-decoder=rawvideo \
         --enable-decoder=mjpeg --enable-decoder=mjpegb --enable-decoder=vc1 \
         --enable-decoder=aac --enable-decoder=ac3 --enable-decoder=dca --enable-decoder=mp3 \
-        --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 \
+        --enable-decoder=mp2 --enable-decoder=vorbis --enable-decoder=wmapro --enable-decoder=wmav1 --enable-decoder=flv \
         --enable-decoder=wmav2 --enable-decoder=wmavoice \
         --enable-decoder=pcm_dvd --enable-decoder=pcm_s16be --enable-decoder=pcm_s16le \
         --enable-decoder=pcm_s24be --enable-decoder=pcm_s24le \
