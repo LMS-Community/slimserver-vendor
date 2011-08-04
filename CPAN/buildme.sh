@@ -72,6 +72,8 @@ if [ -x "/usr/bin/perl5.8.8" ]; then
     PERL_58=/usr/bin/perl5.8.8
 elif [ -x "/usr/local/bin/perl5.8.8" ]; then
     PERL_58=/usr/local/bin/perl5.8.8
+elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.8.9/bin/perl5.8.9" ]; then
+    PERL_58=$HOME/perl5/perlbrew/perls/perl-5.8.9/bin/perl5.8.9
 elif [ -x "/usr/local/bin/perl5.8.9" ]; then # FreeBSD 7.2
     PERL_58=/usr/local/bin/perl5.8.9
 fi
