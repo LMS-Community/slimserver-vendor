@@ -272,12 +272,12 @@ function build {
             ;;
         
         DBI)
-            build_module DBI-1.608
+            build_module DBI-1.616
             ;;
         
         DBD::SQLite)
             RUN_TESTS=0
-            build_module DBI-1.608
+            build_module DBI-1.616
             RUN_TESTS=1
             
             # build ICU, but only if it doesn't exist in the build dir,
@@ -330,8 +330,8 @@ function build {
             cp -v icudt46*.dat $BUILD/share/icu/4.6
             
             # Custom build for ICU support
-            tar zxvf DBD-SQLite-1.32_02.tar.gz
-            cd DBD-SQLite-1.32_02
+            tar zxvf DBD-SQLite-1.34_01.tar.gz
+            cd DBD-SQLite-1.34_01
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -R ../hints .
             if [ $PERL_58 ]; then
@@ -379,7 +379,7 @@ function build {
             fi
             
             cd ..
-            rm -rf DBD-SQLite-1.32_02
+            rm -rf DBD-SQLite-1.34_01
             ;;
         
         Digest::SHA1)
