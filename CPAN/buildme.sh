@@ -15,6 +15,7 @@
 #   Under 10.6, builds Universal Binaries for i386/x86_64
 #   Under 10.7, builds Universal Binaries for i386/x86_64
 # FreeBSD 7.2 (Perl 5.8.9)
+# FreeBSD 8.2 (Perl 5.12.4)
 #
 # Perl 5.12.3 note:
 #   You should build 5.12.3 using perlbrew and the following command. GCC's stack protector must be disabled
@@ -61,6 +62,9 @@ if [ -x "/usr/bin/perl5.10.0" ]; then
     PERL_510=/usr/bin/perl5.10.0
 elif [ -x "/usr/local/bin/perl5.10.0" ]; then
     PERL_510=/usr/local/bin/perl5.10.0
+elif [ -x "/usr/local/bin/perl5.10.1" ]; then # FreeBSD 8.2
+    PERL_510=/usr/local/bin/perl5.10.1
+
 fi
 
 if [ $PERL_510 ]; then
@@ -75,6 +79,8 @@ if [ -x "/usr/bin/perl5.12.3" ]; then
     PERL_512=/usr/bin/perl5.12.3
 elif [ -x "/usr/local/bin/perl5.12.3" ]; then
     PERL_512=/usr/local/bin/perl5.12.3
+elif [ -x "/usr/local/bin/perl5.12.4" ]; then # Also FreeBSD 8.2
+    PERL_512=/usr/local/bin/perl5.12.4
 elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3" ]; then
     PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3
 elif [ -x "/usr/bin/perl5.12" ]; then
@@ -115,7 +121,7 @@ fi
 
 # FreeBSD's make sucks
 if [ $OS = "FreeBSD" ]; then
-    if [ !-x /usr/local/bin/gmake ]; then
+    if [ ! -x /usr/local/bin/gmake ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
     fi
