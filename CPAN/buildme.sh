@@ -247,7 +247,7 @@ function build_all {
     build Sub::Name
     build Template
     build XML::Parser
-    build YAML::Syck
+    build YAML::LibYAML
 }
 
 function build {
@@ -286,7 +286,7 @@ function build {
             ;;
         
         Compress::Raw::Zlib)
-            build_module Compress-Raw-Zlib-2.017
+            build_module Compress-Raw-Zlib-2.033
             ;;
         
         DBI)
@@ -497,7 +497,7 @@ function build {
         
         HTML::Parser)
             build_module HTML-Tagset-3.20
-            build_module HTML-Parser-3.60
+            build_module HTML-Parser-3.68
             ;;
 
         Image::Scale)
@@ -510,8 +510,8 @@ function build {
             build_module Test-NoWarnings-1.02
             RUN_TESTS=1
             
-            tar zxvf Image-Scale-0.06.tar.gz
-            cd Image-Scale-0.06
+            tar zxvf Image-Scale-0.08.tar.gz
+            cd Image-Scale-0.08
             cp -Rv ../hints .
             if [ $PERL_58 ]; then
                 # Running 5.8
@@ -582,7 +582,7 @@ function build {
             fi
             cd ..
             
-            rm -rf Image-Scale-0.06
+            rm -rf Image-Scale-0.08
             ;;
         
         IO::AIO)
@@ -623,11 +623,11 @@ function build {
             ;;
         
         Sub::Name)
-            build_module Sub-Name-0.04
+            build_module Sub-Name-0.05
             ;;
         
-        YAML::Syck)
-            build_module YAML-Syck-1.05
+        YAML::LibYAML)
+            build_module YAML-LibYAML-0.35
             ;;
         
         Audio::Scan)
@@ -774,8 +774,8 @@ function build {
             cd ../..
 
             # XML::Parser custom, built against expat
-            tar zxvf XML-Parser-2.36.tar.gz
-            cd XML-Parser-2.36
+            tar zxvf XML-Parser-2.40.tar.gz
+            cd XML-Parser-2.40
             cp -Rv ../hints .
             cp -Rv ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
@@ -811,7 +811,7 @@ function build {
                 make install
             fi
             cd ..
-            rm -rf XML-Parser-2.36
+            rm -rf XML-Parser-2.40
             rm -rf expat-2.0.1
             ;;
         

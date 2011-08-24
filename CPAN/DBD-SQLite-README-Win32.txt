@@ -6,9 +6,10 @@ http://source.icu-project.org/repos/icu/icu/trunk/readme.html#HowToBuildCygwin
 
 Install cygwin packages if needed: binutils, GNU make
 
+(In a cmd.exe prompt with Cygwin in PATH):
 tar zxvf icu4c-4_6-src.tgz
-cd icu/source
-Run "bash ./runConfigureICU Cygwin/MSVC --prefix=C:/dev/CPAN/build --with-data-packaging=archive"
+cd icu\source
+Run: bash ./runConfigureICU Cygwin/MSVC --prefix=C:/dev/CPAN/build --with-data-packaging=archive
 make
 make check
 make install
