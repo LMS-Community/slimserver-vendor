@@ -785,8 +785,8 @@ function build {
             cd ../..
 
             # XML::Parser custom, built against expat
-            tar zxvf XML-Parser-2.40.tar.gz
-            cd XML-Parser-2.40
+            tar zxvf XML-Parser-2.41.tar.gz
+            cd XML-Parser-2.41
             cp -Rv ../hints .
             cp -Rv ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
@@ -824,7 +824,7 @@ function build {
                 make clean
             fi
             cd ..
-            rm -rf XML-Parser-2.40
+            rm -rf XML-Parser-2.41
             rm -rf expat-2.0.1
             ;;
         
