@@ -1023,8 +1023,8 @@ function build_libjpeg {
     # build libjpeg-turbo on x86 platforms
     if [ $OS = "Darwin" -a $OSX_VER != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
-        tar zxvf libjpeg-turbo-1.1.0.tar.gz
-        cd libjpeg-turbo-1.1.0
+        tar zxvf libjpeg-turbo-1.1.1.tar.gz
+        cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1068,8 +1068,8 @@ function build_libjpeg {
         # combine i386 turbo with ppc libjpeg
         
         # build i386 turbo
-        tar zxvf libjpeg-turbo-1.1.0.tar.gz
-        cd libjpeg-turbo-1.1.0
+        tar zxvf libjpeg-turbo-1.1.1.tar.gz
+        cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1116,8 +1116,8 @@ function build_libjpeg {
         
     elif [ $ARCH = "i386-linux-thread-multi" -o $ARCH = "x86_64-linux-thread-multi" -o $OS = "FreeBSD" ]; then
         # build libjpeg-turbo
-        tar zxvf libjpeg-turbo-1.1.0.tar.gz
-        cd libjpeg-turbo-1.1.0
+        tar zxvf libjpeg-turbo-1.1.1.tar.gz
+        cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1156,7 +1156,7 @@ function build_libjpeg {
     
     rm -rf jpeg-8b
     rm -rf jpeg-6b
-    rm -rf libjpeg-turbo-1.1.0
+    rm -rf libjpeg-turbo-1.1.1
 }
 
 function build_libpng {
