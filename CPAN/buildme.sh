@@ -1019,12 +1019,12 @@ function build_libexif {
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
-    make
+    $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
         exit $?
     fi
-    make install
+    $MAKE install
     cd ..
     
     rm -rf libexif-0.6.20
@@ -1352,12 +1352,12 @@ function build_ffmpeg {
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
         
-        make
+        $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
             exit $?
         fi
-        make install
+        $MAKE install
         cd ..
     fi
     
