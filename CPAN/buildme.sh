@@ -219,6 +219,7 @@ function build_module {
             exit $?
         fi
         make install
+        make clean
     fi
     cd ..
     rm -rf $1
@@ -383,6 +384,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -395,6 +397,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             
             cd ..
@@ -460,6 +463,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -480,6 +484,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             cd ..
             rm -rf EV-4.03
@@ -580,6 +585,7 @@ function build {
                 fi
                 make test
                 make install
+                make clean
             fi
             cd ..
             
@@ -671,6 +677,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -681,6 +688,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             cd ..
             rm -rf Template-Toolkit-2.21
@@ -736,6 +744,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -748,6 +757,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             cd ..
             rm -rf DBD-mysql-3.0002
@@ -800,6 +810,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             if [ $PERL_512 ]; then
                 # Running 5.12
@@ -810,6 +821,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             cd ..
             rm -rf XML-Parser-2.40
@@ -891,6 +903,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
 
             cd ..
@@ -984,6 +997,7 @@ function build {
                     exit $?
                 fi
                 make install
+                make clean
             fi
             
             cd ../../..
