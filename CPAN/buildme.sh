@@ -198,6 +198,7 @@ function build_module {
             exit $?
         fi
         make install
+        make clean
     fi
     if [ $PERL_512 ]; then
         # Running 5.12
