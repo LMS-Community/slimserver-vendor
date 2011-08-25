@@ -401,7 +401,7 @@ function build {
             ;;
         
         Digest::SHA1)
-            build_module Digest-SHA1-2.11
+            build_module Digest-SHA1-2.13
             ;;
         
         EV)
