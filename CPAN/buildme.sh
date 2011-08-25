@@ -10,10 +10,11 @@
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
-# Mac OSX 10.5, 10.6, (Perl 5.8.8 & 5.10.0)
-#   Under 10.5, builds Universal Binaries for i386/ppc
-#   Under 10.6, builds Universal Binaries for i386/x86_64
-#   Under 10.7, builds Universal Binaries for i386/x86_64
+#   Sparc Linux (ReadyNAS)
+# Mac OSX
+#   Under 10.5, builds Universal Binaries for i386/ppc Perl 5.8.8
+#   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
+#   Under 10.7, builds Universal Binaries for i386/x86_64 Perl 5.12.3 (could probably be x86_64 only)
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.2 (Perl 5.12.4)
 #
@@ -140,7 +141,12 @@ if [ $OS = "FreeBSD" ]; then
     export GNUMAKE=/usr/local/bin/gmake
     export MAKE=/usr/local/bin/gmake
 else
-    export MAKE=/usr/bin/make
+    # Support a newer make if available, needed on ReadyNAS                                                                              
+    if [ -x /usr/local/bin/make ]; then                                               
+        export MAKE=/usr/local/bin/make                                         
+    else                                                                           
+        export MAKE=/usr/bin/make                        
+    fi
 fi
 
 # Clean up
@@ -1235,11 +1241,13 @@ function build_ffmpeg {
     echo "Configuring FFmpeg..."
     
     # x86: Disable all but the lowend MMX ASM
-    # ARM: Disable all but ARMv5te
+    # ARM: Disable all
+    # PPC: Disable AltiVec
     FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
         --disable-avdevice --enable-pic \
         --disable-amd3dnow --disable-amd3dnowext --disable-mmx2 --disable-sse --disable-ssse3 --disable-avx \
-        --disable-armv6 --disable-armv6t2 --disable-armvfp --disable-iwmmxt --disable-mmi --disable-neon \
+        --disable-armv5te --disable-armv6 --disable-armv6t2 --disable-armvfp --disable-iwmmxt --disable-mmi --disable-neon \
+        --disable-altivec \
         --disable-vis \
         --disable-everything --enable-swscale \
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
