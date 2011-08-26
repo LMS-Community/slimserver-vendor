@@ -26,6 +26,7 @@
 #
 
 OS=`uname`
+MACHINE=`uname -m`
 
 # get system arch, stripping out extra -gnu on Linux
 ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
@@ -1377,12 +1378,18 @@ function build_bdb {
         return
     fi
     
+    # --enable-posixmutexes is needed to build on ReadyNAS Sparc.
+    MUTEX=""
+    if [ $MACHINE = "padre" ]; then
+      MUTEX="--enable-posixmutexes"
+    fi
+    
     # build bdb
     tar zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ../dist/configure --prefix=$BUILD \
+        ../dist/configure --prefix=$BUILD $MUTEX \
         --with-cryptography=no -disable-hash --disable-queue --disable-replication --disable-statistics --disable-verify \
         --disable-dependency-tracking --disable-shared
     make
