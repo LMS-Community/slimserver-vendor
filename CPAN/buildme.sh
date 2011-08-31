@@ -247,6 +247,7 @@ function build_all {
     build HTML::Parser
     build Image::Scale
     build IO::AIO
+    build IO::Interface
     build JSON::XS
     build Linux::Inotify2
     build Locale::Hebrew
@@ -610,6 +611,10 @@ function build {
                 RUN_TESTS=1
                 USE_HINTS=1
             fi
+            ;;
+        
+        IO::Interface)
+            build_module IO-Interface-1.06
             ;;
         
         JSON::XS)
