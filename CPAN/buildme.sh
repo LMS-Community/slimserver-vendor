@@ -1244,6 +1244,11 @@ function build_ffmpeg {
     # build ffmpeg, enabling only the things libmediascan uses
     tar jxvf ffmpeg-0.8.3.tar.bz2
     cd ffmpeg-0.8.3
+    
+    if [ $MACHINE = "padre" ]; then
+        patch -p0 < ../ffmpeg-padre-configure.patch
+    fi
+    
     echo "Configuring FFmpeg..."
     
     # x86: Disable all but the lowend MMX ASM
