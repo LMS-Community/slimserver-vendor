@@ -568,7 +568,7 @@ function build {
             ;;
         
         Encode::Detect)
-            build_module Data-Dump-1.15
+            build_module Data-Dump-1.19
             build_module ExtUtils-CBuilder-0.260301
             RUN_TESTS=0
             build_module Module-Build-0.35
