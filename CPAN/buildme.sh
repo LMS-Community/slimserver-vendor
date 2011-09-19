@@ -6,7 +6,7 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8, 5.10.0, 5.12.3, 5.14.1)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
@@ -18,11 +18,14 @@
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.2 (Perl 5.12.4)
 #
-# Perl 5.12.3/5.14.1 note:
+# Perl 5.12.4/5.14.1 note:
 #   You should build 5.12.3 using perlbrew and the following command. GCC's stack protector must be disabled
 #   so the binaries will not be dynamically linked to libssp.so which is not available on some distros.
 #
-#   perlbrew install perl-5.12.3 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#   perlbrew install perl-5.12.4 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#
+# On 32-bit systems, -D use64bitint should be added. Debian Wheezy (the next release) will use Perl 5.12.4 with
+# use64bitint enabled
 #
 
 OS=`uname`
@@ -105,15 +108,15 @@ fi
 # Install dir for 5.10
 BASE_510=$BUILD/5.10
 
-# Path to Perl 5.12.3
-if [ -x "/usr/bin/perl5.12.3" ]; then
-    PERL_512=/usr/bin/perl5.12.3
-elif [ -x "/usr/local/bin/perl5.12.3" ]; then
-    PERL_512=/usr/local/bin/perl5.12.3
+# Path to Perl 5.12
+if [ -x "/usr/bin/perl5.12.4" ]; then
+    PERL_512=/usr/bin/perl5.12.4
+elif [ -x "/usr/local/bin/perl5.12.4" ]; then
+    PERL_512=/usr/local/bin/perl5.12.4
 elif [ -x "/usr/local/bin/perl5.12.4" ]; then # Also FreeBSD 8.2
     PERL_512=/usr/local/bin/perl5.12.4
-elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3" ]; then
-    PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.3/bin/perl5.12.3
+elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.4/bin/perl5.12.4" ]; then
+    PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.4/bin/perl5.12.4
 elif [ -x "/usr/bin/perl5.12" ]; then
     # OSX Lion uses this path
     PERL_512=/usr/bin/perl5.12
@@ -1595,10 +1598,14 @@ if [ $PERL_510 ]; then
     cp -R $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
 fi
 if [ $PERL_512 ]; then
+    # Check for Perl using use64bitint and add -64int
+    ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
     mkdir -p $BUILD/arch/5.12/$ARCH
     cp -R $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
 fi
 if [ $PERL_514 ]; then
+    # Check for Perl using use64bitint and add -64int
+    ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
     mkdir -p $BUILD/arch/5.14/$ARCH
     cp -R $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
 fi
