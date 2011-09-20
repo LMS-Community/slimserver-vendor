@@ -35,7 +35,7 @@ OS=`uname`
 MACHINE=`uname -m`
 
 # get system arch, stripping out extra -gnu on Linux
-ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
+ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
 
 if [ $OS = "Linux" -o $OS = "Darwin" -o $OS = "FreeBSD" ]; then
     echo "Building for $OS / $ARCH"
@@ -1607,13 +1607,13 @@ if [ $PERL_510 ]; then
 fi
 if [ $PERL_512 ]; then
     # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
+    ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
     mkdir -p $BUILD/arch/5.12/$ARCH
     rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
 fi
 if [ $PERL_514 ]; then
     # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
+    ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
     mkdir -p $BUILD/arch/5.14/$ARCH
     rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
 fi
