@@ -14,18 +14,21 @@
 # Mac OSX
 #   Under 10.5, builds Universal Binaries for i386/ppc Perl 5.8.8
 #   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
-#   Under 10.7, builds Universal Binaries for i386/x86_64 Perl 5.12.3 (could probably be x86_64 only)
+#   Under 10.7, builds for x86_64 Perl 5.12.3 (Lion does not support 32-bit CPUs)
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.2 (Perl 5.12.4)
 #
 # Perl 5.12.4/5.14.1 note:
-#   You should build 5.12.3 using perlbrew and the following command. GCC's stack protector must be disabled
+#   You should build 5.12.4 using perlbrew and the following command. GCC's stack protector must be disabled
 #   so the binaries will not be dynamically linked to libssp.so which is not available on some distros.
+#   NOTE: On 32-bit systems for 5.12 and higher, -D use64bitint should be used. Debian Wheezy (the next release) will
+#   use Perl 5.12.4 with use64bitint enabled, and hopefully other major distros will follow suit.
 #
-#   perlbrew install perl-5.12.4 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
+#     perlbrew install perl-5.12.4 -D usethreads -D use64bitint -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
 #
-# On 32-bit systems, -D use64bitint should be added. Debian Wheezy (the next release) will use Perl 5.12.4 with
-# use64bitint enabled
+#   For 64-bit native systems, use:
+#
+#     perlbrew install perl-5.12.4 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
 #
 
 OS=`uname`
@@ -69,8 +72,8 @@ if [ $OS = "Darwin" ]; then
         OSX_ARCH="-arch x86_64 -arch i386"
         OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
     elif [ $OSX_VER = "10.7" ]; then
-        # Lion, build for x86_64/i386 with support back to 10.6
-        OSX_ARCH="-arch x86_64 -arch i386"
+        # Lion, build for x86_64 with support back to 10.6
+        OSX_ARCH="-arch x86_64"
         OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
     fi
 fi
