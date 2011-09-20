@@ -41,6 +41,11 @@ else
     exit
 fi
 
+if [ ! -x /usr/bin/rsync ]; then
+    echo "This script requires /usr/bin/rsync, please install it."
+    exit
+fi
+
 # figure out OSX version and customize SDK options
 OSX_VER=
 OSX_FLAGS=
