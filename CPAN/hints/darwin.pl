@@ -19,7 +19,7 @@ if ( $Config{myarchname} =~ /i386/ ) {
         $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
     }
     elsif ( $osx_ver eq '10.7' ) {
-        $arch = "-arch x86_64 -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6";
+        $arch = "-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6";
     }
     else {
         die "Unsupported OSX version $osx_ver\n";
