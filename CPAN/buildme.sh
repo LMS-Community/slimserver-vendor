@@ -1588,26 +1588,26 @@ find $BUILD -name '*.bs' -exec rm -f {} \;
 find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
-# XXX there is still some crap left in here by some modules such as DBI, GD
+# rsync is used to avoid copying non-binary modules or other extra stuff
 if [ $PERL_58 ]; then
     mkdir -p $BUILD/arch/5.8/$ARCH
-    cp -R $BASE_58/lib/perl5/*/auto $BUILD/arch/5.8/$ARCH/
+    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_58/lib/perl5/*/auto $BUILD/arch/5.8/$ARCH/
 fi
 if [ $PERL_510 ]; then
     mkdir -p $BUILD/arch/5.10/$ARCH
-    cp -R $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
+    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
 fi
 if [ $PERL_512 ]; then
     # Check for Perl using use64bitint and add -64int
     ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
     mkdir -p $BUILD/arch/5.12/$ARCH
-    cp -R $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
+    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
 fi
 if [ $PERL_514 ]; then
     # Check for Perl using use64bitint and add -64int
     ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' `
     mkdir -p $BUILD/arch/5.14/$ARCH
-    cp -R $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
+    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
 fi
 
 # could remove rest of build data, but let's leave it around in case
