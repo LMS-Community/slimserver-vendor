@@ -1400,8 +1400,8 @@ function build_ffmpeg {
     fi
     
     # build ffmpeg, enabling only the things libmediascan uses
-    tar jxvf ffmpeg-0.8.3.tar.bz2
-    cd ffmpeg-0.8.3
+    tar jxvf ffmpeg-0.8.4.tar.bz2
+    cd ffmpeg-0.8.4
     
     if [ $MACHINE = "padre" ]; then
         patch -p0 < ../ffmpeg-padre-configure.patch
@@ -1538,7 +1538,7 @@ function build_ffmpeg {
         cd ..
     fi
     
-    rm -rf ffmpeg-0.8.3
+    rm -rf ffmpeg-0.8.4
 }
 
 function build_bdb {
