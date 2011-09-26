@@ -1418,6 +1418,7 @@ function build_ffmpeg {
         --disable-armv5te --disable-armv6 --disable-armv6t2 --disable-armvfp --disable-iwmmxt --disable-mmi --disable-neon \
         --disable-altivec \
         --disable-vis \
+        --enable-zlib --disable-bzlib \
         --disable-everything --enable-swscale \
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
         --enable-decoder=mpeg4 --enable-decoder=msmpeg4v1 --enable-decoder=msmpeg4v2 \
