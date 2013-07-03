@@ -6,7 +6,7 @@ use Cwd;
 if ( $Config{myarchname} =~ /i386/ ) {    
     # Read OS version
     my $ver = `sw_vers -productVersion`;
-    my ($osx_ver) = $ver =~ /(10\.[567])/;
+    my ($osx_ver) = $ver =~ /(10\.[5679])/;
     if ($osx_ver eq '10.5' ) {
         if ( getcwd() =~ /FSEvents/ ) { # FSEvents is not available in 10.4
             $arch = "-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
@@ -20,6 +20,9 @@ if ( $Config{myarchname} =~ /i386/ ) {
     }
     elsif ( $osx_ver eq '10.7' ) {
         $arch = "-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6";
+    }
+    elsif ( $osx_ver eq '10.9' ) {
+        $arch = "-arch x86_64 -mmacosx-version-min=10.9";
     }
     else {
         die "Unsupported OSX version $osx_ver\n";

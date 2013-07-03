@@ -1210,6 +1210,11 @@ function build {
             # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
             tar zxvf libmediascan-0.1.tar.gz
+
+    		if [ $OSX_VER = "10.9" ]; then
+    			patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
+    		fi
+
             cd libmediascan-0.1
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1296,6 +1301,23 @@ function build {
                 fi
                 # XXX hack until regular test works
                 $PERL_514 -Iblib/lib -Iblib/arch t/01use.t
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_516
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                # XXX hack until regular test works
+                $PERL_516 -Iblib/lib -Iblib/arch t/01use.t
                 if [ $? != 0 ]; then
                     echo "make test failed, aborting"
                     exit $?
@@ -1694,7 +1716,9 @@ function build_bdb {
     cd db-5.1.25/build_unix
     
     if [ $OS = "Darwin" ]; then
+       pushd ..
        patch -p0 < ../db51-src_dbinc_atomic.patch
+       popd
     fi
 
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
