@@ -6,7 +6,7 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1, 5.16.3)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
@@ -15,6 +15,7 @@
 #   Under 10.5, builds Universal Binaries for i386/ppc Perl 5.8.8
 #   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
 #   Under 10.7, builds for x86_64 Perl 5.12.3 (Lion does not support 32-bit CPUs)
+#   Under 10.9, builds for x86_64 Perl 5.16
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.2 (Perl 5.12.4)
 #
@@ -123,7 +124,7 @@ fi
 BASE_510=$BUILD/5.10
 
 # Path to Perl 5.12
-if [ $OSX_VER = "10.9" ]; then
+if [ "$OSX_VER" = "10.9" ]; then
 	echo "Ignoring Perl 5.12 - we want 5.16 on Mavericks"
 elif [ -x "/usr/bin/perl5.12.4" ]; then
     PERL_512=/usr/bin/perl5.12.4
@@ -160,6 +161,8 @@ BASE_514=$BUILD/5.14
 # Path to Perl 5.16
 if [ -x "/usr/bin/perl5.16" ]; then
     PERL_516=/usr/bin/perl5.16
+elif [ -x "/usr/bin/perl5.16.3" ]; then
+    PERL_516=/usr/bin/perl5.16.3
 fi
 
 if [ $PERL_516 ]; then
