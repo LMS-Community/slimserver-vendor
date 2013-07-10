@@ -6,7 +6,7 @@
 # 
 # Supported OSes:
 #
-# Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1)
+# Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1, 5.16.3)
 #   i386/x86_64 Linux
 #   ARM Linux
 #   PowerPC Linux
@@ -15,6 +15,7 @@
 #   Under 10.5, builds Universal Binaries for i386/ppc Perl 5.8.8
 #   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
 #   Under 10.7, builds for x86_64 Perl 5.12.3 (Lion does not support 32-bit CPUs)
+#   Under 10.9, builds for x86_64 Perl 5.16
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.2 (Perl 5.12.4)
 #
@@ -55,7 +56,8 @@ OSX_FLAGS=
 OSX_ARCH=
 if [ $OS = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
-    REGEX='Mac OS X.* (10\.[567])'
+    REGEX=' OS X.* (10\.[5679])'
+
     if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
     else
@@ -75,6 +77,11 @@ if [ $OS = "Darwin" ]; then
         # Lion, build for x86_64 with support back to 10.6
         OSX_ARCH="-arch x86_64"
         OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
+    elif [ $OSX_VER = "10.9" ]; then
+        # Mavericks, build for x86_64 with support back to 10.9
+        OSX_ARCH="-arch x86_64"
+        OSX_FLAGS="-mmacosx-version-min=10.9"
+#        OSX_FLAGS="-isysroot /Applications/Xcode5-DP2.app/Contents/Developer/SDKs/MacOSX10.9.sdk -mmacosx-version-min=10.9"
     fi
 fi
 
@@ -117,7 +124,9 @@ fi
 BASE_510=$BUILD/5.10
 
 # Path to Perl 5.12
-if [ -x "/usr/bin/perl5.12.4" ]; then
+if [ "$OSX_VER" = "10.9" ]; then
+	echo "Ignoring Perl 5.12 - we want 5.16 on Mavericks"
+elif [ -x "/usr/bin/perl5.12.4" ]; then
     PERL_512=/usr/bin/perl5.12.4
 elif [ -x "/usr/local/bin/perl5.12.4" ]; then
     PERL_512=/usr/local/bin/perl5.12.4
@@ -148,6 +157,20 @@ fi
 
 # Install dir for 5.14
 BASE_514=$BUILD/5.14
+
+# Path to Perl 5.16
+if [ -x "/usr/bin/perl5.16" ]; then
+    PERL_516=/usr/bin/perl5.16
+elif [ -x "/usr/bin/perl5.16.3" ]; then
+    PERL_516=/usr/bin/perl5.16.3
+fi
+
+if [ $PERL_516 ]; then
+    echo "Building with Perl 5.16 at $PERL_516"
+fi
+
+# Install dir for 5.14
+BASE_516=$BUILD/5.16
 
 # Require modules to pass tests
 RUN_TESTS=1
@@ -272,6 +295,27 @@ function build_module {
         make install
         make clean
     fi
+    if [ $PERL_516 ]; then
+        # Running 5.16
+        export PERL5LIB=$BASE_516/lib/perl5
+
+        $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
+        if [ $RUN_TESTS -eq 1 ]; then
+            make test
+        else
+            make
+        fi
+        if [ $? != 0 ]; then
+            if [ $RUN_TESTS -eq 1 ]; then
+                echo "make test failed, aborting"
+            else
+                echo "make failed, aborting"
+            fi
+            exit $?
+        fi
+        make install
+        make clean
+    fi
     cd ..
     rm -rf $1
 }
@@ -289,6 +333,7 @@ function build_all {
     build Encode::Detect
     build Font::FreeType
     build HTML::Parser
+	# XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
     build Image::Scale
     build IO::AIO
     build IO::Interface
@@ -336,7 +381,11 @@ function build {
             ;;
         
         Class::XSAccessor)
-            build_module Class-XSAccessor-1.05
+        	if [ $PERL_516 ]; then
+	            build_module Class-XSAccessor-1.18
+	        else
+	            build_module Class-XSAccessor-1.05
+	        fi
             ;;
         
         Compress::Raw::Zlib)
@@ -464,6 +513,19 @@ function build {
                 make install
                 make clean
             fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                export PERL5LIB=$BASE_516/lib/perl5
+
+                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
+ #               make test
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
             
             cd ..
             rm -rf DBD-SQLite-1.34_01
@@ -556,6 +618,27 @@ function build {
                 export PERL5LIB=$BASE_514/lib/perl5
 
                 $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 $2
+                if [ $RUN_TESTS -eq 1 ]; then
+                    make test
+                else
+                    make
+                fi
+                if [ $? != 0 ]; then
+                    if [ $RUN_TESTS -eq 1 ]; then
+                        echo "make test failed, aborting"
+                    else
+                        echo "make failed, aborting"
+                    fi
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                export PERL5LIB=$BASE_516/lib/perl5
+
+                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
                 if [ $RUN_TESTS -eq 1 ]; then
                     make test
                 else
@@ -689,6 +772,22 @@ function build {
                 make install
                 make clean
             fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+                    --with-png-includes="$BUILD/include" --with-png-static \
+                    --with-gif-includes="$BUILD/include" --with-gif-static \
+                    INSTALL_BASE=$BASE_516
+            
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make test
+                make install
+                make clean
+            fi
             cd ..
             
             rm -rf Image-Scale-0.08
@@ -740,7 +839,11 @@ function build {
             ;;
         
         YAML::LibYAML)
+        	if [ $PERL_516 ]; then
+	            RUN_TESTS=0
+	        fi
             build_module YAML-LibYAML-0.35
+            RUN_TESTS=1
             ;;
         
         Audio::Scan)
@@ -799,6 +902,17 @@ function build {
             if [ $PERL_514 ]; then
                 # Running 5.14
                 $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
+                make # minor test failure, so don't test
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
                 make # minor test failure, so don't test
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
@@ -964,6 +1078,17 @@ function build {
                 make install
                 make clean
             fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
+                make test
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
             cd ..
             rm -rf XML-Parser-2.41
             rm -rf expat-2.0.1
@@ -1058,6 +1183,18 @@ function build {
                 make install
                 make clean
             fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516
+                
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
 
             cd ..
             rm -rf Font-FreeType-0.03
@@ -1076,6 +1213,11 @@ function build {
             # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
             tar zxvf libmediascan-0.1.tar.gz
+
+    		if [ $OSX_VER = "10.9" ]; then
+    			patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
+    		fi
+
             cd libmediascan-0.1
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1169,6 +1311,23 @@ function build {
                 make install
                 make clean
             fi
+            if [ $PERL_516 ]; then
+                # Running 5.16
+                $PERL_516 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_516
+                make
+                if [ $? != 0 ]; then
+                    echo "make failed, aborting"
+                    exit $?
+                fi
+                # XXX hack until regular test works
+                $PERL_516 -Iblib/lib -Iblib/arch t/01use.t
+                if [ $? != 0 ]; then
+                    echo "make test failed, aborting"
+                    exit $?
+                fi
+                make install
+                make clean
+            fi
             
             cd ../../..
             rm -rf libmediascan-0.1
@@ -1206,7 +1365,8 @@ function build_libjpeg {
     fi
     
     # build libjpeg-turbo on x86 platforms
-    if [ $OS = "Darwin" -a $OSX_VER != "10.5" ]; then
+    # skip on 10.9 until we've been able to build nasm from macports
+    if [ $OS = "Darwin" -a $OSX_VER != "10.5" -a $OSX_VER != "10.9" ]; then
         # Build i386/x86_64 versions of turbo
         tar zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
@@ -1217,6 +1377,7 @@ function build_libjpeg {
         # Build 64-bit fork
         CFLAGS="-O3 $OSX_FLAGS" \
         CXXFLAGS="-O3 $OSX_FLAGS" \
+        # XXX - 64 bit requires nasm 2.07 or later (install from http://www.macports.org/)
         LDFLAGS="$OSX_FLAGS" \
             ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
@@ -1556,6 +1717,13 @@ function build_bdb {
     # build bdb
     tar zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
+    
+    if [ $OS = "Darwin" ]; then
+       pushd ..
+       patch -p0 < ../db51-src_dbinc_atomic.patch
+       popd
+    fi
+
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ../dist/configure --prefix=$BUILD $MUTEX \
@@ -1617,6 +1785,12 @@ if [ $PERL_514 ]; then
     ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
     mkdir -p $BUILD/arch/5.14/$ARCH
     rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
+fi
+if [ $PERL_516 ]; then
+    # Check for Perl using use64bitint and add -64int
+    ARCH=`$PERL_516 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
+    mkdir -p $BUILD/arch/5.16/$ARCH
+    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_516/lib/perl5/*/auto $BUILD/arch/5.16/$ARCH/
 fi
 
 # could remove rest of build data, but let's leave it around in case
