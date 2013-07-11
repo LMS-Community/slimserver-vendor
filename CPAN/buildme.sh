@@ -1366,7 +1366,7 @@ function build_libjpeg {
     
     # build libjpeg-turbo on x86 platforms
     # skip on 10.9 until we've been able to build nasm from macports
-    if [ $OS = "Darwin" -a $OSX_VER != "10.5" -a $OSX_VER != "10.9" ]; then
+    if [ $OS = "Darwin" -a $OSX_VER != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
         tar zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
@@ -1377,7 +1377,6 @@ function build_libjpeg {
         # Build 64-bit fork
         CFLAGS="-O3 $OSX_FLAGS" \
         CXXFLAGS="-O3 $OSX_FLAGS" \
-        # XXX - 64 bit requires nasm 2.07 or later (install from http://www.macports.org/)
         LDFLAGS="$OSX_FLAGS" \
             ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
