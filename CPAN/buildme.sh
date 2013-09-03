@@ -221,7 +221,7 @@ mkdir $BUILD
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
 function build_module {
-    if [ ! -f $1 ]; then
+    if [ ! -d $1 ]; then
         tar zxvf $1.tar.gz
     fi
     cd $1
@@ -231,7 +231,7 @@ function build_module {
         cp -Rv ../hints .
     fi
     if [ $PERL_BIN ]; then
-        export PERL5LIB=$BASE_X/lib/perl5
+        export PERL5LIB=$PERL_BASE/lib/perl5
         
         $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
         if [ $RUN_TESTS -eq 1 ]; then
