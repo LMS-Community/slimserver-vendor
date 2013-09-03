@@ -266,7 +266,6 @@ function build_all {
     build Digest::SHA1
     build EV
     build Encode::Detect
-    build Font::FreeType
     build HTML::Parser
     # XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
     build Image::Scale
@@ -282,6 +281,7 @@ function build_all {
     build Template
     build XML::Parser
     build YAML::LibYAML
+    build Font::FreeType
 }
 
 function build {
