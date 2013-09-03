@@ -56,7 +56,7 @@ OSX_FLAGS=
 OSX_ARCH=
 if [ $OS = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
-    REGEX=' OS X.* (10\.[5679])'
+    REGEX=' OS X.* (10\.[5-9])'
 
     if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
@@ -87,6 +87,8 @@ fi
 
 # Build dir
 BUILD=$PWD/build
+PERL_BASE=$BUILD/perl5x
+PERL_ARCH=$BUILD/arch/perl5x
 
 # Path to Perl 5.8.8
 if [ -x "/usr/bin/perl5.8.8" ]; then
@@ -101,10 +103,12 @@ fi
 
 if [ $PERL_58 ]; then
     echo "Building with Perl 5.8.x at $PERL_58"
+    PERL_BIN=$PERL_58
+    # Install dir for 5.8
+    PERL_BASE=$BUILD/5.8
+    PERL_ARCH=$BUILD/arch/5.8
 fi
 
-# Install dir for 5.8
-BASE_58=$BUILD/5.8
 
 # Path to Perl 5.10.0
 if [ -x "/usr/bin/perl5.10.0" ]; then
@@ -113,19 +117,19 @@ elif [ -x "/usr/local/bin/perl5.10.0" ]; then
     PERL_510=/usr/local/bin/perl5.10.0
 elif [ -x "/usr/local/bin/perl5.10.1" ]; then # FreeBSD 8.2
     PERL_510=/usr/local/bin/perl5.10.1
-
 fi
 
 if [ $PERL_510 ]; then
     echo "Building with Perl 5.10 at $PERL_510"
+    PERL_BIN=$PERL_510
+    # Install dir for 5.10
+    PERL_BASE=$BUILD/5.10
+    PERL_ARCH=$BUILD/arch/5.10
 fi
-
-# Install dir for 5.10
-BASE_510=$BUILD/5.10
 
 # Path to Perl 5.12
 if [ "$OSX_VER" = "10.9" ]; then
-	echo "Ignoring Perl 5.12 - we want 5.16 on Mavericks"
+    echo "Ignoring Perl 5.12 - we want 5.16 on Mavericks"
 elif [ -x "/usr/bin/perl5.12.4" ]; then
     PERL_512=/usr/bin/perl5.12.4
 elif [ -x "/usr/local/bin/perl5.12.4" ]; then
@@ -141,10 +145,11 @@ fi
 
 if [ $PERL_512 ]; then
     echo "Building with Perl 5.12 at $PERL_512"
+    PERL_BIN=$PERL_512
+    # Install dir for 5.12
+    PERL_BASE=$BUILD/5.12
+    PERL_ARCH=$BUILD/arch/5.12
 fi
-
-# Install dir for 5.12
-BASE_512=$BUILD/5.12
 
 # Path to Perl 5.14.1
 if [ -x "$HOME/perl5/perlbrew/perls/perl-5.14.1/bin/perl5.14.1" ]; then
@@ -153,10 +158,11 @@ fi
 
 if [ $PERL_514 ]; then
     echo "Building with Perl 5.14 at $PERL_514"
+    PERL_BIN=$PERL_514
+    # Install dir for 5.14
+    PERL_BASE=$BUILD/5.14
+    PERL_ARCH=$BUILD/arch/5.14
 fi
-
-# Install dir for 5.14
-BASE_514=$BUILD/5.14
 
 # Path to Perl 5.16
 if [ -x "/usr/bin/perl5.16" ]; then
@@ -167,10 +173,20 @@ fi
 
 if [ $PERL_516 ]; then
     echo "Building with Perl 5.16 at $PERL_516"
+    PERL_BIN=$PERL_516
+    # Install dir for 5.16
+    PERL_BASE=$BUILD/5.16
+    PERL_ARCH=$BUILD/arch/5.16
 fi
 
-# Install dir for 5.14
-BASE_516=$BUILD/5.16
+# defined on the command line - no detection yet
+if [ $PERL_518 ]; then
+    echo "Building with Perl 5.18 at $PERL_518"
+    PERL_BIN=$PERL_518
+    # Install dir for 5.18
+    PERL_BASE=$BUILD/5.18
+    PERL_ARCH=$BUILD/arch/5.18
+fi
 
 # Require modules to pass tests
 RUN_TESTS=1
@@ -205,17 +221,19 @@ mkdir $BUILD
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
 function build_module {
-    tar zxvf $1.tar.gz
+    if [ ! -f $1 ]; then
+        tar zxvf $1.tar.gz
+    fi
     cd $1
+    
     if [ $USE_HINTS -eq 1 ]; then
         # Always copy in our custom hints for OSX
         cp -Rv ../hints .
     fi
-    if [ $PERL_58 ]; then
-        # Running 5.8
-        export PERL5LIB=$BASE_58/lib/perl5
+    if [ $PERL_BIN ]; then
+        export PERL5LIB=$BASE_X/lib/perl5
         
-        $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+        $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
         if [ $RUN_TESTS -eq 1 ]; then
             make test
         else
@@ -232,90 +250,7 @@ function build_module {
         make install
         make clean
     fi
-    if [ $PERL_510 ]; then
-        # Running 5.10
-        export PERL5LIB=$BASE_510/lib/perl5
-        
-        $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
-        if [ $RUN_TESTS -eq 1 ]; then
-            make test
-        else
-            make
-        fi
-        if [ $? != 0 ]; then
-            if [ $RUN_TESTS -eq 1 ]; then
-                echo "make test failed, aborting"
-            else
-                echo "make failed, aborting"
-            fi
-            exit $?
-        fi
-        make install
-        make clean
-    fi
-    if [ $PERL_512 ]; then
-        # Running 5.12
-        export PERL5LIB=$BASE_512/lib/perl5
 
-        $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
-        if [ $RUN_TESTS -eq 1 ]; then
-            make test
-        else
-            make
-        fi
-        if [ $? != 0 ]; then
-            if [ $RUN_TESTS -eq 1 ]; then
-                echo "make test failed, aborting"
-            else
-                echo "make failed, aborting"
-            fi
-            exit $?
-        fi
-        make install
-        make clean
-    fi
-    if [ $PERL_514 ]; then
-        # Running 5.14
-        export PERL5LIB=$BASE_514/lib/perl5
-
-        $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 $2
-        if [ $RUN_TESTS -eq 1 ]; then
-            make test
-        else
-            make
-        fi
-        if [ $? != 0 ]; then
-            if [ $RUN_TESTS -eq 1 ]; then
-                echo "make test failed, aborting"
-            else
-                echo "make failed, aborting"
-            fi
-            exit $?
-        fi
-        make install
-        make clean
-    fi
-    if [ $PERL_516 ]; then
-        # Running 5.16
-        export PERL5LIB=$BASE_516/lib/perl5
-
-        $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
-        if [ $RUN_TESTS -eq 1 ]; then
-            make test
-        else
-            make
-        fi
-        if [ $? != 0 ]; then
-            if [ $RUN_TESTS -eq 1 ]; then
-                echo "make test failed, aborting"
-            else
-                echo "make failed, aborting"
-            fi
-            exit $?
-        fi
-        make install
-        make clean
-    fi
     cd ..
     rm -rf $1
 }
@@ -331,15 +266,13 @@ function build_all {
     build Digest::SHA1
     build EV
     build Encode::Detect
-    build Font::FreeType
     build HTML::Parser
-	# XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
+    # XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
     build Image::Scale
     build IO::AIO
     build IO::Interface
     build JSON::XS
     build Linux::Inotify2
-    build Locale::Hebrew
     build Mac::FSEvents
     build Media::Scan
     build MP3::Cut::Gapless
@@ -347,6 +280,8 @@ function build_all {
     build Template
     build XML::Parser
     build YAML::LibYAML
+    build Font::FreeType
+    build Locale::Hebrew
 }
 
 function build {
@@ -357,9 +292,9 @@ function build {
                 cd Class-C3-XS-0.11
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
                 cp -Rv ../hints .
-                export PERL5LIB=$BASE_58/lib/perl5
+                export PERL5LIB=$PERL_BASE/lib/perl5
 
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+                $PERL_58 Makefile.PL INSTALL_BASE=$PERL_BASE $2
                 if [ $RUN_TESTS -eq 1 ]; then
                     make test
                 else
@@ -381,24 +316,36 @@ function build {
             ;;
         
         Class::XSAccessor)
-        	if [ $PERL_516 ]; then
-	            build_module Class-XSAccessor-1.18
-	        else
-	            build_module Class-XSAccessor-1.05
-	        fi
+            if [ "$PERL_516" -o "$PERL_518" ]; then
+                build_module Class-XSAccessor-1.18
+            else
+                build_module Class-XSAccessor-1.05
+            fi
             ;;
         
         Compress::Raw::Zlib)
+            if [ "$PERL_518" ]; then
+                RUN_TESTS=0
+            fi
             build_module Compress-Raw-Zlib-2.033
+            RUN_TESTS=1
             ;;
         
         DBI)
-            build_module DBI-1.616
+            if [ "$PERL_518" ]; then
+                build_module DBI-1.628
+            else
+                build_module DBI-1.616
+            fi
             ;;
         
         DBD::SQLite)
             RUN_TESTS=0
-            build_module DBI-1.616
+            if [ "$PERL_518" ]; then
+                build_module DBI-1.628
+            else
+                build_module DBI-1.616
+            fi
             RUN_TESTS=1
             
             # build ICU, but only if it doesn't exist in the build dir,
@@ -455,11 +402,12 @@ function build {
             cd DBD-SQLite-1.34_01
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -Rv ../hints .
+            
             if [ $PERL_58 ]; then
                 # Running 5.8
-                export PERL5LIB=$BASE_58/lib/perl5
+                export PERL5LIB=$PERL_BASE/lib/perl5
 
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
+                $PERL_58 Makefile.PL INSTALL_BASE=$PERL_BASE $2
 
                 if [ $OS = 'Darwin' ]; then
                     # OSX does not seem to properly find -lstdc++, so we need to hack the Makefile to add it
@@ -473,62 +421,18 @@ function build {
                 fi
                 $MAKE install
                 $MAKE clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                export PERL5LIB=$BASE_510/lib/perl5
-
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
-                make test
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
+    
+                cd ..
+                rm -rf DBD-SQLite-1.34_01
+            else
+                cd ..
+                if [ "$PERL_516" -o "$PERL_518" ]; then
+                   RUN_TESTS=0
                 fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                export PERL5LIB=$BASE_512/lib/perl5
-
-                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
-                make test
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                export PERL5LIB=$BASE_514/lib/perl5
-
-                $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 $2
-                make test
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                export PERL5LIB=$BASE_516/lib/perl5
-
-                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
- #               make test
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
+                build_module DBD-SQLite-1.34_01
+                RUN_TESTS=1
             fi
             
-            cd ..
-            rm -rf DBD-SQLite-1.34_01
             ;;
         
         Digest::SHA1)
@@ -550,114 +454,10 @@ function build {
                 fi
             fi
             cp -Rv ../hints .
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                export PERL5LIB=$BASE_58/lib/perl5
-
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 $2
-                if [ $RUN_TESTS -eq 1 ]; then
-                    make test
-                else
-                    make
-                fi
-                if [ $? != 0 ]; then
-                    if [ $RUN_TESTS -eq 1 ]; then
-                        echo "make test failed, aborting"
-                    else
-                        echo "make failed, aborting"
-                    fi
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                export PERL5LIB=$BASE_510/lib/perl5
-
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 $2
-                if [ $RUN_TESTS -eq 1 ]; then
-                    make test
-                else
-                    make
-                fi
-                if [ $? != 0 ]; then
-                    if [ $RUN_TESTS -eq 1 ]; then
-                        echo "make test failed, aborting"
-                    else
-                        echo "make failed, aborting"
-                    fi
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                export PERL5LIB=$BASE_512/lib/perl5
-
-                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 $2
-                if [ $RUN_TESTS -eq 1 ]; then
-                    make test
-                else
-                    make
-                fi
-                if [ $? != 0 ]; then
-                    if [ $RUN_TESTS -eq 1 ]; then
-                        echo "make test failed, aborting"
-                    else
-                        echo "make failed, aborting"
-                    fi
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                export PERL5LIB=$BASE_514/lib/perl5
-
-                $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 $2
-                if [ $RUN_TESTS -eq 1 ]; then
-                    make test
-                else
-                    make
-                fi
-                if [ $? != 0 ]; then
-                    if [ $RUN_TESTS -eq 1 ]; then
-                        echo "make test failed, aborting"
-                    else
-                        echo "make failed, aborting"
-                    fi
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                export PERL5LIB=$BASE_516/lib/perl5
-
-                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 $2
-                if [ $RUN_TESTS -eq 1 ]; then
-                    make test
-                else
-                    make
-                fi
-                if [ $? != 0 ]; then
-                    if [ $RUN_TESTS -eq 1 ]; then
-                        echo "make test failed, aborting"
-                    else
-                        echo "make failed, aborting"
-                    fi
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
             cd ..
-            rm -rf EV-4.03
             
+            build_module EV-4.03
+
             export PERL_MM_USE_DEFAULT=
             ;;
         
@@ -688,109 +488,13 @@ function build {
             tar zxvf Image-Scale-0.08.tar.gz
             cd Image-Scale-0.08
             cp -Rv ../hints .
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                $PERL_58 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
-                    --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$BASE_58
-
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make test
-                
-                # Also test under PPC mode on OSX 10.5
-                if [ $OS = "Darwin" ]; then
-                    arch -ppc prove -Iblib/lib -Iblib/arch t/*.t
-                    if [ $? != 0 ]; then
-                        echo "PPC make test failed, aborting"
-                        exit $?
-                    fi
-                fi
-                
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                $PERL_510 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
-                    --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$BASE_510
-
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make test
-                
-                # Also test in 32-bit mode on OSX 10.6
-                if [ $OS = "Darwin" ]; then
-                    VERSIONER_PERL_PREFER_32_BIT=yes make test
-                    if [ $? != 0 ]; then
-                        echo "32-bit make test failed, aborting"
-                        exit $?
-                    fi
-                fi
-                
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                $PERL_512 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
-                    --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$BASE_512
-            
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make test
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                $PERL_514 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
-                    --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$BASE_514
-            
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make test
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                $PERL_516 Makefile.PL --with-jpeg-includes="$BUILD/include" --with-jpeg-static \
-                    --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$BASE_516
-            
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make test
-                make install
-                make clean
-            fi
             cd ..
             
-            rm -rf Image-Scale-0.08
+            build_module Image-Scale-0.08 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+                    --with-png-includes="$BUILD/include" --with-png-static \
+                    --with-gif-includes="$BUILD/include" --with-gif-static \
+                    INSTALL_BASE=$PERL_BASE"
+            
             ;;
         
         IO::AIO)
@@ -812,7 +516,12 @@ function build {
         
         JSON::XS)
             build_module common-sense-2.0
-            build_module JSON-XS-2.3
+            
+            if [ "$PERL_518" ]; then
+                build_module JSON-XS-2.34
+            else
+                build_module JSON-XS-2.3
+            fi
             ;;
         
         Linux::Inotify2)
@@ -839,9 +548,9 @@ function build {
             ;;
         
         YAML::LibYAML)
-        	if [ $PERL_516 ]; then
-	            RUN_TESTS=0
-	        fi
+            if [ "$PERL_516" -o "$PERL_518" ]; then
+                RUN_TESTS=0
+            fi
             build_module YAML-LibYAML-0.35
             RUN_TESTS=1
             ;;
@@ -866,63 +575,13 @@ function build {
             cd Template-Toolkit-2.21
             cp -Rv ../hints .
             cp -Rv ../hints ./xs
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
-                make # minor test failure, so don't test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
-                make # minor test failure, so don't test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
-                make # minor test failure, so don't test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
-                make # minor test failure, so don't test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n
-                make # minor test failure, so don't test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
             cd ..
-            rm -rf Template-Toolkit-2.21
+
+            make # minor test failure, so don't test
+            RUN_TESTS=0
+            build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n"
+            RUN_TESTS=1
+
             ;;
         
         DBD::mysql)
@@ -951,60 +610,10 @@ function build {
             cp -Rv ../hints .
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                export PERL5LIB=$BASE_58/lib/perl5
-                
-                $PERL_58 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_58 
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                export PERL5LIB=$BASE_510/lib/perl5
-                
-                $PERL_510 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_510
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                export PERL5LIB=$BASE_512/lib/perl5
-
-                $PERL_512 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_512
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                export PERL5LIB=$BASE_514/lib/perl5
-
-                $PERL_514 Makefile.PL --mysql_config=$BUILD/bin/mysql_config --libs="-Lmysql-static -lmysqlclient -lz -lm" INSTALL_BASE=$BASE_514
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
             cd ..
-            rm -rf DBD-mysql-3.0002
+            
+            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\" INSTALL_BASE=$PERL_BASE"
+            
             ;;
         
         XML::Parser)
@@ -1034,63 +643,11 @@ function build {
             cp -Rv ../hints .
             cp -Rv ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
-                make test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
-                make test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
-                make test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
-                make test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516 EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include
-                make test
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
+            
             cd ..
-            rm -rf XML-Parser-2.41
+            
+            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+            
             rm -rf expat-2.0.1
             ;;
         
@@ -1135,69 +692,10 @@ function build {
             patch -p0 < ../Font-FreeType-lean.patch
             
             cp -Rv ../hints .
-            if [ $PERL_58 ]; then
-                # Running 5.8
-                $PERL_58 Makefile.PL INSTALL_BASE=$BASE_58
-
-                make # tests fail
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                $PERL_510 Makefile.PL INSTALL_BASE=$BASE_510
-
-                make 
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                $PERL_512 Makefile.PL INSTALL_BASE=$BASE_512
-                
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                $PERL_514 Makefile.PL INSTALL_BASE=$BASE_514
-                
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                $PERL_516 Makefile.PL INSTALL_BASE=$BASE_516
-                
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-
             cd ..
-            rm -rf Font-FreeType-0.03
+            
+            build_module Font-FreeType-0.03
+            
             rm -rf freetype-2.4.2
             ;;
         
@@ -1214,9 +712,9 @@ function build {
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
             tar zxvf libmediascan-0.1.tar.gz
 
-    		if [ $OSX_VER = "10.9" ]; then
-    			patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
-    		fi
+            if [ $OSX_VER = "10.9" ]; then
+                patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
+            fi
 
             cd libmediascan-0.1
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1244,83 +742,15 @@ function build {
                 --with-gif-includes=$BUILD/include \
                 --with-bdb-includes=$BUILD/include"
                 
-            if [ $PERL_58 ]; then
-                $PERL_58 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_58
+            if [ $PERL_BIN ]; then
+                $PERL_BIN Makefile.PL $MSOPTS INSTALL_BASE=$PERL_BASE
                 make
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
                     exit $?
                 fi
                 # XXX hack until regular test works
-                $PERL_58 -Iblib/lib -Iblib/arch t/01use.t
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_510 ]; then
-                # Running 5.10
-                $PERL_510 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_510
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                # XXX hack until regular test works
-                $PERL_510 -Iblib/lib -Iblib/arch t/01use.t
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_512 ]; then
-                # Running 5.12
-                $PERL_512 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_512
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                # XXX hack until regular test works
-                $PERL_512 -Iblib/lib -Iblib/arch t/01use.t
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_514 ]; then
-                # Running 5.14
-                $PERL_514 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_514
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                # XXX hack until regular test works
-                $PERL_514 -Iblib/lib -Iblib/arch t/01use.t
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                make install
-                make clean
-            fi
-            if [ $PERL_516 ]; then
-                # Running 5.16
-                $PERL_516 Makefile.PL $MSOPTS INSTALL_BASE=$BASE_516
-                make
-                if [ $? != 0 ]; then
-                    echo "make failed, aborting"
-                    exit $?
-                fi
-                # XXX hack until regular test works
-                $PERL_516 -Iblib/lib -Iblib/arch t/01use.t
+                $PERL_BIN -Iblib/lib -Iblib/arch t/01use.t
                 if [ $? != 0 ]; then
                     echo "make test failed, aborting"
                     exit $?
@@ -1604,7 +1034,7 @@ function build_ffmpeg {
     fi
     # FreeBSD amd64 needs arch option
     if [ $ARCH = "amd64-freebsd" ]; then
-	FFOPTS="$FFOPTS --arch=x64"
+        FFOPTS="$FFOPTS --arch=x64"
     fi
     
     if [ $OS = "Darwin" ]; then
@@ -1769,35 +1199,14 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
-if [ $PERL_58 ]; then
-    mkdir -p $BUILD/arch/5.8/$ARCH
-    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_58/lib/perl5/*/auto $BUILD/arch/5.8/$ARCH/
-fi
-if [ $PERL_510 ]; then
-    mkdir -p $BUILD/arch/5.10/$ARCH
-    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_510/lib/perl5/*/auto $BUILD/arch/5.10/$ARCH/
-fi
-if [ $PERL_512 ]; then
+if [ "$PERL_512" -o "$PERL_514" -o "$PERL_516" -o "$PERL_518" ]; then
     # Check for Perl using use64bitint and add -64int
     ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
-    mkdir -p $BUILD/arch/5.12/$ARCH
-    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_512/lib/perl5/*/auto $BUILD/arch/5.12/$ARCH/
 fi
-if [ $PERL_514 ]; then
-    # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_514 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
-    mkdir -p $BUILD/arch/5.14/$ARCH
-    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_514/lib/perl5/*/auto $BUILD/arch/5.14/$ARCH/
-fi
-if [ $PERL_516 ]; then
-    # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_516 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
-    mkdir -p $BUILD/arch/5.16/$ARCH
-    rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $BASE_516/lib/perl5/*/auto $BUILD/arch/5.16/$ARCH/
-fi
+mkdir -p $PERL_ARCH/$ARCH
+rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
 
 # could remove rest of build data, but let's leave it around in case
-#rm -rf $BASE_58
-#rm -rf $BASE_510
-#rm -rf $BASE_512
+#rm -rf $PERL_BASE
+#rm -rf $PERL_ARCH
 #rm -rf $BUILD/bin $BUILD/etc $BUILD/include $BUILD/lib $BUILD/man $BUILD/share $BUILD/var
