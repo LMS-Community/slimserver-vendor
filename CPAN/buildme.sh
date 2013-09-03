@@ -273,7 +273,6 @@ function build_all {
     build IO::Interface
     build JSON::XS
     build Linux::Inotify2
-    build Locale::Hebrew
     build Mac::FSEvents
     build Media::Scan
     build MP3::Cut::Gapless
@@ -282,6 +281,7 @@ function build_all {
     build XML::Parser
     build YAML::LibYAML
     build Font::FreeType
+    build Locale::Hebrew
 }
 
 function build {
@@ -516,7 +516,12 @@ function build {
         
         JSON::XS)
             build_module common-sense-2.0
-            build_module JSON-XS-2.3
+            
+            if [ "$PERL_518" ]; then
+                build_module JSON-XS-2.34
+            else
+                build_module JSON-XS-2.3
+            fi
             ;;
         
         Linux::Inotify2)
