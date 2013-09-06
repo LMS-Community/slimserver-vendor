@@ -1201,7 +1201,7 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 # rsync is used to avoid copying non-binary modules or other extra stuff
 if [ "$PERL_512" -o "$PERL_514" -o "$PERL_516" -o "$PERL_518" ]; then
     # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_512 -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
+    ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv5tejl/arm/' `
 fi
 mkdir -p $PERL_ARCH/$ARCH
 rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
