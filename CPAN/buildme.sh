@@ -188,6 +188,41 @@ if [ $PERL_518 ]; then
     PERL_ARCH=$BUILD/arch/5.18
 fi
 
+# try to use default perl version
+if [ "$PERL_BIN" = "" ]; then
+    PERL_BIN=`which perl`
+    PERL_VERSION=`perl -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
+    
+    case "$PERL_VERSION" in
+    "5.8")
+        PERL_58=$PERL_BIN
+        ;;
+    "5.10")
+        PERL_510=$PERL_BIN
+        ;;
+    "5.12")
+        PERL_512=$PERL_BIN
+        ;;
+    "5.14")
+        PERL_514=$PERL_BIN
+        ;;
+    "5.16")
+        PERL_516=$PERL_BIN
+        ;;
+    "5.18")
+        PERL_518=$PERL_BIN
+        ;;
+    *)
+        echo "Failed to find supported Perl version for '$PERL_BIN'"
+        exit
+        ;;
+    esac
+
+    echo "Building with Perl $PERL_VERSION at $PERL_BIN"
+    PERL_BASE=$BUILD/$PERL_VERSION
+    PERL_ARCH=$BUILD/arch/$PERL_VERSION
+fi
+
 # Require modules to pass tests
 RUN_TESTS=1
 
@@ -222,8 +257,16 @@ mkdir $BUILD
 # $2 = Makefile.PL arg(s)
 function build_module {
     if [ ! -d $1 ]; then
+
+        if [ ! -f $1.tar.gz ]; then
+            echo "ERROR: cannot find source code archive $1.tar.gz"
+            echo "Please download all source files from http://github.com/Logitech/slimserver-vendor"
+            exit
+        fi
+
         tar zxvf $1.tar.gz
     fi
+
     cd $1
     
     if [ $USE_HINTS -eq 1 ]; then
