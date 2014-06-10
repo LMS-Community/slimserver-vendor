@@ -379,7 +379,7 @@ function build {
             ;;
         
         Compress::Raw::Zlib)
-            if [ "$PERL_58" -o "$PERL_510 ]; then
+            if [ "$PERL_58" -o "$PERL_510" ]; then
 	            build_module Compress-Raw-Zlib-2.033
             fi
             ;;
