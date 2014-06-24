@@ -614,7 +614,7 @@ function build {
             build_module Tree-DAG_Node-1.06
             build_module Test-Warn-0.23
             RUN_TESTS=1
-            build_module Audio-Scan-0.94
+            build_module Audio-Scan-0.95
             ;;
 
         MP3::Cut::Gapless)
