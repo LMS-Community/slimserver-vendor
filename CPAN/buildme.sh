@@ -16,6 +16,7 @@
 #   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
 #   Under 10.7, builds for x86_64 Perl 5.12.3 (Lion does not support 32-bit CPUs)
 #   Under 10.9, builds for x86_64 Perl 5.16
+#   Under 10.10, builds for x86_64 Perl 5.18
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
 #
@@ -57,8 +58,11 @@ OSX_ARCH=
 if [ $OS = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
     REGEX=' OS X.* (10\.[5-9])'
+    REGEX2=' OS X.* (10\.1[0])'
 
     if [[ $OSX_VER =~ $REGEX ]]; then
+        OSX_VER=${BASH_REMATCH[1]}
+    elif [[ $OSX_VER =~ $REGEX2 ]]; then
         OSX_VER=${BASH_REMATCH[1]}
     else
         echo "Unable to determine OSX version"
@@ -81,7 +85,10 @@ if [ $OS = "Darwin" ]; then
         # Mavericks, build for x86_64 with support back to 10.9
         OSX_ARCH="-arch x86_64"
         OSX_FLAGS="-mmacosx-version-min=10.9"
-#        OSX_FLAGS="-isysroot /Applications/Xcode5-DP2.app/Contents/Developer/SDKs/MacOSX10.9.sdk -mmacosx-version-min=10.9"
+    elif [ $OSX_VER = "10.10" ]; then
+        # Yosemite, build for x86_64 with support back to 10.10
+        OSX_ARCH="-arch x86_64"
+        OSX_FLAGS="-mmacosx-version-min=10.10"
     fi
 fi
 
@@ -165,7 +172,9 @@ if [ $PERL_514 ]; then
 fi
 
 # Path to Perl 5.16
-if [ -x "/usr/bin/perl5.16" ]; then
+if [ "$OSX_VER" = "10.10" ]; then
+    echo "Ignoring Perl 5.16 - we want 5.18 on Yosemite"
+elif [ -x "/usr/bin/perl5.16" ]; then
     PERL_516=/usr/bin/perl5.16
 elif [ -x "/usr/bin/perl5.16.3" ]; then
     PERL_516=/usr/bin/perl5.16.3
@@ -177,6 +186,11 @@ if [ $PERL_516 ]; then
     # Install dir for 5.16
     PERL_BASE=$BUILD/5.16
     PERL_ARCH=$BUILD/arch/5.16
+fi
+
+# Path to Perl 5.18
+if [ -x "/usr/bin/perl5.18" ]; then
+    PERL_518=/usr/bin/perl5.18
 fi
 
 # defined on the command line - no detection yet
@@ -765,7 +779,7 @@ function build {
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
             tar zxvf libmediascan-0.1.tar.gz
 
-            if [ $OSX_VER = "10.9" ]; then
+            if [ $OSX_VER = "10.9" -o $OSX_VER = "10.10" ]; then
                 patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
             fi
 
