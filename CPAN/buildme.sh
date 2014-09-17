@@ -349,8 +349,8 @@ function build_all {
     build Template
     build XML::Parser
     build YAML::LibYAML
-    build Font::FreeType
-    build Locale::Hebrew
+#    build Font::FreeType
+#    build Locale::Hebrew
 }
 
 function build {
