@@ -33,6 +33,48 @@
 #     perlbrew install perl-5.12.4 -D usethreads -A ccflags=-fno-stack-protector -A ldflags=-fno-stack-protector
 #
 
+# Require modules to pass tests
+RUN_TESTS=1
+USE_HINTS=1
+CLEAN=1
+FLAGS="-fPIC"
+
+function usage {
+    cat <<EOF
+$0 [args] [target]
+-h this help
+-c do not run make clean
+-t do not run tests
+
+target: make target - if not specified all will be built
+
+EOF
+}
+
+while getopts hct opt; do
+  case $opt in
+  c)
+      CLEAN=0
+      ;;
+  t)
+      RUN_TESTS=0
+      ;;
+  h)
+      usage
+      exit
+      ;;
+  *)
+      echo "invalid argument"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS target ${1-all}"
+
 OS=`uname`
 MACHINE=`uname -m`
 
@@ -46,9 +88,26 @@ else
     exit
 fi
 
-if [ ! -x /usr/bin/rsync ]; then
-    echo "This script requires /usr/bin/rsync, please install it."
-    exit
+for i in gcc cpp rsync yasm make rsync ; do
+    which $i > /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$i not found - please install it"
+        exit 1
+    fi
+done
+
+#for i in libgif libz libgd ; do
+for i in libz libgd ; do
+    ldconfig -p | grep "${i}.so" > /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$i not found - please install it"
+        exit 1
+    fi
+done
+
+find /usr/lib/ -maxdepth 1 | grep libungif
+if [ $? -eq 0 ] ; then
+    echo "ON SOME PLATFORMS (Ubuntu/Debian at least) THE ABOVE LIBRARIES MAY NEED TO BE TEMPORARILY REMOVED TO ALLOW THE BUILD TO WORK"
 fi
 
 # figure out OSX version and customize SDK options
@@ -249,13 +308,6 @@ if [ "$PERL_BIN" = "" ]; then
     PERL_ARCH=$BUILD/arch/$PERL_VERSION
 fi
 
-# Require modules to pass tests
-RUN_TESTS=1
-
-USE_HINTS=1
-
-FLAGS="-fPIC"
-
 # FreeBSD's make sucks
 if [ $OS = "FreeBSD" ]; then
     if [ ! -x /usr/local/bin/gmake ]; then
@@ -274,42 +326,55 @@ else
 fi
 
 # Clean up
-# XXX command-line flag to skip cleanup
-rm -rf $BUILD/arch
+if [ $CLEAN -eq 1 ]; then
+    rm -rf $BUILD/arch
+fi
 
-mkdir $BUILD
+mkdir -p $BUILD
 
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
+# $3 = run tests if 1 - default to $RUN_TESTS
+# $4 = make clean if 1 - default to $CLEAN
+# $5 = use hints if 1 - default to $USE_HINTS
 function build_module {
-    if [ ! -d $1 ]; then
+    module=$1
+    makefile_args=$2
+    local_run_tests=${3-$RUN_TESTS}
+    local_clean=${4-$CLEAN}
+    local_use_hints=${5-$USE_HINTS}
 
-        if [ ! -f $1.tar.gz ]; then
-            echo "ERROR: cannot find source code archive $1.tar.gz"
+    echo "build_module run tests:$local_run_tests clean:$local_clean hints $local_use_hints $module $makefile_args"
+
+    if [ ! -d $module ]; then
+
+        if [ ! -f "${module}.tar.gz" ]; then
+            echo "ERROR: cannot find source code archive ${module}.tar.gz"
             echo "Please download all source files from http://github.com/Logitech/slimserver-vendor"
             exit
         fi
 
-        tar zxvf $1.tar.gz
+        echo "tar zxvf ${module}.tar.gz"
+        tar zxvf "${module}.tar.gz" > /dev/null
     fi
 
-    cd $1
+    cd "${module}"
     
-    if [ $USE_HINTS -eq 1 ]; then
+    if [ $local_use_hints -eq 1 ]; then
         # Always copy in our custom hints for OSX
         cp -Rv ../hints .
     fi
     if [ $PERL_BIN ]; then
         export PERL5LIB=$PERL_BASE/lib/perl5
         
-        $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
-        if [ $RUN_TESTS -eq 1 ]; then
+        $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $makefile_args
+        if [ $local_run_tests -eq 1 ]; then
             make test
         else
             make
         fi
         if [ $? != 0 ]; then
-            if [ $RUN_TESTS -eq 1 ]; then
+            if [ $local_run_tests -eq 1 ]; then
                 echo "make test failed, aborting"
             else
                 echo "make failed, aborting"
@@ -317,11 +382,14 @@ function build_module {
             exit $?
         fi
         make install
-        make clean
+
+        if [ $local_clean -eq 1 ]; then
+            make clean
+        fi
     fi
 
     cd ..
-    rm -rf $1
+    rm -rf $module
 }
 
 function build_all {
@@ -378,7 +446,9 @@ function build {
                     exit $?
                 fi
                 make install
-                make clean
+                if [ $CLEAN -eq 1 ]; then
+                    make clean
+                fi
                 cd ..
                 rm -rf Class-C3-XS-0.11
             fi
@@ -407,13 +477,11 @@ function build {
             ;;
         
         DBD::SQLite)
-            RUN_TESTS=0
             if [ "$PERL_518" -o "$PERL_520" ]; then
-                build_module DBI-1.628
+                build_module DBI-1.628 "" 0
             else
-                build_module DBI-1.616
+                build_module DBI-1.616 "" 0
             fi
-            RUN_TESTS=1
             
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
@@ -487,17 +555,18 @@ function build {
                     exit $?
                 fi
                 $MAKE install
-                $MAKE clean
+                if [ $CLEAN -eq 1 ]; then
+                    $MAKE clean
+                fi
     
                 cd ..
                 rm -rf DBD-SQLite-1.34_01
             else
                 cd ..
                 if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" ]; then
-                   RUN_TESTS=0
+                   build_module DBD-SQLite-1.34_01 "" 0
                 fi
                 build_module DBD-SQLite-1.34_01
-                RUN_TESTS=1
             fi
             
             ;;
@@ -531,9 +600,7 @@ function build {
         Encode::Detect)
             build_module Data-Dump-1.19
             build_module ExtUtils-CBuilder-0.260301
-            RUN_TESTS=0
-            build_module Module-Build-0.35
-            RUN_TESTS=1
+            build_module Module-Build-0.35 "" 0
             build_module Encode-Detect-1.00
             ;;
         
@@ -548,10 +615,8 @@ function build {
             build_giflib
             
             # build Image::Scale
-            RUN_TESTS=0
-            build_module Test-NoWarnings-1.02
-            RUN_TESTS=1
-            
+            build_module Test-NoWarnings-1.02 "" 0
+
             tar zxvf Image-Scale-0.08.tar.gz
             cd Image-Scale-0.08
             cp -Rv ../hints .
@@ -569,11 +634,7 @@ function build {
                 build_module common-sense-2.0
             
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
-                USE_HINTS=0
-                RUN_TESTS=0
-                build_module IO-AIO-3.71
-                RUN_TESTS=1
-                USE_HINTS=1
+                build_module IO-AIO-3.71 "" 0 $CLEAN 0
             fi
             ;;
         
@@ -604,9 +665,7 @@ function build {
 
         Mac::FSEvents)
             if [ $OS = 'Darwin' ]; then
-                RUN_TESTS=0
-                build_module Mac-FSEvents-0.04
-                RUN_TESTS=1
+                build_module Mac-FSEvents-0.04 "" 0
             fi
             ;;
         
@@ -616,18 +675,16 @@ function build {
         
         YAML::LibYAML)
             if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" ]; then
-                RUN_TESTS=0
+                build_module YAML-LibYAML-0.35 "" 0
+            else
+                build_module YAML-LibYAML-0.35
             fi
-            build_module YAML-LibYAML-0.35
-            RUN_TESTS=1
             ;;
         
         Audio::Scan)
-            RUN_TESTS=0
-            build_module Sub-Uplevel-0.22
-            build_module Tree-DAG_Node-1.06
-            build_module Test-Warn-0.23
-            RUN_TESTS=1
+            build_module Sub-Uplevel-0.22 "" 0
+            build_module Tree-DAG_Node-1.06 "" 0
+            build_module Test-Warn-0.23 "" 0
             build_module Audio-Scan-0.95
             ;;
 
@@ -645,9 +702,7 @@ function build {
             cd ..
 
             make # minor test failure, so don't test
-            RUN_TESTS=0
-            build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n"
-            RUN_TESTS=1
+            build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
 
             ;;
         
@@ -823,7 +878,9 @@ function build {
                     exit $?
                 fi
                 make install
-                make clean
+                if [ $CLEAN -eq 1 ]; then
+                    make clean
+                fi
             fi
             
             cd ../../..
@@ -885,7 +942,9 @@ function build_libjpeg {
         cp -fv .libs/libjpeg.a libjpeg-x86_64.a
         
         # Build 32-bit fork
-        make clean
+        if [ $CLEAN -eq 1 ]; then
+            make clean
+        fi
         CFLAGS="-O3 -m32 $OSX_FLAGS" \
         CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
         LDFLAGS="-m32 $OSX_FLAGS" \
