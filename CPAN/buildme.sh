@@ -341,6 +341,14 @@ fi
 
 mkdir -p $BUILD
 
+# $1 = args
+# $2 = file
+function tar_wrapper (
+    echo "tar $1 $2"
+    tar $1 "$2" > /dev/null
+    echo "tar done"
+}
+
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
 # $3 = run tests if 1 - default to $RUN_TESTS
@@ -363,8 +371,7 @@ function build_module {
             exit
         fi
 
-        echo "tar zxvf ${module}.tar.gz"
-        tar zxvf "${module}.tar.gz" > /dev/null
+        tar_wrapper zxvf "${module}.tar.gz"
     fi
 
     cd "${module}"
@@ -434,8 +441,7 @@ function build {
     case "$1" in
         Class::C3::XS)
             if [ $PERL_58 ]; then
-                echo "tar zxvf Class-C3-XS-0.11.tar.gz"
-                tar zxvf Class-C3-XS-0.11.tar.gz > /dev/null
+                tar_wrapper zxvf Class-C3-XS-0.11.tar.gz
                 cd Class-C3-XS-0.11
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
                 cp -Rv ../hints .
@@ -496,8 +502,7 @@ function build {
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
             if [ ! -f build/lib/libicudata_s.a ]; then
-                echo "tar zxvf icu4c-4_6-src.tgz"
-                tar zxvf icu4c-4_6-src.tgz > /dev/null
+                tar_wrapper zxvf icu4c-4_6-src.tgz
                 cd icu/source
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
@@ -544,8 +549,7 @@ function build {
             cp -v icudt46*.dat $BUILD/share/icu/4.6
             
             # Custom build for ICU support
-            echo "tar zxvf DBD-SQLite-1.34_01.tar.gz"
-            tar zxvf DBD-SQLite-1.34_01.tar.gz > /dev/null
+            tar_wrapper zxvf DBD-SQLite-1.34_01.tar.gz
             cd DBD-SQLite-1.34_01
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -Rv ../hints .
@@ -593,8 +597,7 @@ function build {
             # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
             
-            echo "tar zxvf EV-4.03.tar.gz"
-            tar zxvf EV-4.03.tar.gz > /dev/null
+            tar_wrapper zxvf EV-4.03.tar.gz
             cd EV-4.03
             patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
             if [ "$OS" = "Darwin" ]; then
@@ -630,8 +633,7 @@ function build {
             # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
 
-            echo "tar zxvf Image-Scale-0.08.tar.gz"
-            tar zxvf Image-Scale-0.08.tar.gz > /dev/null
+            tar_wrapper zxvf Image-Scale-0.08.tar.gz
             cd Image-Scale-0.08
             cp -Rv ../hints .
             cd ..
@@ -709,8 +711,7 @@ function build {
         
         Template)
             # Template, custom build due to 2 Makefile.PL's
-            echo "tar zxvf Template-Toolkit-2.21.tar.gz"
-            tar zxvf Template-Toolkit-2.21.tar.gz > /dev/null
+            tar_wrapper zxvf Template-Toolkit-2.21.tar.gz
             cd Template-Toolkit-2.21
             cp -Rv ../hints .
             cp -Rv ../hints ./xs
@@ -723,8 +724,7 @@ function build {
         
         DBD::mysql)
             # Build libmysqlclient
-            echo "tar jxvf mysql-5.1.37.tar.bz2"
-            tar jxvf mysql-5.1.37.tar.bz2 > /dev/null
+            tar_wrapper jxvf mysql-5.1.37.tar.bz2
             cd mysql-5.1.37
             CC=gcc CXX=gcc \
             CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -743,8 +743,7 @@ function build {
             rm -rf mysql-5.1.37
 
             # DBD::mysql custom, statically linked with libmysqlclient
-            echo "tar zxvf DBD-mysql-3.0002.tar.gz"
-            tar zxvf DBD-mysql-3.0002.tar.gz > /dev/null
+            tar_wrapper zxvf DBD-mysql-3.0002.tar.gz
             cd DBD-mysql-3.0002
             cp -Rv ../hints .
             mkdir mysql-static
@@ -757,8 +756,7 @@ function build {
         
         XML::Parser)
             # build expat
-            echo "tar zxvf expat-2.0.1.tar.gz"
-            tar zxvf expat-2.0.1.tar.gz > /dev/null
+            tar_wrapper zxvf expat-2.0.1.tar.gz
             cd expat-2.0.1
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -778,8 +776,7 @@ function build {
             cd ../..
 
             # XML::Parser custom, built against expat
-            echo "tar zxvf XML-Parser-2.41.tar.gz"
-            tar zxvf XML-Parser-2.41.tar.gz > /dev/null
+            tar_wrapper zxvf XML-Parser-2.41.tar.gz
             cd XML-Parser-2.41
             cp -Rv ../hints .
             cp -Rv ../hints ./Expat # needed for second Makefile.PL
@@ -794,8 +791,7 @@ function build {
         
         Font::FreeType)
             # build freetype
-            echo "tar zxvf freetype-2.4.2.tar.gz"
-            tar zxvf freetype-2.4.2.tar.gz > /dev/null
+            tar_wrapper zxvf freetype-2.4.2.tar.gz
             cd freetype-2.4.2
             
             # Disable features we don't need for CODE2000
@@ -824,8 +820,7 @@ function build {
             ln -sf libfreetype.a libfreetype_s.a
             cd ../..
 
-            echo "tar zxvf Font-FreeType-0.03.tar.gz"
-            tar zxvf Font-FreeType-0.03.tar.gz > /dev/null
+            tar_wrapper zxvf Font-FreeType-0.03.tar.gz
             cd Font-FreeType-0.03
             
             # Build statically
@@ -853,8 +848,7 @@ function build {
             # build libmediascan
             # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
-            echo "tar zxvf libmediascan-0.1.tar.gz"
-            tar zxvf libmediascan-0.1.tar.gz > /dev/null
+            tar_wrapper zxvf libmediascan-0.1.tar.gz
 
             if [ "$OSX_VER" = "10.9" -o "$OSX_VER" = "10.10" ]; then
                 patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
@@ -917,8 +911,7 @@ function build_libexif {
     fi
     
     # build libexif
-    echo "tar jxvf libexif-0.6.20.tar.bz2"
-    tar jxvf libexif-0.6.20.tar.bz2 > /dev/null
+    tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -945,8 +938,7 @@ function build_libjpeg {
     # skip on 10.9 until we've been able to build nasm from macports
     if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
-        echo "tar zxvf libjpeg-turbo-1.1.1.tar.gz"
-        tar zxvf libjpeg-turbo-1.1.1.tar.gz > /dev/null
+        tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
@@ -993,8 +985,7 @@ function build_libjpeg {
         # combine i386 turbo with ppc libjpeg
         
         # build i386 turbo
-        echo "tar zxvf libjpeg-turbo-1.1.1.tar.gz"
-        tar zxvf libjpeg-turbo-1.1.1.tar.gz > /dev/null
+        tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
@@ -1015,8 +1006,7 @@ function build_libjpeg {
         cd ..
         
         # build ppc libjpeg 6b
-        echo "tar zxvf jpegsrc.v6b.tar.gz"
-        tar zxvf jpegsrc.v6b.tar.gz > /dev/null
+        tar_wrapper zxvf jpegsrc.v6b.tar.gz
         cd jpeg-6b
         
         # Disable features we don't need
@@ -1043,8 +1033,7 @@ function build_libjpeg {
         
     elif [ "$ARCH" = "i386-linux-thread-multi" -o "$ARCH" = "x86_64-linux-thread-multi" -o "$OS" = "FreeBSD" ]; then
         # build libjpeg-turbo
-        echo "tar zxvf libjpeg-turbo-1.1.1.tar.gz"
-        tar zxvf libjpeg-turbo-1.1.1.tar.gz > /dev/null
+        tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
         
         # Disable features we don't need
@@ -1063,8 +1052,7 @@ function build_libjpeg {
         
     # build libjpeg v8 on other platforms
     else
-        echo "tar zxvf jpegsrc.v8b.tar.gz"
-        tar zxvf jpegsrc.v8b.tar.gz > /dev/null
+        tar_wrapper zxvf jpegsrc.v8b.tar.gz
         cd jpeg-8b
         
         # Disable features we don't need
@@ -1094,8 +1082,7 @@ function build_libpng {
     fi
     
     # build libpng
-    echo "tar zxvf libpng-1.4.3.tar.gz"
-    tar zxvf libpng-1.4.3.tar.gz > /dev/null
+    tar_wrapper zxvf libpng-1.4.3.tar.gz
     cd libpng-1.4.3
     
     # Disable features we don't need
@@ -1122,8 +1109,7 @@ function build_giflib {
     fi
     
     # build giflib
-    echo "tar zxvf giflib-4.1.6.tar.gz"
-    tar zxvf giflib-4.1.6.tar.gz > /dev/null
+    tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1148,8 +1134,7 @@ function build_ffmpeg {
     fi
     
     # build ffmpeg, enabling only the things libmediascan uses
-    echo "tar jxvf ffmpeg-0.8.4.tar.bz2"
-    tar jxvf ffmpeg-0.8.4.tar.bz2 > /dev/null
+    tar_wrapper jxvf ffmpeg-0.8.4.tar.bz2
     cd ffmpeg-0.8.4
     
     if [ "$MACHINE" = "padre" ]; then
@@ -1307,8 +1292,7 @@ function build_bdb {
     fi
     
     # build bdb
-    echo "tar zxvf db-5.1.25.tar.gz"
-    tar zxvf db-5.1.25.tar.gz > /dev/null
+    tar_wrapper zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
     
     if [ "$OS" = "Darwin" ]; then
