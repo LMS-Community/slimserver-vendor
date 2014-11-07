@@ -343,7 +343,7 @@ mkdir -p $BUILD
 
 # $1 = args
 # $2 = file
-function tar_wrapper (
+function tar_wrapper {
     echo "tar $1 $2"
     tar $1 "$2" > /dev/null
     echo "tar done"
