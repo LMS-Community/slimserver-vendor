@@ -105,14 +105,16 @@ if [ $? -ne 0 ] ; then
     fi
 fi
 
-#for i in libgif libz libgd ; do
-for i in libz libgd ; do
-    ldconfig -p | grep "${i}.so" > /dev/null
-    if [ $? -ne 0 ] ; then
-        echo "$i not found - please install it"
-        exit 1
-    fi
-done
+if [ "$OS" = "Linux" -o "$OS" = "FreeBSD" ]; then
+	#for i in libgif libz libgd ; do
+	for i in libz libgd ; do
+	    ldconfig -p | grep "${i}.so" > /dev/null
+	    if [ $? -ne 0 ] ; then
+	        echo "$i not found - please install it"
+	        exit 1
+	    fi
+	done
+fi
 
 find /usr/lib/ -maxdepth 1 | grep libungif
 if [ $? -eq 0 ] ; then
@@ -128,9 +130,9 @@ if [ "$OS" = "Darwin" ]; then
     REGEX=' OS X.* (10\.[5-9])'
     REGEX2=' OS X.* (10\.1[0])'
 
-    if [[ "$OSX_VER" =~ "$REGEX" ]]; then
+    if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
-    elif [[ "$OSX_VER" =~ "$REGEX2" ]]; then
+    elif [[ $OSX_VER =~ $REGEX2 ]]; then
         OSX_VER=${BASH_REMATCH[1]}
     else
         echo "Unable to determine OSX version"
