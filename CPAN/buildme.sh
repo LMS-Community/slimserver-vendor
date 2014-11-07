@@ -1301,6 +1301,7 @@ function build_bdb {
 
 # Build a single module if requested, or all
 if [ $1 ]; then
+    echo "building only $1"
     build $1
 else
     build_all
