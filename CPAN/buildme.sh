@@ -868,6 +868,9 @@ function build {
             fi
 
             cd libmediascan-0.1
+
+            patch -p1 < ../libmediascan-freebsd.patch
+
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             OBJCFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
