@@ -105,10 +105,21 @@ if [ $? -ne 0 ] ; then
     fi
 fi
 
-if [ "$OS" = "Linux" -o "$OS" = "FreeBSD" ]; then
+if [ "$OS" = "Linux" ]; then
 	#for i in libgif libz libgd ; do
 	for i in libz libgd ; do
 	    ldconfig -p | grep "${i}.so" > /dev/null
+	    if [ $? -ne 0 ] ; then
+	        echo "$i not found - please install it"
+	        exit 1
+	    fi
+	done
+fi
+
+if [ "$OS" = "FreeBSD" ]; then
+	#for i in libgif libz libgd ; do
+	for i in libz libgd ; do
+	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
 	    if [ $? -ne 0 ] ; then
 	        echo "$i not found - please install it"
 	        exit 1
@@ -857,6 +868,9 @@ function build {
             fi
 
             cd libmediascan-0.1
+
+            patch -p1 < ../libmediascan-freebsd.patch
+
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             OBJCFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1175,12 +1189,12 @@ function build_ffmpeg {
     
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
-    if [ "$ARCH" = "x86_64-linux-thread-multi" ]; then
+    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     # FreeBSD amd64 needs arch option
-    if [ "$ARCH" = "amd64-freebsd" ]; then
-        FFOPTS="$FFOPTS --arch=x64"
+    if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
+        FFOPTS="$FFOPTS --arch=x86"
     fi
     
     if [ "$OS" = "Darwin" ]; then
@@ -1297,7 +1311,7 @@ function build_bdb {
     tar_wrapper zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
     
-    if [ "$OS" = "Darwin" ]; then
+    if [ "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then
        pushd ..
        patch -p0 < ../db51-src_dbinc_atomic.patch
        popd
