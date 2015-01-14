@@ -869,7 +869,9 @@ function build {
 
             cd libmediascan-0.1
 
-            patch -p1 < ../libmediascan-freebsd.patch
+			if [ "$OS" = "FreeBSD" ]; then
+            	patch -p1 < ../libmediascan-freebsd.patch
+            fi
 
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
