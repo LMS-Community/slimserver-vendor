@@ -352,7 +352,7 @@ if [ $CLEAN -eq 1 ]; then
     rm -rf $BUILD/arch
 fi
 
-mkdir -p $BUILD
+mkdir -p $PERL_ARCH
 
 # $1 = args
 # $2 = file
@@ -486,6 +486,7 @@ function build {
         Class::XSAccessor)
             if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" ]; then
                 build_module Class-XSAccessor-1.18
+                cp -pR $PERL_BASE/lib/perl5/$ARCH/Class $PERL_ARCH/
             else
                 build_module Class-XSAccessor-1.05
             fi
@@ -494,12 +495,15 @@ function build {
         Compress::Raw::Zlib)
             if [ "$PERL_58" -o "$PERL_510" ]; then
 	            build_module Compress-Raw-Zlib-2.033
+                    cp -pR $PERL_BASE/lib/perl5/$ARCH/Compress $PERL_ARCH/
             fi
             ;;
         
         DBI)
             if [ "$PERL_518" -o "$PERL_520" ]; then
                 build_module DBI-1.628
+                cp -p $PERL_BASE/lib/perl5/$ARCH/DBI.pm $PERL_ARCH/
+                cp -pR $PERL_BASE/lib/perl5/$ARCH/DBI $PERL_ARCH/
             else
                 build_module DBI-1.616
             fi
@@ -676,6 +680,7 @@ function build {
             
             if [ "$PERL_518" -o "$PERL_520" ]; then
                 build_module JSON-XS-2.34
+                cp -pR $PERL_BASE/lib/perl5/$ARCH/JSON $PERL_ARCH/
             else
                 build_module JSON-XS-2.3
             fi
