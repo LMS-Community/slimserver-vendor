@@ -694,7 +694,7 @@ function build {
         JSON::XS)
             build_module common-sense-2.0
             
-            if [ "$PERL_518" -o "$PERL_520" ]; then
+            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" ]; then
                 build_module JSON-XS-2.34
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/JSON $PERL_ARCH/
             else
