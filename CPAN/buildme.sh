@@ -666,12 +666,12 @@ function build {
             # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
 
-            tar_wrapper zxvf Image-Scale-0.08.tar.gz
-            cd Image-Scale-0.08
+            tar_wrapper zxvf Image-Scale-0.11.tar.gz
+            cd Image-Scale-0.11
             cp -Rv ../hints .
             cd ..
             
-            build_module Image-Scale-0.08 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+            build_module Image-Scale-0.11 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$PERL_BASE"
