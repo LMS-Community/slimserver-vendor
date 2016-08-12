@@ -79,7 +79,11 @@ OS=`uname`
 MACHINE=`uname -m`
 
 # get system arch, stripping out extra -gnu on Linux
-ARCH=`/usr/bin/perl -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
+ARCHPERL=/usr/bin/perl
+if [ "$OS" = "FreeBSD" ]; then
+    ARCHPERL=/usr/local/bin/perl
+fi
+ARCH=`$ARCHPERL -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 
 if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then
     echo "Building for $OS / $ARCH"
