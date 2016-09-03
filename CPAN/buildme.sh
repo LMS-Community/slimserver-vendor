@@ -382,6 +382,12 @@ function tar_wrapper {
     echo "tar done"
 }
 
+function refresh_config {
+    # Obtain latest config.guess and config.sub to handle newer operating systems and architectures
+    wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
+    wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
+}
+
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
 # $3 = run tests if 1 - default to $RUN_TESTS
@@ -541,6 +547,7 @@ function build {
             if [ ! -f build/lib/libicudata_s.a ]; then
                 tar_wrapper zxvf icu4c-4_6-src.tgz
                 cd icu/source
+                refresh_config
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
                     ICUOS="MacOSX"
@@ -795,7 +802,9 @@ function build {
         XML::Parser)
             # build expat
             tar_wrapper zxvf expat-2.0.1.tar.gz
-            cd expat-2.0.1
+            cd expat-2.0.1/conftools
+            refresh_config
+            cd ..
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
@@ -830,7 +839,9 @@ function build {
         Font::FreeType)
             # build freetype
             tar_wrapper zxvf freetype-2.4.2.tar.gz
-            cd freetype-2.4.2
+            cd freetype-2.4.2/builds/unix
+            refresh_config
+            cd ../..
             
             # Disable features we don't need for CODE2000
             cp -fv ../freetype-ftoption.h objs/ftoption.h
@@ -893,6 +904,7 @@ function build {
             fi
 
             cd libmediascan-0.1
+            refresh_config
 
 			if [ "$OS" = "FreeBSD" ]; then
             	patch -p1 < ../libmediascan-freebsd.patch
@@ -956,6 +968,7 @@ function build_libexif {
     # build libexif
     tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
+    refresh_config
     
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -983,6 +996,7 @@ function build_libjpeg {
         # Build i386/x86_64 versions of turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
+        refresh_config
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1030,6 +1044,7 @@ function build_libjpeg {
         # build i386 turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
+        refresh_config
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1051,6 +1066,7 @@ function build_libjpeg {
         # build ppc libjpeg 6b
         tar_wrapper zxvf jpegsrc.v6b.tar.gz
         cd jpeg-6b
+        refresh_config
         
         # Disable features we don't need
         cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
@@ -1078,6 +1094,7 @@ function build_libjpeg {
         # build libjpeg-turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
+        refresh_config
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
@@ -1097,6 +1114,7 @@ function build_libjpeg {
     else
         tar_wrapper zxvf jpegsrc.v8b.tar.gz
         cd jpeg-8b
+        refresh_config
         
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
@@ -1127,6 +1145,7 @@ function build_libpng {
     # build libpng
     tar_wrapper zxvf libpng-1.4.3.tar.gz
     cd libpng-1.4.3
+    refresh_config
     
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
@@ -1154,6 +1173,7 @@ function build_giflib {
     # build giflib
     tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
+    refresh_config
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1337,6 +1357,16 @@ function build_bdb {
     # build bdb
     tar_wrapper zxvf db-5.1.25.tar.gz
     cd db-5.1.25/build_unix
+    refresh_config
+    cd ../dist
+    refresh_config
+    cd ../lang/sql/sqlite
+    refresh_config
+    cd ../jdbc
+    refresh_config
+    cd ../odbc
+    refresh_config
+    cd ../../../build_unix
     
     if [ "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then
        pushd ..

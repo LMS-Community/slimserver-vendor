@@ -19,6 +19,9 @@ date > $LOG
 echo "Untarring libogg-$OGG.tar.gz..."
 tar -zxf libogg-$OGG.tar.gz
 cd libogg-$OGG
+# Obtain latest config.guess and config.sub
+wget -q -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' >> $LOG
+wget -q -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' >> $LOG
 echo "Configuring..."
 ./configure --disable-shared >> $LOG
 echo "Running make..."
@@ -29,6 +32,9 @@ cd ..
 echo "Untarring..."
 tar zxvf flac-$FLAC.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
+# Obtain latest config.guess and config.sub
+wget -q -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' >> $LOG
+wget -q -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' >> $LOG
 patch -p0 < ../sc.patch >> $LOG
 patch -p0 < ../triode-ignore-wav-length.patch >> $LOG
 patch -p0 < ../steven-allow-bad-ssnd-chunk-size.patch >> $LOG
