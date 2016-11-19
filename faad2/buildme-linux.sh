@@ -18,6 +18,9 @@ date > $LOG
 echo "Untarring..."
 tar zxvf faad2-$FAAD.tar.gz >> $LOG
 cd faad2-$FAAD >> $LOG
+# Obtain latest config.guess and config.sub
+wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' >> $LOG
+wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' >> $LOG
 patch -p1 < ../sbs.patch >> $LOG
 echo "Configuring..."
 ./configure --without-xmms --without-drm --without-mpeg4ip --disable-shared --prefix $OUTPUT >> $LOG
