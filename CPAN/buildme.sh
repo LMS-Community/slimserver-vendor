@@ -1171,13 +1171,14 @@ function build_giflib {
     tar_wrapper zxvf giflib-4.2.3.tar.gz
     cd giflib-4.2.3
 
-    # doc: required xmlto 
-    echo > doc/Makefile
-
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
+
+    # doc: required xmlto 
+    echo > doc/Makefile
+    
     make
     if [ $? != 0 ]; then
         echo "make failed"
