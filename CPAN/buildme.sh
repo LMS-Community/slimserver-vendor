@@ -1176,10 +1176,7 @@ function build_giflib {
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
 
-    # doc: required xmlto 
-    echo > doc/Makefile
-    
-    make
+    make lib util
     if [ $? != 0 ]; then
         echo "make failed"
         exit $?
