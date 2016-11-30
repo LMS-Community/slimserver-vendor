@@ -1168,8 +1168,12 @@ function build_giflib {
     fi
     
     # build giflib
-    tar_wrapper zxvf giflib-4.1.6.tar.gz
-    cd giflib-4.1.6
+    tar_wrapper zxvf giflib-4.2.3.tar.gz
+    cd giflib-4.2.3
+
+    # doc: required xmlto 
+    echo > doc/Makefile
+
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1182,7 +1186,7 @@ function build_giflib {
     make install
     cd ..
     
-    rm -rf giflib-4.1.6
+    rm -rf giflib-4.2.3
 }
 
 function build_ffmpeg {
