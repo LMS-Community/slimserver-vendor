@@ -7,13 +7,15 @@ VORBIS=1.2.3
 MAD=0.15.1b
 WAVPACK=4.60.1
 LOG=$PWD/config.log
-CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
+CHANGENO=`git show -s --format=%h`
 ARCH="osx"
 OUTPUT=$PWD/sox-build-$ARCH-$CHANGENO
 
 # Mac Universal Binary support
-CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
-LDFLAGS="-arch i386 -arch ppc"
+#CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
+#LDFLAGS="-arch i386 -arch ppc"
+CFLAGS="-arch x86_64"
+LDFLAGS="-arch x86_64"
 
 # Clean up
 rm -rf $OUTPUT
@@ -63,15 +65,15 @@ cd ..
 # Mac: Disabled ASM code and Intel-specific optimizations
 # XXX: Not sure if fpm=64bit is right, but it compiles fine on 32-bit systems
 # MAD doesn't work with -isysroot
-MADCFLAGS="-arch i386 -arch ppc -mmacosx-version-min=10.3"
-echo "Untarring libmad-$MAD.tar.gz..."
-tar -zxf libmad-$MAD.tar.gz
-cd libmad-$MAD
-echo "configuring..."
-./configure CFLAGS="$MADCFLAGS" LDFLAGS="$LDFLAGS" --disable-shared --disable-dependency-tracking --disable-aso --enable-fpm=64bit >> $LOG
-echo "Running make"
-make >> $LOG
-cd ..
+#MADCFLAGS="-arch i386 -arch ppc -mmacosx-version-min=10.3"
+#echo "Untarring libmad-$MAD.tar.gz..."
+#tar -zxf libmad-$MAD.tar.gz
+#cd libmad-$MAD
+#echo "configuring..."
+#./configure CFLAGS="$MADCFLAGS" LDFLAGS="$LDFLAGS" --disable-shared --disable-dependency-tracking --disable-aso --enable-fpm=64bit >> $LOG
+#echo "Running make"
+#make >> $LOG
+#cd ..
 
 ## Build Wavpack
 echo "Untarring wavpack-$WAVPACK.tar.bz2..."
@@ -91,9 +93,9 @@ echo "Untarring sox-$SOX.tar.gz..."
 tar -zxf sox-$SOX.tar.gz >> $LOG
 cd sox-$SOX >> $LOG
 echo "Configuring..."
-CPF="$CFLAGS -I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
-LDF="$LDFLAGS -L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
-./configure CFLAGS="$CPF" LDFLAGS="$LDF" --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --disable-dependency-tracking --prefix $OUTPUT >> $LOG
+CPF="$CFLAGS -I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/" 
+LDF="$LDFLAGS -L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
+./configure CFLAGS="$CPF" LDFLAGS="$LDF" --with-flac --with-oggvorbis --without-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --disable-dependency-tracking --prefix $OUTPUT >> $LOG
 echo "Running make"
 make  >> $LOG
 echo "Running make install"
@@ -107,5 +109,5 @@ rm -rf flac-$FLAC
 rm -rf sox-$SOX
 rm -rf libogg-$OGG
 rm -rf libvorbis-$VORBIS
-rm -rf libmad-$MAD
+#rm -rf libmad-$MAD
 rm -rf wavpack-$WAVPACK

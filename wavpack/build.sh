@@ -10,7 +10,8 @@ BUILD=$PWD/build
 FLAGS=""
 # Mac-specific flags (must be built on Leopard)
 if [ $OS = "Darwin" ]; then
-    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+#    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
+    FLAGS="-arch x86_64"
 elif [ $OS = "FreeBSD" ]; then
     # needed to find iconv
     FLAGS="-I/usr/local/include -L/usr/local/lib"

@@ -3,13 +3,15 @@
 OGG=1.1.3
 FLAC=1.2.1
 LOG=$PWD/config.log
-CHANGENO=` svn info .  | grep -i Revision | awk -F": " '{print $2}'`
+CHANGENO=`git show -s --format=%h`
 ARCH="osx"
 OUTPUT=$PWD/flac-build-$ARCH-$CHANGENO
 
 # Mac Universal Binary support
-CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
-LDFLAGS="-arch i386 -arch ppc"
+#CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
+#LDFLAGS="-arch i386 -arch ppc"
+CFLAGS="-arch x86_64"
+LDFLAGS="-arch x86_64"
 
 # Clean up
 rm -rf $OUTPUT
