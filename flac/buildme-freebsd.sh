@@ -4,7 +4,8 @@ OGG=1.1.3
 FLAC=1.2.1
 LOG=$PWD/config.log
 ARCH=`uname -m`
-OUTPUT=$PWD/flac-build-$ARCH-$FLAC
+CHANGENO=`git rev-parse --short HEAD`
+OUTPUT=$PWD/flac-build-$ARCH-$CHANGENO
 
 # Clean up
 rm -rf $OUTPUT
