@@ -690,6 +690,11 @@ function build {
 
             tar_wrapper zxvf Image-Scale-0.11.tar.gz
             cd Image-Scale-0.11
+
+            if [ $PERL_MINOR_VER -ge 24 ]; then
+                cp -Rv lib/Image $PERL_ARCH
+            fi
+
             cp -Rv ../hints .
             cd ..
             
