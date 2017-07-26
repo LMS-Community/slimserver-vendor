@@ -779,6 +779,15 @@ function build {
             ;;
         
         YAML::LibYAML)
+            build_module File-Remove-1.57
+            build_module YAML-Tiny-1.70
+
+            if [ $PERL_MINOR_VER -ge 26 ]; then
+                build_module Module-Install-1.18
+            else
+                build_module Module-Install-1.17
+            fi
+
             if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
