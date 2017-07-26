@@ -1,0 +1,13 @@
+--- configure.in.old	2007-09-13 15:48:42.000000000 +0000
++++ configure.in	2017-07-26 04:04:24.592961000 +0000
+@@ -300,8 +300,8 @@
+ else
+ 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
+ 	if test "x$GCC" = xyes; then
+-		CPPFLAGS="-DFLaC__INLINE=__inline__ $CPPFLAGS"
+-		CFLAGS="-O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS"
++		CPPFLAGS="-fPIC -DFLaC__INLINE=__inline__ $CPPFLAGS"
++		CFLAGS="-O3 -fPIC -funroll-loops -Wall -W -Winline $CFLAGS"
+ 	fi
+ fi
+ 

@@ -92,7 +92,21 @@ else
     exit
 fi
 
-for i in gcc cpp rsync make rsync ; do
+if [ "$OS" = "FreeBSD" ]; then
+    BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
+    BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
+    if [ $BSD_MAJOR_VER -ge 11 ]; then
+        if [ -f /usr/local/libexec/ccache/cc ]; then
+            GCC=/usr/local/libexec/ccache/cc
+        else
+            GCC=cc
+        fi
+    fi
+else
+    GCC=gcc
+fi
+
+for i in $GCC cpp rsync make rsync ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
@@ -322,6 +336,19 @@ if [ $PERL_524 ]; then
     PERL_ARCH=$BUILD/arch/5.24
 fi
 
+# Path to Perl 5.26
+if [ -x "/usr/bin/perl5.26.0" ]; then
+    PERL_526=/usr/bin/perl5.26.0
+fi
+
+if [ $PERL_526 ]; then
+    echo "Building with Perl 5.26 at $PERL_526"
+    PERL_BIN=$PERL_526
+    # Install dir for 5.26
+    PERL_BASE=$BUILD/5.26
+    PERL_ARCH=$BUILD/arch/5.26
+fi
+
 # try to use default perl version
 if [ "$PERL_BIN" = "" ]; then
     PERL_BIN=`which perl`
@@ -355,6 +382,9 @@ if [ "$PERL_BIN" = "" ]; then
     "5.24")
 	PERL_524=$PERL_BIN
         ;;
+    "5.26")
+        PERL_526=$PERL_BIN
+        ;;
     *)
         echo "Failed to find supported Perl version for '$PERL_BIN'"
         exit
@@ -365,6 +395,8 @@ if [ "$PERL_BIN" = "" ]; then
     PERL_BASE=$BUILD/$PERL_VERSION
     PERL_ARCH=$BUILD/arch/$PERL_VERSION
 fi
+
+PERL_MINOR_VER=`echo "$PERL_BASE" | sed 's/.*\.//g'`
 
 # FreeBSD's make sucks
 if [ "$OS" = "FreeBSD" ]; then
@@ -520,7 +552,7 @@ function build {
             ;;
         
         Class::XSAccessor)
-            if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module Class-XSAccessor-1.18
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/Class $PERL_ARCH/
             else
@@ -536,7 +568,7 @@ function build {
             ;;
         
         DBI)
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
                 cp -p $PERL_BASE/lib/perl5/$ARCH/DBI.pm $PERL_ARCH/
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/DBI $PERL_ARCH/
@@ -546,7 +578,7 @@ function build {
             ;;
         
         DBD::SQLite)
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628 "" 0
             else
                 build_module DBI-1.616 "" 0
@@ -566,6 +598,9 @@ function build {
                 elif [ "$OS" = 'FreeBSD' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
+                    if [ $BSD_MAJOR_VER -ge 11 ]; then
+                        patch -p0 < ../../runConfigureICU.patch
+                    fi
                 fi
                 CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
@@ -632,7 +667,7 @@ function build {
                 rm -rf DBD-SQLite-1.34_01
             else
                 cd ..
-                if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+                if [ $PERL_MINOR_VER -ge 16 ]; then
                    build_module DBD-SQLite-1.34_01 "" 0
                 fi
                 build_module DBD-SQLite-1.34_01
@@ -688,6 +723,11 @@ function build {
 
             tar_wrapper zxvf Image-Scale-0.11.tar.gz
             cd Image-Scale-0.11
+
+            if [ $PERL_MINOR_VER -ge 24 ]; then
+                cp -Rv lib/Image $PERL_ARCH
+            fi
+
             cp -Rv ../hints .
             cd ..
             
@@ -714,7 +754,7 @@ function build {
         JSON::XS)
             build_module common-sense-2.0
             
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module JSON-XS-2.34
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/JSON $PERL_ARCH/
             else
@@ -744,7 +784,9 @@ function build {
             ;;
         
         YAML::LibYAML)
-            if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 26 ]; then
+                build_module YAML-LibYAML-0.65
+            elif [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
                 build_module YAML-LibYAML-0.35
@@ -973,10 +1015,17 @@ function build_libexif {
     tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ ! -z "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC"     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1097,9 +1146,14 @@ function build_libjpeg {
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-        
-        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
-            ./configure --prefix=$BUILD --disable-dependency-tracking
+
+        if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+            CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                ./configure --prefix=$BUILD --disable-dependency-tracking
+        else
+            CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                ./configure --prefix=$BUILD --disable-dependency-tracking
+        fi
         make
         if [ $? != 0 ]; then
             echo "make failed"
@@ -1147,10 +1201,17 @@ function build_libpng {
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
     
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     make && make check
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1170,10 +1231,17 @@ function build_giflib {
     # build giflib
     tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     make
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1238,6 +1306,11 @@ function build_ffmpeg {
     # FreeBSD amd64 needs arch option
     if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
         FFOPTS="$FFOPTS --arch=x86"
+    fi
+
+    # FreeBSD amd64 needs compiler we specified (or not)
+    if [ "$OS" = "FreeBSD" ]; then
+        FFOPTS="$FFOPTS --cc=$GCC"
     fi
     
     if [ "$OS" = "Darwin" ]; then
@@ -1403,7 +1476,7 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
-if [ "$PERL_512" -o "$PERL_514" -o "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+if [ $PERL_MINOR_VER -ge 12 ]; then
     # Check for Perl using use64bitint and add -64int
     ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 fi
