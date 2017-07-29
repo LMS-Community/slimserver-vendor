@@ -1,0 +1,8 @@
+--- autogen.sh.orig	2009-04-02 20:12:49.000000000 -0400
++++ autogen.sh	2017-07-29 19:14:13.543148000 -0400
+@@ -126,4 +126,4 @@
+ autoconf || exit 1
+ 
+ cd $olddir
+-$srcdir/configure --enable-maintainer-mode "$@" && echo
++$srcdir/configure "$@" && echo
