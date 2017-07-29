@@ -322,6 +322,19 @@ if [ $PERL_524 ]; then
     PERL_ARCH=$BUILD/arch/5.24
 fi
 
+# Path to Perl 5.26
+if [ -x "/usr/bin/perl5.26.0" ]; then
+    PERL_526=/usr/bin/perl5.26.0
+fi
+
+if [ $PERL_526 ]; then
+    echo "Building with Perl 5.26 at $PERL_526"
+    PERL_BIN=$PERL_526
+    # Install dir for 5.26
+    PERL_BASE=$BUILD/5.26
+    PERL_ARCH=$BUILD/arch/5.26
+fi
+
 # try to use default perl version
 if [ "$PERL_BIN" = "" ]; then
     PERL_BIN=`which perl`
@@ -354,6 +367,9 @@ if [ "$PERL_BIN" = "" ]; then
         ;;
     "5.24")
 	PERL_524=$PERL_BIN
+        ;;
+    "5.26")
+        PERL_526=$PERL_BIN
         ;;
     *)
         echo "Failed to find supported Perl version for '$PERL_BIN'"
@@ -751,7 +767,10 @@ function build {
             ;;
         
         YAML::LibYAML)
-            if [ $PERL_MINOR_VER -ge 16 ]; then
+            # Needed because LibYAML 0.35 used . in @INC (not permitted in Perl 5.26)
+            if [ $PERL_MINOR_VER -ge 26 ]; then
+                build_module YAML-LibYAML-0.65
+            elif [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
                 build_module YAML-LibYAML-0.35
