@@ -98,7 +98,7 @@ if [ "$OS" = "FreeBSD" ]; then
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
     if [ $BSD_MAJOR_VER -ge 11 ]; then
         if [ -z ${CC} ] && [ -f "/etc/make.conf" ]; then
-            GCC=`grep CC /etc/make.conf | grep -v CCACHE | sed 's#CC=##g'`
+            GCC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v # | sed 's#CC=##g'`
         elif [ -z $CC ]; then
             GCC=cc
         fi
@@ -582,8 +582,7 @@ function build {
                 elif [ "$OS" = 'FreeBSD' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
-                    ICUCOMPILER=`$GCC --version`
-                    if [[ $BSD_MAJOR_VER -ge 11 ]] && [[ $ICUCOMPILER == *clang* ]]; then
+                    if [[ $BSD_MAJOR_VER -ge 11 ]]; then
                         patch -p0 < ../../runConfigureICU.patch
                     fi
                 fi
