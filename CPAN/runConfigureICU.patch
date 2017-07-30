@@ -1,0 +1,27 @@
+--- runConfigureICU.orig	2010-08-30 12:24:42.000000000 -0700
++++ runConfigureICU	2017-07-23 20:39:59.019285000 -0700
+@@ -278,11 +278,21 @@
+         ;;
+     *BSD)
+         THE_OS="BSD"
+-        THE_COMP="the GNU C++"
+-        CC=gcc; export CC
+-        CXX=g++; export CXX
++        THE_COMP="the Clang++"
++        if [ -f /usr/local/libexec/ccache/cc ]; then
++            CC=/usr/local/libexec/ccache/cc; export CC
++        else
++            CC=cc; export CC
++        fi 
++        if [ -f /usr/local/libexec/ccache/cc ]; then
++            CXX=/usr/local/libexec/ccache/c++; export CXX
++        else
++            CXX=c++; export CXX
++        fi
+         DEBUG_CFLAGS='-g -O0'
+         DEBUG_CXFLAGS='-g -O0'
++        RELEASE_CFLAGS=-O3
++        RELEASE_CXXFLAGS=-O3
+         ;;
+     TRU64V5.1/CXX)
+         THE_OS="OSF1"
