@@ -97,9 +97,12 @@ if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
     if [ $BSD_MAJOR_VER -ge 11 ]; then
-        if [ -z ${CC} ] && [ -f "/etc/make.conf" ]; then
-            GCC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v # | sed 's#CC=##g'`
-        elif [ -z $CC ]; then
+        if [ -f "/etc/make.conf" ]; then
+           MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
+        fi
+        if [[ -z $MAKE_CC ]]; then
+            GCC=MAKE_CC
+        else
             GCC=cc
         fi
     fi
@@ -113,7 +116,7 @@ for i in $GCC cpp rsync make rsync ; do
     fi
 done
 
-echo "Looks like your compiler is $CC"
+echo "Looks like your compiler is $GCC"
 $GCC --version
 
 which yasm > /dev/null
