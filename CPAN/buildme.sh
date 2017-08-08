@@ -555,7 +555,7 @@ function build {
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
             if [ ! -f build/lib/libicudata_s.a ]; then
-                tar_wrapper zxvf icu4c-4_6-src.tgz
+                tar_wrapper zxvf icu4c-59_1-src.tgz
                 cd icu/source
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
@@ -567,8 +567,15 @@ function build {
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
                 fi
-                CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
-                    ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+
+                if [ "$OS" = 'FreeBSD' ]; then
+                # This is necessary to make the ICU build script respect our /etc/make.conf specified compiler options
+                    CC="$GCC" CXX="$GXX" CPP="$GPP" CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                        ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+                else
+                    CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                        ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+                fi
                 $MAKE
                 if [ $? != 0 ]; then
                     echo "make failed"
@@ -581,12 +588,6 @@ function build {
 
                 # Symlink static versions of libraries
                 cd build/lib
-                if [ "$OS" = 'FreeBSD' ]; then
-                    # FreeBSD has different library names (?)
-                    ln -sf libsicudata.a libicudata.a
-                    ln -sf libsicui18n.a libicui18n.a
-                    ln -sf libsicuuc.a libicuuc.a
-                fi
             
                 ln -sf libicudata.a libicudata_s.a
                 ln -sf libicui18n.a libicui18n_s.a
@@ -595,11 +596,11 @@ function build {
             fi
             
             # Point to data directory for test suite
-            export ICU_DATA=$BUILD/share/icu/4.6
+            export ICU_DATA=$BUILD/share/icu/59.1
             
             # Replace huge data file with smaller one containing only our collations
-            rm -f $BUILD/share/icu/4.6/icudt46*.dat
-            cp -v icudt46*.dat $BUILD/share/icu/4.6
+            rm -f $BUILD/share/icu/59.1/icudt59*.dat
+            cp -v icudt59*.dat $BUILD/share/icu/59.1
             
             # Custom build for ICU support
             tar_wrapper zxvf DBD-SQLite-1.34_01.tar.gz
