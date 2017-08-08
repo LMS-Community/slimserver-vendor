@@ -99,11 +99,23 @@ if [ "$OS" = "FreeBSD" ]; then
     if [ $BSD_MAJOR_VER -ge 11 ]; then
         if [ -f "/etc/make.conf" ]; then
            MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
+           MAKE_CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
+           MAKE_CPP=`grep CPP /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
         fi
-        if [[ -z $MAKE_CC ]]; then
-            GCC=MAKE_CC
+        if [[ ! -z "$MAKE_CC" ]]; then
+            GCC="$MAKE_CC"
         else
             GCC=cc
+        fi
+        if [[ ! -z "$MAKE_CXX" ]]; then
+            GXX="$MAKE_CXX"
+        else
+            GXX=c++
+        fi
+        if [[ ! -z "$MAKE_CPP" ]]; then
+            GPP="$MAKE_CPP"
+        else
+            GPP=cpp
         fi
     fi
 fi
@@ -118,6 +130,19 @@ done
 
 echo "Looks like your compiler is $GCC"
 $GCC --version
+
+PERL_CC=`perl -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
+
+if [[ "$PERL_CC" != "$GCC" ]]; then
+    echo "********************************************** WARNING *************************************"
+    echo "*                                                                                          *"
+    echo "*    Perl was compiled with $PERL_CC, which is different than $GCC."
+    echo "*    This will likely cause significant problems.                                          *"
+    echo "*                                                                                          *"
+    echo "* Press CTRL^C to stop the build now...                                                                                         *"
+    echo "********************************************************************************************"
+    sleep 5
+fi
 
 which yasm > /dev/null
 if [ $? -ne 0 ] ; then
