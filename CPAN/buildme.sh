@@ -131,6 +131,7 @@ done
 echo "Looks like your compiler is $GCC"
 $GCC --version
 
+CC_TYPE=`$GCC --version`
 PERL_CC=`perl -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
 
 if [[ "$PERL_CC" != "$GCC" ]]; then
@@ -613,7 +614,7 @@ function build {
                     ICUOS="FreeBSD"
                 fi
 
-                if [ "$OS" = 'FreeBSD' ]; then
+                if [[ "$OS" = 'FreeBSD' ]]; then
                 # This is necessary to make the ICU build script respect our /etc/make.conf specified compiler options
                     CC="$GCC" CXX="$GXX" CPP="$GPP" CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                         ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
@@ -650,7 +651,11 @@ function build {
             # Custom build for ICU support
             tar_wrapper zxvf DBD-SQLite-1.34_01.tar.gz
             cd DBD-SQLite-1.34_01
-            patch -p0 < ../DBD-SQLite-ICU.patch
+            if [[ "$OS" = 'FreeBSD' && "$BSD_MAJOR_VER" -ge 11 && "$CC_TYPE" =~ "clang" ]]; then
+                patch -p0 < ../DBD-SQLite-ICU-clang.patch
+            else
+                patch -p0 < ../DBD-SQLite-ICU.patch
+            fi
             cp -Rv ../hints .
             
             if [ $PERL_58 ]; then
