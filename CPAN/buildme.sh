@@ -368,9 +368,6 @@ if [ "$PERL_BIN" = "" ]; then
     "5.24")
 	PERL_524=$PERL_BIN
         ;;
-    "5.26")
-        PERL_526=$PERL_BIN
-        ;;
     *)
         echo "Failed to find supported Perl version for '$PERL_BIN'"
         exit
