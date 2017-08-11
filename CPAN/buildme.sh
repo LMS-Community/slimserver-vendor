@@ -300,11 +300,8 @@ if [ -x "/usr/bin/perl5.26.0" ]; then
 fi
 
 if [ $PERL_526 ]; then
-    echo "Building with Perl 5.26 at $PERL_526"
     PERL_BIN=$PERL_526
-    # Install dir for 5.26
-    PERL_BASE=$BUILD/5.26
-    PERL_ARCH=$BUILD/arch/5.26
+    PERL_MINOR_VER=26
 fi
 
 # try to use default perl version
