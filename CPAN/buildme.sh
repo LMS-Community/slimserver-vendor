@@ -132,7 +132,7 @@ echo "Looks like your compiler is $GCC"
 $GCC --version
 
 CC_TYPE=`$GCC --version`
-PERL_CC=`perl -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
+PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
 
 if [[ "$PERL_CC" != "$GCC" ]]; then
     echo "********************************************** WARNING *************************************"
