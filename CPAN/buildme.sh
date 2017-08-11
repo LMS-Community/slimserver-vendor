@@ -131,17 +131,19 @@ done
 echo "Looks like your compiler is $GCC"
 $GCC --version
 
+CC_TYPE=`$GCC --version`
 PERL_CC=`perl -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
 
 if [[ "$PERL_CC" != "$GCC" ]]; then
     echo "********************************************** WARNING *************************************"
     echo "*                                                                                          *"
-    echo "*    Perl was compiled with $PERL_CC, which is different than $GCC."
+    echo "*    Perl was compiled with $PERL_CC,"
+    echo "*    which is different than $GCC."
     echo "*    This will likely cause significant problems.                                          *"
     echo "*                                                                                          *"
-    echo "* Press CTRL^C to stop the build now...                                                                                         *"
+    echo "* Press CTRL^C to stop the build now...                                                    *"
     echo "********************************************************************************************"
-    sleep 5
+    sleep 3
 fi
 
 which yasm > /dev/null
