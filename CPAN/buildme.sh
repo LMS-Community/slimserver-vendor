@@ -298,7 +298,7 @@ fi
 if [ "$PERL_BIN" = "" ]; then
     PERL_BIN=`which perl`
     PERL_VERSION=`perl -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
-    if [ "$PERL_VERSION" =~ "5." ]; then
+    if [[ "$PERL_VERSION" =~ "5." ]]; then
         PERL_MINOR_VER=`echo "$PERL_VERSION" | sed 's/.*\.//g'`
     else
         echo "Failed to find supported Perl version for '$PERL_BIN'"
