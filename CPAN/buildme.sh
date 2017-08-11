@@ -194,13 +194,9 @@ elif [ -x "/usr/local/bin/perl5.8.9" ]; then # FreeBSD 7.2
 fi
 
 if [ $PERL_58 ]; then
-    echo "Building with Perl 5.8.x at $PERL_58"
     PERL_BIN=$PERL_58
-    # Install dir for 5.8
-    PERL_BASE=$BUILD/5.8
-    PERL_ARCH=$BUILD/arch/5.8
+    PERL_MINOR_VER=8
 fi
-
 
 # Path to Perl 5.10.0
 if [ -x "/usr/bin/perl5.10.0" ]; then
@@ -212,11 +208,8 @@ elif [ -x "/usr/local/bin/perl5.10.1" ]; then # FreeBSD 8.2
 fi
 
 if [ $PERL_510 ]; then
-    echo "Building with Perl 5.10 at $PERL_510"
     PERL_BIN=$PERL_510
-    # Install dir for 5.10
-    PERL_BASE=$BUILD/5.10
-    PERL_ARCH=$BUILD/arch/5.10
+    PERL_MINOR_VER=10
 fi
 
 # Path to Perl 5.12
@@ -236,11 +229,8 @@ elif [ -x "/usr/bin/perl5.12" ]; then
 fi
 
 if [ $PERL_512 ]; then
-    echo "Building with Perl 5.12 at $PERL_512"
     PERL_BIN=$PERL_512
-    # Install dir for 5.12
-    PERL_BASE=$BUILD/5.12
-    PERL_ARCH=$BUILD/arch/5.12
+    PERL_MINOR_VER=12
 fi
 
 # Path to Perl 5.14.1
@@ -249,11 +239,8 @@ if [ -x "$HOME/perl5/perlbrew/perls/perl-5.14.1/bin/perl5.14.1" ]; then
 fi
 
 if [ $PERL_514 ]; then
-    echo "Building with Perl 5.14 at $PERL_514"
     PERL_BIN=$PERL_514
-    # Install dir for 5.14
-    PERL_BASE=$BUILD/5.14
-    PERL_ARCH=$BUILD/arch/5.14
+    PERL_MINOR_VER=14
 fi
 
 # Path to Perl 5.16
@@ -266,11 +253,8 @@ elif [ -x "/usr/bin/perl5.16.3" ]; then
 fi
 
 if [ $PERL_516 ]; then
-    echo "Building with Perl 5.16 at $PERL_516"
     PERL_BIN=$PERL_516
-    # Install dir for 5.16
-    PERL_BASE=$BUILD/5.16
-    PERL_ARCH=$BUILD/arch/5.16
+    PERL_MINOR_VER=16
 fi
 
 # Path to Perl 5.18
@@ -280,20 +264,14 @@ fi
 
 # defined on the command line - no detection yet
 if [ $PERL_518 ]; then
-    echo "Building with Perl 5.18 at $PERL_518"
     PERL_BIN=$PERL_518
-    # Install dir for 5.18
-    PERL_BASE=$BUILD/5.18
-    PERL_ARCH=$BUILD/arch/5.18
+    PERL_MINOR_VER=18
 fi
 
 # defined on the command line - no detection yet
 if [ $PERL_520 ]; then
-    echo "Building with Perl 5.20 at $PERL_520"
     PERL_BIN=$PERL_520
-    # Install dir for 5.20
-    PERL_BASE=$BUILD/5.20
-    PERL_ARCH=$BUILD/arch/5.20
+    PERL_MINOR_VER=20
 fi
 
 # Path to Perl 5.22
@@ -302,11 +280,8 @@ if [ -x "/usr/bin/perl5.22.1" ]; then
 fi
 
 if [ $PERL_522 ]; then
-    echo "Building with Perl 5.22 at $PERL_522"
     PERL_BIN=$PERL_522
-    # Install dir for 5.22
-    PERL_BASE=$BUILD/5.22
-    PERL_ARCH=$BUILD/arch/5.22
+    PERL_MINOR_VER=22
 fi
 
 # Path to Perl 5.24
@@ -315,56 +290,27 @@ if [ -x "/usr/bin/perl5.24.1" ]; then
 fi
    
 if [ $PERL_524 ]; then
-    echo "Building with Perl 5.24 at $PERL_524"
     PERL_BIN=$PERL_524
-    # Install dir for 5.24
-    PERL_BASE=$BUILD/5.24
-    PERL_ARCH=$BUILD/arch/5.24
+    PERL_MINOR_VER=24
 fi
 
 # try to use default perl version
 if [ "$PERL_BIN" = "" ]; then
     PERL_BIN=`which perl`
     PERL_VERSION=`perl -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
-    
-    case "$PERL_VERSION" in
-    "5.8")
-        PERL_58=$PERL_BIN
-        ;;
-    "5.10")
-        PERL_510=$PERL_BIN
-        ;;
-    "5.12")
-        PERL_512=$PERL_BIN
-        ;;
-    "5.14")
-        PERL_514=$PERL_BIN
-        ;;
-    "5.16")
-        PERL_516=$PERL_BIN
-        ;;
-    "5.18")
-        PERL_518=$PERL_BIN
-        ;;
-    "5.20")
-        PERL_520=$PERL_BIN
-        ;;
-    "5.22")
-        PERL_522=$PERL_BIN
-        ;;
-    "5.24")
-	PERL_524=$PERL_BIN
-        ;;
-    *)
+    if [ "$PERL_VERSION" =~ "5." ]; then
+        PERL_MINOR_VER=`echo "$PERL_VERSION" | sed 's/.*\.//g'`
+    else
         echo "Failed to find supported Perl version for '$PERL_BIN'"
         exit
-        ;;
-    esac
+    fi
 
-    echo "Building with Perl $PERL_VERSION at $PERL_BIN"
-    PERL_BASE=$BUILD/$PERL_VERSION
-    PERL_ARCH=$BUILD/arch/$PERL_VERSION
 fi
+
+echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
+PERL_BASE=$BUILD/5.$PERL_MINOR_VER
+PERL_ARCH=$BUILD/arch/5.$PERL_MINOR_VER
+
 
 # FreeBSD's make sucks
 if [ "$OS" = "FreeBSD" ]; then
@@ -489,14 +435,14 @@ function build_all {
 function build {
     case "$1" in
         Class::C3::XS)
-            if [ $PERL_58 ]; then
+            if [ $PERL_MINOR_VER -eq 8 ]; then
                 tar_wrapper zxvf Class-C3-XS-0.11.tar.gz
                 cd Class-C3-XS-0.11
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
                 cp -Rv ../hints .
                 export PERL5LIB=$PERL_BASE/lib/perl5
 
-                $PERL_58 Makefile.PL INSTALL_BASE=$PERL_BASE $2
+                $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
                 if [ $RUN_TESTS -eq 1 ]; then
                     make test
                 else
@@ -520,7 +466,7 @@ function build {
             ;;
         
         Class::XSAccessor)
-            if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module Class-XSAccessor-1.18
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/Class $PERL_ARCH/
             else
@@ -529,14 +475,14 @@ function build {
             ;;
         
         Compress::Raw::Zlib)
-            if [ "$PERL_58" -o "$PERL_510" ]; then
+            if [ $PERL_MINOR_VER -eq 8 -o $PERL_MINOR_VER -eq 10 ]; then
 	            build_module Compress-Raw-Zlib-2.033
                     cp -pR $PERL_BASE/lib/perl5/$ARCH/Compress $PERL_ARCH/
             fi
             ;;
         
         DBI)
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
                 cp -p $PERL_BASE/lib/perl5/$ARCH/DBI.pm $PERL_ARCH/
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/DBI $PERL_ARCH/
@@ -546,7 +492,7 @@ function build {
             ;;
         
         DBD::SQLite)
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628 "" 0
             else
                 build_module DBI-1.616 "" 0
@@ -607,15 +553,15 @@ function build {
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -Rv ../hints .
             
-            if [ $PERL_58 ]; then
+            if [ $PERL_MINOR_VER -eq 8 ]; then
                 # Running 5.8
                 export PERL5LIB=$PERL_BASE/lib/perl5
 
-                $PERL_58 Makefile.PL INSTALL_BASE=$PERL_BASE $2
+                $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
 
                 if [ "$OS" = 'Darwin' ]; then
                     # OSX does not seem to properly find -lstdc++, so we need to hack the Makefile to add it
-                    $PERL_58 -p -i -e "s{^LDLOADLIBS =.+}{LDLOADLIBS = -L$PWD/../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++}" Makefile
+                    $PERL_BIN -p -i -e "s{^LDLOADLIBS =.+}{LDLOADLIBS = -L$PWD/../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++}" Makefile
                 fi
 
                 $MAKE test
@@ -632,10 +578,11 @@ function build {
                 rm -rf DBD-SQLite-1.34_01
             else
                 cd ..
-                if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+                if [ $PERL_MINOR_VER -ge 16 ]; then
                    build_module DBD-SQLite-1.34_01 "" 0
-                fi
-                build_module DBD-SQLite-1.34_01
+                else
+		   build_module DBD-SQLite-1.34_01
+		fi
             fi
             
             ;;
@@ -688,6 +635,13 @@ function build {
 
             tar_wrapper zxvf Image-Scale-0.11.tar.gz
             cd Image-Scale-0.11
+
+            if [[ "$OS" = "FreeBSD" && "$PERL_MINOR_VER" -ge 22 ]]; then
+                TEMP_ARCH=` $PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
+                mkdir -p $PERL_ARCH/$TEMP_ARCH
+                cp -Rv lib/Image $PERL_ARCH/$TEMP_ARCH/
+            fi
+
             cp -Rv ../hints .
             cd ..
             
@@ -714,7 +668,7 @@ function build {
         JSON::XS)
             build_module common-sense-2.0
             
-            if [ "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module JSON-XS-2.34
                 cp -pR $PERL_BASE/lib/perl5/$ARCH/JSON $PERL_ARCH/
             else
@@ -744,7 +698,7 @@ function build {
             ;;
         
         YAML::LibYAML)
-            if [ "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+            if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
                 build_module YAML-LibYAML-0.35
@@ -1403,7 +1357,7 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
-if [ "$PERL_512" -o "$PERL_514" -o "$PERL_516" -o "$PERL_518" -o "$PERL_520" -o "$PERL_522" -o "$PERL_524" ]; then
+if [ $PERL_MINOR_VER -ge 12 ]; then
     # Check for Perl using use64bitint and add -64int
     ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 fi
