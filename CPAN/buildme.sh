@@ -92,13 +92,59 @@ else
     exit
 fi
 
-for i in gcc cpp rsync make rsync ; do
+GCC=gcc
+if [ "$OS" = "FreeBSD" ]; then
+    BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
+    BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
+    if [ $BSD_MAJOR_VER -ge 11 ]; then
+        if [ -f "/etc/make.conf" ]; then
+           MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
+           MAKE_CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
+           MAKE_CPP=`grep CPP /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
+        fi
+        if [[ ! -z "$MAKE_CC" ]]; then
+            GCC="$MAKE_CC"
+        else
+            GCC=cc
+        fi
+        if [[ ! -z "$MAKE_CXX" ]]; then
+            GXX="$MAKE_CXX"
+        else
+            GXX=c++
+        fi
+        if [[ ! -z "$MAKE_CPP" ]]; then
+            GPP="$MAKE_CPP"
+        else
+            GPP=cpp
+        fi
+    fi
+fi
+
+for i in $GCC cpp rsync make rsync ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
         exit 1
     fi
 done
+
+echo "Looks like your compiler is $GCC"
+$GCC --version
+
+CC_TYPE=`$GCC --version`
+PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',\ ccflags.*##g"`
+
+if [[ "$PERL_CC" != "$GCC" ]]; then
+    echo "********************************************** WARNING *************************************"
+    echo "*                                                                                          *"
+    echo "*    Perl was compiled with $PERL_CC,"
+    echo "*    which is different than $GCC."
+    echo "*    This will likely cause significant problems.                                          *"
+    echo "*                                                                                          *"
+    echo "* Press CTRL^C to stop the build now...                                                    *"
+    echo "********************************************************************************************"
+    sleep 3
+fi
 
 which yasm > /dev/null
 if [ $? -ne 0 ] ; then
@@ -555,7 +601,7 @@ function build {
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
             if [ ! -f build/lib/libicudata_s.a ]; then
-                tar_wrapper zxvf icu4c-4_6-src.tgz
+                tar_wrapper zxvf icu4c-59_1-src.tgz
                 cd icu/source
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
@@ -567,8 +613,15 @@ function build {
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
                 fi
-                CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
-                    ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+
+                if [[ "$OS" = 'FreeBSD' ]]; then
+                # This is necessary to make the ICU build script respect our /etc/make.conf specified compiler options
+                    CC="$GCC" CXX="$GXX" CPP="$GPP" CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                        ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+                else
+                    CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                        ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
+                fi
                 $MAKE
                 if [ $? != 0 ]; then
                     echo "make failed"
@@ -581,12 +634,6 @@ function build {
 
                 # Symlink static versions of libraries
                 cd build/lib
-                if [ "$OS" = 'FreeBSD' ]; then
-                    # FreeBSD has different library names (?)
-                    ln -sf libsicudata.a libicudata.a
-                    ln -sf libsicui18n.a libicui18n.a
-                    ln -sf libsicuuc.a libicuuc.a
-                fi
             
                 ln -sf libicudata.a libicudata_s.a
                 ln -sf libicui18n.a libicui18n_s.a
@@ -595,16 +642,20 @@ function build {
             fi
             
             # Point to data directory for test suite
-            export ICU_DATA=$BUILD/share/icu/4.6
+            export ICU_DATA=$BUILD/share/icu/59.1
             
             # Replace huge data file with smaller one containing only our collations
-            rm -f $BUILD/share/icu/4.6/icudt46*.dat
-            cp -v icudt46*.dat $BUILD/share/icu/4.6
+            rm -f $BUILD/share/icu/59.1/icudt59*.dat
+            cp -v icudt59*.dat $BUILD/share/icu/59.1
             
             # Custom build for ICU support
             tar_wrapper zxvf DBD-SQLite-1.34_01.tar.gz
             cd DBD-SQLite-1.34_01
-            patch -p0 < ../DBD-SQLite-ICU.patch
+            if [[ "$OS" = 'FreeBSD' && "$BSD_MAJOR_VER" -ge 11 && "$CC_TYPE" =~ "clang" ]]; then
+                patch -p0 < ../DBD-SQLite-ICU-clang.patch
+            else
+                patch -p0 < ../DBD-SQLite-ICU.patch
+            fi
             cp -Rv ../hints .
             
             if [ $PERL_58 ]; then
