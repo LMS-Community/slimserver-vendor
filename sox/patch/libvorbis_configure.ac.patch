@@ -1,0 +1,15 @@
+--- configure.ac.old	2009-07-09 10:02:25.000000000 +0000
++++ configure.ac	2017-07-26 03:44:40.306495000 +0000
+@@ -186,9 +186,9 @@
+ 		CFLAGS="-O20 -Wall -W -ffast-math -D_REENTRANT -fsigned-char"
+ 		PROFILE="-pg -g -O20 -ffast-math -D_REENTRANT -fsigned-char";;
+  	*)
+-		DEBUG="-g -Wall -Wextra -D__NO_MATH_INLINES -fsigned-char"
+-		CFLAGS="-O20 -Wall -Wextra -D__NO_MATH_INLINES -fsigned-char"
+-		PROFILE="-O20 -g -pg -D__NO_MATH_INLINES -fsigned-char" ;;
++		DEBUG="-g -fPIC -Wall -Wextra -D__NO_MATH_INLINES -fsigned-char"
++		CFLAGS="-O3 -fPIC -Wall -Wextra -D__NO_MATH_INLINES -fsigned-char"
++		PROFILE="-O3 -fPIC -g -pg -D__NO_MATH_INLINES -fsigned-char" ;;
+         esac
+ 
+         AC_ADD_CFLAGS([-Wdeclaration-after-statement])
