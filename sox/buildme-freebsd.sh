@@ -12,8 +12,8 @@ ARCH=`uname -m`
 OUTPUT=$PWD/sox-build-$ARCH-$CHANGENO
 
 if [ -z ${CC} ] && [ -f "/etc/make.conf" ]; then
-    CC=`grep CC /etc/make.conf | grep -v CCACHE | sed 's#CC=##g'`
-    CXX=`grep CXX /etc/make.conf | grep -v CCACHE | sed 's#CXX=##g'`
+    CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
+    CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
 fi
 
 if [ -z $CC ]; then
