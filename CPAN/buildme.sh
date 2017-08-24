@@ -92,13 +92,62 @@ else
     exit
 fi
 
-for i in gcc cpp rsync make rsync ; do
+GCC=gcc
+if [ "$OS" = "FreeBSD" ]; then
+    BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
+    BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
+        if [ -f "/etc/make.conf" ]; then
+           MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
+           MAKE_CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
+           MAKE_CPP=`grep CPP /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
+        fi
+        if [[ ! -z "$MAKE_CC" ]]; then
+            GCC="$MAKE_CC"
+        elif [ $BSD_MAJOR_VER -ge 10 ]; then
+            GCC=cc
+        else
+            GCC=gcc
+        fi
+        if [[ ! -z "$MAKE_CXX" ]]; then
+            GXX="$MAKE_CXX"
+        elif [ $BSD_MAJOR_VER -ge 10 ]; then
+            GXX=c++
+        else
+            GCC=g++
+        fi
+        if [[ ! -z "$MAKE_CPP" ]]; then
+            GPP="$MAKE_CPP"
+        else
+            GPP=cpp
+        fi
+    fi
+fi
+
+for i in $GCC cpp rsync make rsync ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
         exit 1
     fi
 done
+
+echo "Looks like your compiler is $GCC"
+$GCC --version
+
+CC_TYPE=`$GCC --version`
+PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',.*##g"`
+
+if [[ "$PERL_CC" != "$GCC" ]]; then
+    echo "********************************************** WARNING *************************************"
+    echo "*                                                                                          *"
+    echo "*    Perl was compiled with $PERL_CC,"
+    echo "*    which is different than $GCC."
+    echo "*    This will likely cause significant problems.                                          *"
+    echo "*                                                                                          *"
+    echo "* Press CTRL^C to stop the build now...                                                    *"
+    echo "********************************************************************************************"
+    sleep 3
+fi
 
 which yasm > /dev/null
 if [ $? -ne 0 ] ; then
@@ -566,6 +615,9 @@ function build {
                 elif [ "$OS" = 'FreeBSD' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
+                    if [[ $BSD_MAJOR_VER -ge 11 ]]; then
+                        patch -p0 < ../../runConfigureICU.patch
+                    fi
                 fi
                 CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
@@ -973,10 +1025,17 @@ function build_libexif {
     tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ ! -z "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC"     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1097,9 +1156,14 @@ function build_libjpeg {
         
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-        
-        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
-            ./configure --prefix=$BUILD --disable-dependency-tracking
+
+        if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+            CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                ./configure --prefix=$BUILD --disable-dependency-tracking
+        else
+            CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
+                ./configure --prefix=$BUILD --disable-dependency-tracking
+        fi
         make
         if [ $? != 0 ]; then
             echo "make failed"
@@ -1147,10 +1211,17 @@ function build_libpng {
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
     
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     make && make check
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1170,10 +1241,17 @@ function build_giflib {
     # build giflib
     tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-        ./configure --prefix=$BUILD \
-        --disable-dependency-tracking
+    if [ -n "$BSD_MAJOR_VER" -a "$BSD_MAJOR_VER" -ge 11 ]; then
+        CC="$GCC" CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    else
+        CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+        LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+            ./configure --prefix=$BUILD \
+            --disable-dependency-tracking
+    fi
     make
     if [ $? != 0 ]; then
         echo "make failed"
@@ -1238,6 +1316,11 @@ function build_ffmpeg {
     # FreeBSD amd64 needs arch option
     if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
         FFOPTS="$FFOPTS --arch=x86"
+    fi
+
+    # FreeBSD amd64 needs compiler we specified (or not)
+    if [ "$OS" = "FreeBSD" ]; then
+        FFOPTS="$FFOPTS --cc=$GCC"
     fi
     
     if [ "$OS" = "Darwin" ]; then

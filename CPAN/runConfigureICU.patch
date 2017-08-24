@@ -1,0 +1,37 @@
+--- runConfigureICU.orig	2010-08-30 19:24:42.000000000 +0000
++++ runConfigureICU	2017-08-11 00:48:45.286653000 +0000
+@@ -278,11 +278,31 @@
+         ;;
+     *BSD)
+         THE_OS="BSD"
+-        THE_COMP="the GNU C++"
+-        CC=gcc; export CC
+-        CXX=g++; export CXX
++        THE_COMP="the Clang++"
++        if [ -f "/etc/make.conf" ]; then
++           MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
++           MAKE_CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
++           MAKE_CPP=`grep CPP /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
++        fi
++        if [[ ! -z "$MAKE_CC" ]]; then
++            CC="$MAKE_CC"; export CC
++        else
++            CC=cc; export CC
++        fi
++        if [[ ! -z "$MAKE_CXX" ]]; then
++            CXX="$MAKE_CXX"; export CXX
++        else
++            CXX=c++; export CXX
++        fi
++        if [[ ! -z "$MAKE_CPP" ]]; then
++            CPP="$MAKE_CPP"; export CPP
++        else
++            CPP=cpp; export CPP
++        fi
+         DEBUG_CFLAGS='-g -O0'
+         DEBUG_CXFLAGS='-g -O0'
++        RELEASE_CFLAGS=-O3
++        RELEASE_CXXFLAGS=-O3
+         ;;
+     TRU64V5.1/CXX)
+         THE_OS="OSF1"
