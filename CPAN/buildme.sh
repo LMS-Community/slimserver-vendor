@@ -96,7 +96,6 @@ GCC=gcc
 if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
-    if [ $BSD_MAJOR_VER -ge 11 ]; then
         if [ -f "/etc/make.conf" ]; then
            MAKE_CC=`grep CC /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CC=##g'`
            MAKE_CXX=`grep CXX /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
@@ -104,13 +103,17 @@ if [ "$OS" = "FreeBSD" ]; then
         fi
         if [[ ! -z "$MAKE_CC" ]]; then
             GCC="$MAKE_CC"
-        else
+        elif [ $BSD_MAJOR_VER -ge 10 ]; then
             GCC=cc
+        else
+            GCC=gcc
         fi
         if [[ ! -z "$MAKE_CXX" ]]; then
             GXX="$MAKE_CXX"
-        else
+        elif [ $BSD_MAJOR_VER -ge 10 ]; then
             GXX=c++
+        else
+            GCC=g++
         fi
         if [[ ! -z "$MAKE_CPP" ]]; then
             GPP="$MAKE_CPP"
