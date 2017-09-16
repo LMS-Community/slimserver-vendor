@@ -1,12 +1,12 @@
-#Build LogitechMediaServer CPAN Modules
+# Build LogitechMediaServer CPAN Modules
 
 
-##Debian 9 (perl-5.24, arm)
+## Debian 9 (perl-5.24, arm)
 
 ```bash
 dpkg -i logitechmediaserver_7.9.0~1484464959_arm.deb
 
-apt-get install libgd-dev rsync yasm libmodule-install-perl
+apt-get install build-essential libgd-dev rsync yasm libmodule-install-perl
 
 cd slimserver-vendor/CPAN
 MAKEFLAGS=-j4 ./buildme.sh
