@@ -1,0 +1,82 @@
+Author: Matthew Kempe
+Date: 19 Aug 2017
+
+This is a brief explanation of the Logitech Media Server's custom ICU collation
+file and its creation. This file will become most useful once everyone's compiler
+and system support c++11. Until then, 58 is the pinnacle.
+
+At the time of this writing, the following files are in this directory:
+
+46_small_icu_coll.txt - The legacy LMS custom ICU 4.6 .dat file contents
+58_excess_icu_coll.txt - The unecessary contents within the stock ICU 58.2 .dat.
+58_full_icu_coll.txt - The stock ICU 58.2 .dat file contents.
+58_small_icu_coll.txt - The LMS custom ICU 58.2 .dat file contents
+icudt46l.dat - The legacy LMS custom ICU 4.6 .dat file (little endian)
+icudt58l.dat - The stock ICU 58.2 .dat file (little endian)
+small_icudt58l.dat - The LMS custom ICU 58.2 .dat file (little endian)
+
+The LMS custom collation only retains the collation files for the following:
+cs, da, de, en, es, fi, fr, he, it, ja, nb, nl, pl, pt, ru, sv, zh
+
+In ICU 4.6, this required two files for each language:
+coll/cs.res
+coll/cs_CZ.res
+
+In addition, there were several mandated, common file contents. Following v4.8,
+ICU shifted to a different numbering scheme, so the next release was v49. Each
+collation file is unique to its release, and the ICU binaries and libraries search
+for the .dat file based on the two digit number. This allows multiple .dat files to 
+coexist in the same directory without conflict.
+
+Starting with v53, ICU shifted to a new .dat file structure, wherein basic formatting,
+display names and other localized data are separated from the collations. This meant
+that for each language in iCU v53+, now three files are required:
+cs.res
+cs_CZ.res
+coll/cs.res
+
+As long as this structure remains in place, the "58_small_icu_coll.txt" listing can
+serve as the template list of collations moving foward. The current file contents were
+built by hand and through trial and error.
+
+METHOD A (web):
+The ICU project has a data library customizer on the web, found here: 
+http://apps.icu-project.org/datacustom/
+
+Selecting the minimum languages will yield the necessary little endian file. A big 
+endian version will need to be created (see step 5 under Method B). Both .dat files
+need to placed in the CPAN directory prior to building.
+
+METHOD B (local): 
+In order to build the next generation of LMS custom ICU collation, a working icupkg needs
+to be on the system. This can either be built from source, or (preferred) installed from 
+the OS's rpm/pkg manager. 
+
+(ROUGH) HOWTO:
+1. The first step is to extract the full file listing from the stock collation file. This
+file is located within the icu4c-{ver}-src.tgz, at: icu/source/data/in
+
+    icupkg -l icudt58l.dat > 58_full_icu_coll.txt
+
+2. Now we need to make the list of files to be deleted from the stock .dat
+
+    grep -v -x -f 58_small_icu_coll.txt 58_full_icu_coll.txt > 58_excess_icu_coll.txt
+
+3. Next we cut out all the excess files from the stock .dat to create ours
+
+    icupkg -r 58_excess_icu_coll.txt icudt58l.dat small_icudt58l.dat
+
+This example uses the output filename of "small_icudt58l.dat" for process clarity. The 
+ICU dat files cannot be renamed using "mv" or "cp". In order to get our custom file 
+ready for prime time, these are the steps:
+
+4. Rename the LMS custom .dat file, and relocate it at the same time
+
+   icupkg small_icudt58l.dat ../icudt58l.dat
+
+5. Create a big endian version
+
+   cd ..
+   icupkg -tb icudt58l.dat icudt58b.dat
+
+Thus endeth the lesson. 
