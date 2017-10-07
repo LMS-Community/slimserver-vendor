@@ -183,9 +183,9 @@ if [[ "$CC_IS_CLANG" == true && "$CC_VERSION" -lt 40200 ]]; then
     exit 1
 fi
 
-if [[ ! -z `echo "#include <iostream>" | "$GCC" -xc++ -dM -E - | grep LIBCPP_VERSION` ]]; then
+if [[ ! -z `echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep LIBCPP_VERSION` ]]; then
     GCC_LIBCPP=true
-elif [[ ! -z `echo "#include <iostream>" | "$GCC" -xc++ -dM -E - | grep __GLIBCXX__` ]]; then
+elif [[ ! -z `echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep __GLIBCXX__` ]]; then
     GCC_LIBCPP=false
 else
     echo "********************************************** NOTICE **************************************"
@@ -197,7 +197,7 @@ else
     GCC_LIBCPP=false
 fi
 
-PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\',.*##g"`
+PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\'.*##g"`
 
 if [[ "$PERL_CC" != "$GCC" ]]; then
     echo "********************************************** WARNING *************************************"
