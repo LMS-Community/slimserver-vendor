@@ -144,12 +144,16 @@ CC_TYPE=`$GCC --version | head -1`
 # Determine compiler type and version
 CC_IS_CLANG=false
 CC_IS_GCC=false
-CC_VERSION=`$GCC -dumpversion | sed "s#\ *)\ *##g" | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'`
 # This uses bash globbing for the If statement
 if [[ "$CC_TYPE" =~ "clang" ]]; then
+    CLANG_MAJOR=`echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep '#define __clang_major' | sed 's/.*__\ //g'`
+    CLANG_MINOR=`echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep '#define __clang_minor' | sed 's/.*__\ //g'`
+    CLANG_PATCH=`echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep '#define __clang_patchlevel' | sed 's/.*__\ //g'`
+    CC_VERSION=`echo "$CLANG_MAJOR"."$CLANG_MINOR"."$CLANG_PATCH" | sed "s#\ *)\ *##g" | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'`
     CC_IS_CLANG=true
 elif [[ "$CC_TYPE" =~ "gcc" || "$CC_TYPE" =~ "GCC" ]]; then
     CC_IS_GCC=true
+    CC_VERSION=`$GCC -dumpversion | sed "s#\ *)\ *##g" | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'`
 else
     echo "********************************************** ERROR ***************************************"
     echo "*"
@@ -171,8 +175,7 @@ if [[ "$CC_IS_GCC" == true && "$CC_VERSION" -lt 40200 ]]; then
     exit 1
 fi
 
-# Clang 3.0 pretends to be GCC 4.2.1
-if [[ "$CC_IS_CLANG" == true && "$CC_VERSION" -lt 40200 ]]; then
+if [[ "$CC_IS_CLANG" == true && "$CC_VERSION" -lt 30000 ]]; then
     echo "********************************************** ERROR ****************************************"
     echo "*"
     echo "*    It looks like you're using clang earlier than 3.0,"
