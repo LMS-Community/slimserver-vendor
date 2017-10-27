@@ -38,6 +38,13 @@ mkdir $BUILD
 # Build wavpack
 tar jxvf wavpack-4.50.1.tar.bz2
 cd wavpack-4.50.1
+if [ "$ARCH"=="aarch64" ]
+then
+    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
+    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
+    cp -vf /tmp/config.guess.$$ ./config.guess
+    cp -vf /tmp/config.sub.$$ ./config.sub
+fi
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
