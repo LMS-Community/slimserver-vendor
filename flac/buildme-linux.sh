@@ -19,13 +19,7 @@ date > $LOG
 echo "Untarring libogg-$OGG.tar.gz..."
 tar -zxf libogg-$OGG.tar.gz
 cd libogg-$OGG
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --disable-shared >> $LOG
 echo "Running make..."
@@ -36,12 +30,7 @@ cd ..
 echo "Untarring..."
 tar zxvf flac-$FLAC.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
-if [ "$ARCH"=="aarch64" ]; then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 patch -p0 < ../sc.patch >> $LOG
 patch -p0 < ../triode-ignore-wav-length.patch >> $LOG
 patch -p0 < ../steven-allow-bad-ssnd-chunk-size.patch >> $LOG

@@ -354,14 +354,6 @@ function tar_wrapper {
     echo "tar done"
 }
 
-function refresh_config {
-    if [ "`uname -m`" == "aarch64" -a "$OS" == "Linux"  ]; then
-        [ -f /tmp/config.guess.$$ ] || wget -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-        [ -f /tmp/config.sub.$$ ] || wget -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
-        cp -vf /tmp/config.guess.$$ ./config.guess
-        cp -vf /tmp/config.sub.$$ ./config.sub
-    fi
-}
 
 # $1 = module to build
 # $2 = Makefile.PL arg(s)
@@ -522,7 +514,7 @@ function build {
             if [ ! -f build/lib/libicudata_s.a ]; then
                 tar_wrapper zxvf icu4c-4_6-src.tgz
                 cd icu/source
-                refresh_config
+                . ../../update-config.sh
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
                     ICUOS="MacOSX"
@@ -757,7 +749,7 @@ function build {
             # Build libmysqlclient
             tar_wrapper jxvf mysql-5.1.37.tar.bz2
             cd mysql-5.1.37
-            refresh_config
+            . ../update-config.sh
             CC=gcc CXX=gcc \
             CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS $OSX_ARCH $OSX_FLAGS" \
             CXXFLAGS="-O3 -fno-omit-frame-pointer -felide-constructors -fno-exceptions -fno-rtti $FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -790,7 +782,7 @@ function build {
             # build expat
             tar_wrapper zxvf expat-2.0.1.tar.gz
             cd expat-2.0.1/conftools
-            refresh_config
+            . ../../update-config.sh
             cd ..
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -827,7 +819,7 @@ function build {
             # build freetype
             tar_wrapper zxvf freetype-2.4.2.tar.gz
             cd freetype-2.4.2
-            refresh_config
+            . ../update-config.sh
             
             # Disable features we don't need for CODE2000
             cp -fv ../freetype-ftoption.h objs/ftoption.h
@@ -894,7 +886,7 @@ function build {
 			if [ "$OS" = "FreeBSD" ]; then
             	patch -p1 < ../libmediascan-freebsd.patch
             fi
-            refresh_config
+            . ../update-config.sh
 
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -954,7 +946,7 @@ function build_libexif {
     # build libexif
     tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
-    refresh_config
+    . ../update-config.sh
     
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1096,7 +1088,7 @@ function build_libjpeg {
     else
         tar_wrapper zxvf jpegsrc.v8b.tar.gz
         cd jpeg-8b
-        refresh_config
+        . ../update-config.sh
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
         
@@ -1129,7 +1121,7 @@ function build_libpng {
     
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
-    refresh_config
+    . ../update-config.sh
     
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1154,7 +1146,7 @@ function build_giflib {
     # build giflib
     tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
-    refresh_config
+    . ../update-config.sh
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1180,7 +1172,7 @@ function build_ffmpeg {
     # build ffmpeg, enabling only the things libmediascan uses
     tar_wrapper jxvf ffmpeg-0.8.4.tar.bz2
     cd ffmpeg-0.8.4
-    refresh_config
+    . ../update-config.sh
     
     if [ "$MACHINE" = "padre" ]; then
         patch -p0 < ../ffmpeg-padre-configure.patch
@@ -1339,7 +1331,7 @@ function build_bdb {
     # build bdb
     tar_wrapper zxvf db-5.1.25.tar.gz
     cd db-5.1.25/dist
-    refresh_config
+    . ../../update-config.sh
     cd ../build_unix
     
     if [ "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then

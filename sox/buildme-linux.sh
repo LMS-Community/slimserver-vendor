@@ -45,13 +45,7 @@ cd ..
 echo "Untarring libvorbis-$VORBIS.tar.gz..."
 tar -zxf libvorbis-$VORBIS.tar.gz
 cd libvorbis-$VORBIS
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs --disable-shared >> $LOG
 echo "Running make"
@@ -62,13 +56,7 @@ cd ..
 echo "Untarring flac-$FLAC.tar.gz..."
 tar -zxf flac-$FLAC.tar.gz 
 cd flac-$FLAC
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-shared --disable-xmms-plugin --disable-cpplibs >> $LOG
 echo "Running make"
@@ -79,13 +67,7 @@ cd ..
 echo "Untarring libmad-$MAD.tar.gz..."
 tar -zxf libmad-$MAD.tar.gz
 cd libmad-$MAD
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 cp /usr/share/automake-1.15/config.guess .
 # Remove -fforce-mem line as it doesn't work with newer gcc
 sed -i 's/-fforce-mem//' configure
@@ -99,13 +81,7 @@ cd ..
 echo "Untarring wavpack-$WAVPACK.tar.bz2..."
 tar -jxf wavpack-$WAVPACK.tar.bz2
 cd wavpack-$WAVPACK
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --disable-shared >> $LOG
 echo "Running make"
@@ -119,13 +95,7 @@ cd ../..
 echo "Untarring sox-$SOX.tar.gz..."
 tar -zxf sox-$SOX.tar.gz >> $LOG
 cd sox-$SOX >> $LOG
-if [ "$ARCH"=="aarch64" ]
-then
-    [ -f /tmp/config.guess.$$ ] || wget -q -O /tmp/config.guess.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' 
-    [ -f /tmp/config.sub.$$ ] || wget -q -O /tmp/config.sub.$$ 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' 
-    cp -vf /tmp/config.guess.$$ ./config.guess
-    cp -vf /tmp/config.sub.$$ ./config.sub
-fi
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
 LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
