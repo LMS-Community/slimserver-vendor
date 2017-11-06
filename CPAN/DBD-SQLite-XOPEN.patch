@@ -1,0 +1,11 @@
+--- sqlite3.c.orig	Mi. Nov  1 21:02:52 2017
++++ sqlite3.c	Mi. Nov  1 21:05:54 2017
+@@ -425,7 +425,7 @@
+ ** See also ticket #2741.
+ */
+ #if !defined(_XOPEN_SOURCE) && !defined(__DARWIN__) && !defined(__APPLE__) && SQLITE_THREADSAFE
+-#  define _XOPEN_SOURCE 500  /* Needed to enable pthread recursive mutexes */
++#  define _XOPEN_SOURCE 600  /* Needed to enable pthread recursive mutexes */
+ #endif
+ 
+ /*
