@@ -49,20 +49,24 @@ FLAGS="-fPIC"
 function usage {
     cat <<EOF
 $0 [args] [target]
--h this help
--c do not run make clean
--p set custom perl binary
--t do not run tests
+-h            this help
+-c            do not run make clean
+-i <lmsbase>  install modulese in lmsbase directory
+-p <perlbin > set custom perl binary
+-t            do not run tests
 
 target: make target - if not specified all will be built
 
 EOF
 }
 
-while getopts hcp:t opt; do
+while getopts hci:p:t opt; do
   case $opt in
   c)
       CLEAN=0
+      ;;
+  i)
+      LMSBASEDIR=$OPTARG
       ;;
   p)
       CUSTOM_PERL=$OPTARG
@@ -452,9 +456,7 @@ function build_all {
     build Image::Scale
     build IO::AIO
     build IO::Interface
-    if [ "$OS" = "SunOS" ]; then
-        build IO::Socket::SSL
-    fi
+#   build IO::Socket::SSL
     build JSON::XS
     build Linux::Inotify2
     build Mac::FSEvents
@@ -1435,6 +1437,13 @@ if [ -n "${buildIOSocketSSL}"  ]; then
     rsync -amv --include='*/' --include='IDN' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/Net $PERL_ARCH/$ARCH/
     rsync -amv --include='*/' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/$ARCH/Net $PERL_ARCH/$ARCH/
     rsync -amv --include='*/' --include='*.al' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
+fi
+
+if [ $LMSBASEDIR ]; then
+    if [ ! -d $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH ]; then
+        mkdir -p $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH
+    fi
+    rsync -amv --include='*/' --include='*' $PERL_ARCH/$ARCH/ $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH/
 fi
 
 # could remove rest of build data, but let's leave it around in case
