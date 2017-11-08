@@ -19,6 +19,13 @@
 #   Under 10.10, builds for x86_64 Perl 5.18
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
+# Solaris 
+#   builds are best done with custom compiled perl and gcc
+#   using the following PATH=/opt/gcc-5.1.0/bin:/usr/gnu/bin:$PATH
+#   plus a path to a version of yasm and nasm
+#
+#   Tested versions (to be extended)
+#     OmniOSCE 151022 LTS (Perl 5.24.1)
 #
 # Perl 5.12.4/5.14.1 note:
 #   You should build 5.12.4 using perlbrew and the following command. GCC's stack protector must be disabled
@@ -42,19 +49,27 @@ FLAGS="-fPIC"
 function usage {
     cat <<EOF
 $0 [args] [target]
--h this help
--c do not run make clean
--t do not run tests
+-h            this help
+-c            do not run make clean
+-i <lmsbase>  install modules in lmsbase directory
+-p <perlbin > set custom perl binary
+-t            do not run tests
 
 target: make target - if not specified all will be built
 
 EOF
 }
 
-while getopts hct opt; do
+while getopts hci:p:t opt; do
   case $opt in
   c)
       CLEAN=0
+      ;;
+  i)
+      LMSBASEDIR=$OPTARG
+      ;;
+  p)
+      CUSTOM_PERL=$OPTARG
       ;;
   t)
       RUN_TESTS=0
@@ -85,14 +100,14 @@ if [ "$OS" = "FreeBSD" ]; then
 fi
 ARCH=`$ARCHPERL -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 
-if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then
+if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" -o "SunOS" ]; then
     echo "Building for $OS / $ARCH"
 else
     echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
     exit
 fi
 
-for i in gcc cpp rsync make rsync ; do
+for i in cpp gcc make rsync ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
@@ -288,7 +303,7 @@ fi
 if [ -x "/usr/bin/perl5.24.1" ]; then
     PERL_524=/usr/bin/perl5.24.1
 fi
-   
+
 if [ $PERL_524 ]; then
     PERL_BIN=$PERL_524
     PERL_MINOR_VER=24
@@ -305,9 +320,14 @@ if [ $PERL_526 ]; then
 fi
 
 # try to use default perl version
-if [ "$PERL_BIN" = "" ]; then
-    PERL_BIN=`which perl`
-    PERL_VERSION=`perl -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
+if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
+    if [ "$CUSTOM_PERL" = "" ]; then
+        PERL_BIN=`which perl`
+        PERL_VERSION=`perl -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
+    else
+        PERL_BIN=$CUSTOM_PERL
+        PERL_VERSION=`$CUSTOM_PERL -MConfig -le '$Config{version} =~ /(\d+.\d+)\./; print $1'`
+    fi
     if [[ "$PERL_VERSION" =~ "5." ]]; then
         PERL_MINOR_VER=`echo "$PERL_VERSION" | sed 's/.*\.//g'`
     else
@@ -330,6 +350,13 @@ if [ "$OS" = "FreeBSD" ]; then
     fi
     export GNUMAKE=/usr/local/bin/gmake
     export MAKE=/usr/local/bin/gmake
+elif [ "$OS" = "SunOS" ]; then
+    if [ ! -x /usr/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi 
+    export GNUMAKE=/usr/bin/gmake
+    export MAKE=/usr/bin/gmake
 else
     # Support a newer make if available, needed on ReadyNAS                                                                              
     if [ -x /usr/local/bin/make ]; then                                               
@@ -339,7 +366,7 @@ else
     fi
 fi
 
-# Clean up
+#  Clean up
 if [ $CLEAN -eq 1 ]; then
     rm -rf $BUILD/arch
 fi
@@ -391,9 +418,9 @@ function build_module {
         
         $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $makefile_args
         if [ $local_run_tests -eq 1 ]; then
-            make test
+            $GNUMAKE test
         else
-            make
+            $GNUMAKE
         fi
         if [ $? != 0 ]; then
             if [ $local_run_tests -eq 1 ]; then
@@ -403,10 +430,10 @@ function build_module {
             fi
             exit $?
         fi
-        make install
+        $GNUMAKE install
 
         if [ $local_clean -eq 1 ]; then
-            make clean
+            $GNUMAKE clean
         fi
     fi
 
@@ -430,6 +457,7 @@ function build_all {
     build Image::Scale
     build IO::AIO
     build IO::Interface
+#   build IO::Socket::SSL
     build JSON::XS
     build Linux::Inotify2
     build Mac::FSEvents
@@ -521,6 +549,9 @@ function build {
                 elif [ "$OS" = 'Linux' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="Linux"
+                elif [ "$OS" = 'SunOS' ]; then
+                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                    ICUOS="Solaris/GCC"
                 elif [ "$OS" = 'FreeBSD' ]; then
                     ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
                     ICUOS="FreeBSD"
@@ -562,6 +593,9 @@ function build {
             # Custom build for ICU support
             tar_wrapper zxvf DBD-SQLite-1.34_01.tar.gz
             cd DBD-SQLite-1.34_01
+            if [ "$OS" = 'SunOS' ]; then
+                patch -p0 < ../DBD-SQLite-XOPEN.patch
+            fi
             patch -p0 < ../DBD-SQLite-ICU.patch
             cp -Rv ../hints .
             
@@ -591,9 +625,9 @@ function build {
             else
                 cd ..
                 if [ $PERL_MINOR_VER -ge 16 ]; then
-                   build_module DBD-SQLite-1.34_01 "" 0
+                   build_module DBD-SQLite-1.34_01 0
                 else
-		   build_module DBD-SQLite-1.34_01
+		   build_module DBD-SQLite-1.34_01 
 		fi
             fi
             
@@ -676,7 +710,27 @@ function build {
         IO::Interface)
             build_module IO-Interface-1.06
             ;;
-        
+
+        IO::Socket::SSL)
+            buildIOSocketSSL=1
+            build_module Test-NoWarnings-1.02 "" 0
+            build_module Net-IDN-Encode-2.400
+
+            tar_wrapper zxvf Net-SSLeay-1.82.tar.gz
+            cd Net-SSLeay-1.82
+            patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
+            cd ..
+
+            build_module Net-SSLeay-1.82   
+
+            tar_wrapper zxvf IO-Socket-SSL-2.052.tar.gz
+            cd IO-Socket-SSL-2.052 
+            patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
+            cd ..
+
+            build_module IO-Socket-SSL-2.052 
+	    ;;
+ 
         JSON::XS)
             build_module common-sense-2.0
             
@@ -788,12 +842,12 @@ function build {
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
                 --disable-dependency-tracking
-            make
+            $GNUMAKE
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
-            make install
+            $GNUMAKE install
             cd ..
 
             # Symlink static versions of libraries to avoid OSX linker choosing dynamic versions
@@ -810,7 +864,7 @@ function build {
             
             cd ..
             
-            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include" 
             
             rm -rf expat-2.0.1
             ;;
@@ -883,8 +937,10 @@ function build {
 
             cd libmediascan-0.1
 
-			if [ "$OS" = "FreeBSD" ]; then
+            if [ "$OS" = "FreeBSD" ]; then
             	patch -p1 < ../libmediascan-freebsd.patch
+            elif [ "$OS" = "SunOS" ]; then
+                patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch 
             fi
             . ../update-config.sh
 
@@ -1065,7 +1121,7 @@ function build_libjpeg {
         mv -fv libjpeg.a $BUILD/lib/libjpeg.a
         rm -fv libjpeg-i386.a libjpeg-ppc.a
         
-    elif [ "$ARCH" = "i386-linux-thread-multi" -o "$ARCH" = "x86_64-linux-thread-multi" -o "$OS" = "FreeBSD" ]; then
+    elif [ "$ARCH" = "i386-linux-thread-multi" -o "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" -o "$OS" = "FreeBSD" ]; then
         # build libjpeg-turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
@@ -1210,7 +1266,7 @@ function build_ffmpeg {
     
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
-    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
+    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "i86pc-solaris-thread-multi-64int" ]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     # FreeBSD amd64 needs arch option
@@ -1389,6 +1445,19 @@ if [ $PERL_MINOR_VER -ge 12 ]; then
 fi
 mkdir -p $PERL_ARCH/$ARCH
 rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
+if [ -n "${buildIOSocketSSL}"  ]; then
+    rsync -amv --include='*/' --include='Socket/' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/IO $PERL_ARCH/$ARCH/
+    rsync -amv --include='*/' --include='IDN' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/Net $PERL_ARCH/$ARCH/
+    rsync -amv --include='*/' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/$ARCH/Net $PERL_ARCH/$ARCH/
+    rsync -amv --include='*/' --include='*.al' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
+fi
+
+if [ $LMSBASEDIR ]; then
+    if [ ! -d $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH ]; then
+        mkdir -p $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH
+    fi
+    rsync -amv --include='*/' --include='*' $PERL_ARCH/$ARCH/ $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH/
+fi
 
 # could remove rest of build data, but let's leave it around in case
 #rm -rf $PERL_BASE

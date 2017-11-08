@@ -1,0 +1,28 @@
+--- inc/Module/Install/PRIVATE/Net/SSLeay.pm.orig	2017-11-05 19:35:17.741797882 +0000
++++ inc/Module/Install/PRIVATE/Net/SSLeay.pm	2017-11-05 19:36:49.311435105 +0000
+@@ -46,15 +46,16 @@
+         LIBS => join(' ', (map {"-L$_"} @{$opts->{lib_paths}}), (map {"-l$_"} @{$opts->{lib_links}})),
+     );
+ 
+-    if ( $self->prompt(
+-            "Do you want to run external tests?\n".
+-            "These tests *will* *fail* if you do not have network connectivity.",
+-            'n',
+-    ) =~ /^y/i ) {
+-        $self->tests('t/*/*.t t/*/*/*.t');
+-    } else {
+-        $self->tests('t/local/*.t t/handle/local/*.t');
+-    }
++#    if ( $self->prompt(
++#            "Do you want to run external tests?\n".
++#            "These tests *will* *fail* if you do not have network connectivity.",
++#            'n',
++#    ) =~ /^y/i ) {
++#        $self->tests('t/*/*.t t/*/*/*.t');
++#    } else {
++#        $self->tests('t/local/*.t t/handle/local/*.t');
++#    }
++    $self->tests('t/local/*.t t/handle/local/*.t');
+ }
+ 
+ sub ssleay_get_build_opts {
