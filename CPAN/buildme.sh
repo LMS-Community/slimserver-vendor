@@ -51,7 +51,7 @@ function usage {
 $0 [args] [target]
 -h            this help
 -c            do not run make clean
--i <lmsbase>  install modulese in lmsbase directory
+-i <lmsbase>  install modules in lmsbase directory
 -p <perlbin > set custom perl binary
 -t            do not run tests
 
@@ -708,11 +708,11 @@ function build {
         IO::Interface)
             build_module IO-Interface-1.06
             ;;
-       
-	IO::Socket::SSL)
+
+        IO::Socket::SSL)
             buildIOSocketSSL=1
-	    build_module Test-NoWarnings-1.02 "" 0
-	    build_module Net-IDN-Encode-2.400
+            build_module Test-NoWarnings-1.02 "" 0
+            build_module Net-IDN-Encode-2.400
 
             tar_wrapper zxvf Net-SSLeay-1.82.tar.gz
             cd Net-SSLeay-1.82
@@ -931,7 +931,7 @@ function build {
 
             cd libmediascan-0.1
 
-	    if [ "$OS" = "FreeBSD" ]; then
+            if [ "$OS" = "FreeBSD" ]; then
             	patch -p1 < ../libmediascan-freebsd.patch
             elif [ "$OS" = "SunOS" ]; then
                 patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch 
