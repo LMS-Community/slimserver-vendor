@@ -364,6 +364,8 @@ else
     else                                                                           
         export MAKE=/usr/bin/make                        
     fi
+    
+    export GNUMAKE=$MAKE
 fi
 
 #  Clean up
