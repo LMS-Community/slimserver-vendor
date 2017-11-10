@@ -19,6 +19,7 @@ date > $LOG
 echo "Untarring libogg-$OGG.tar.gz..."
 tar -zxf libogg-$OGG.tar.gz
 cd libogg-$OGG
+. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --disable-shared >> $LOG
 echo "Running make..."
@@ -29,6 +30,7 @@ cd ..
 echo "Untarring..."
 tar zxvf flac-$FLAC.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
+. ../../CPAN/update-config.sh
 patch -p0 < ../sc.patch >> $LOG
 patch -p0 < ../triode-ignore-wav-length.patch >> $LOG
 patch -p0 < ../steven-allow-bad-ssnd-chunk-size.patch >> $LOG

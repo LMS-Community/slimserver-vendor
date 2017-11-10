@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # $Id $
 
@@ -38,6 +38,7 @@ mkdir $BUILD
 # Build wavpack
 tar jxvf wavpack-4.50.1.tar.bz2
 cd wavpack-4.50.1
+. ../../CPAN/update-config.sh
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
