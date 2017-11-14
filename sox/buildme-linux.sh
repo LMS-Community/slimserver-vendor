@@ -62,7 +62,6 @@ echo "Untarring libmad-$MAD.tar.gz..."
 tar -zxf libmad-$MAD.tar.gz
 cd libmad-$MAD
 . ../../CPAN/update-config.sh
-cp /usr/share/automake-1.15/config.guess .
 # Remove -fforce-mem line as it doesn't work with newer gcc
 sed -i 's/-fforce-mem//' configure
 echo "configuring..."
