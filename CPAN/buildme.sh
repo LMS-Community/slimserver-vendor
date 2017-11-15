@@ -745,7 +745,7 @@ function build {
                 if [ $PERL_MINOR_VER -ge 16 ]; then
                    build_module DBD-SQLite-1.34_01 "" 0
                 else
-		   build_module DBD-SQLite-1.34_01 
+		   build_module DBD-SQLite-1.34_01
 		fi
             fi
             
