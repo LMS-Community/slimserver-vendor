@@ -159,6 +159,7 @@ CC_TYPE=`$GCC --version | head -1`
 # Determine compiler type and version
 CC_IS_CLANG=false
 CC_IS_GCC=false
+# Heavy wizardry begins here
 # This uses bash globbing for the If statement
 if [[ "$CC_TYPE" =~ "clang" ]]; then
     CLANG_MAJOR=`echo "#include <iostream>" | "$GXX" -xc++ -dM -E - | grep '#define __clang_major' | sed 's/.*__\ //g'`
@@ -462,14 +463,12 @@ if [ "$OS" = "FreeBSD" ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
     fi
-    export GNUMAKE=/usr/local/bin/gmake
     export MAKE=/usr/local/bin/gmake
 elif [ "$OS" = "SunOS" ]; then
     if [ ! -x /usr/bin/gmake ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
     fi 
-    export GNUMAKE=/usr/bin/gmake
     export MAKE=/usr/bin/gmake
 else
     # Support a newer make if available, needed on ReadyNAS                                                                              
@@ -478,8 +477,6 @@ else
     else                                                                           
         export MAKE=/usr/bin/make                        
     fi
-    
-    export GNUMAKE=$MAKE
 fi
 
 #  Clean up
