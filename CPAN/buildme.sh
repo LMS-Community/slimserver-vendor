@@ -1392,7 +1392,7 @@ function build_ffmpeg {
         --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo --enable-parser=vc1 \
         --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
         --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
-        --enable-protocol=file"
+        --enable-protocol=file --cc=$GCC"
     
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
