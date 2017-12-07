@@ -100,7 +100,7 @@ if [ "$OS" = "FreeBSD" ]; then
 fi
 ARCH=`$ARCHPERL -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 
-if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" -o "SunOS" ]; then
+if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" -o "$OS" = "SunOS" ]; then
     echo "Building for $OS / $ARCH"
 else
     echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
@@ -620,7 +620,6 @@ function build {
         Class::XSAccessor)
             if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module Class-XSAccessor-1.18
-                cp -pR $PERL_BASE/lib/perl5/$ARCH/Class $PERL_ARCH/
             else
                 if [[ "$CC_IS_CLANG" == true ]]; then
                     build_module Class-XSAccessor-1.18
@@ -633,15 +632,12 @@ function build {
         Compress::Raw::Zlib)
             if [ $PERL_MINOR_VER -eq 8 -o $PERL_MINOR_VER -eq 10 ]; then
 	            build_module Compress-Raw-Zlib-2.033
-                    cp -pR $PERL_BASE/lib/perl5/$ARCH/Compress $PERL_ARCH/
             fi
             ;;
         
         DBI)
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
-                cp -p $PERL_BASE/lib/perl5/$ARCH/DBI.pm $PERL_ARCH/
-                cp -pR $PERL_BASE/lib/perl5/$ARCH/DBI $PERL_ARCH/
             else
                 build_module DBI-1.616 "" 0
             fi
@@ -800,12 +796,6 @@ function build {
             tar_wrapper zxvf Image-Scale-0.11.tar.gz
             cd Image-Scale-0.11
 
-            if [[ "$OS" = "FreeBSD" && "$PERL_MINOR_VER" -ge 22 ]]; then
-                TEMP_ARCH=` $PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-                mkdir -p $PERL_ARCH/$TEMP_ARCH
-                cp -Rv lib/Image $PERL_ARCH/$TEMP_ARCH/
-            fi
-
             cp -Rv ../hints .
             cd ..
             
@@ -835,7 +825,6 @@ function build {
             ;;
 
         IO::Socket::SSL)
-            buildIOSocketSSL=1
             build_module Test-NoWarnings-1.02 "" 0
             build_module Net-IDN-Encode-2.400
 
@@ -859,7 +848,6 @@ function build {
             
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module JSON-XS-2.34
-                cp -pR $PERL_BASE/lib/perl5/$ARCH/JSON $PERL_ARCH/
             else
                 build_module JSON-XS-2.3
             fi
@@ -1396,7 +1384,7 @@ function build_ffmpeg {
     
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
-    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "i86pc-solaris-thread-multi-64int" ]; then
+    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" ]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     # FreeBSD amd64 needs arch option
@@ -1575,13 +1563,8 @@ if [ $PERL_MINOR_VER -ge 12 ]; then
     ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 fi
 mkdir -p $PERL_ARCH/$ARCH
-rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
-if [ -n "${buildIOSocketSSL}"  ]; then
-    rsync -amv --include='*/' --include='Socket/' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/IO $PERL_ARCH/$ARCH/
-    rsync -amv --include='*/' --include='IDN' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/Net $PERL_ARCH/$ARCH/
-    rsync -amv --include='*/' --include='*.pm' --exclude='*' $PERL_BASE/lib/perl5/$ARCH/Net $PERL_ARCH/$ARCH/
-    rsync -amv --include='*/' --include='*.al' --include='autosplit.ix' --exclude='*' $PERL_BASE/lib/perl5/*/auto $PERL_ARCH/$ARCH/
-fi
+rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/$ARCH $PERL_ARCH/
+rsync -amv --exclude=$ARCH --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/ $PERL_ARCH/$ARCH/
 
 if [ $LMSBASEDIR ]; then
     if [ ! -d $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH ]; then
