@@ -133,7 +133,7 @@ if [ "$OS" = "FreeBSD" ]; then
     fi
 fi
 
-for i in $GCC cpp rsync make ; do
+for i in $GCC $GPP rsync make ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
