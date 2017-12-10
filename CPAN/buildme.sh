@@ -45,6 +45,8 @@ RUN_TESTS=1
 USE_HINTS=1
 CLEAN=1
 FLAGS="-fPIC"
+# Default is to rename every x86 to i386
+RENAME_x86=1
 
 function usage {
     cat <<EOF
@@ -54,6 +56,7 @@ $0 [args] [target]
 -i <lmsbase>  install modules in lmsbase directory
 -p <perlbin > set custom perl binary
 -t            do not run tests
+-r            do not rename all x86 archs to "i386"
 
 target: make target - if not specified all will be built
 
@@ -74,6 +77,9 @@ while getopts hci:p:t opt; do
   t)
       RUN_TESTS=0
       ;;
+  r)
+      RENAME_x86=0
+      ;;
   h)
       usage
       exit
@@ -88,21 +94,12 @@ done
 
 shift $((OPTIND - 1))
 
-echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS target ${1-all}"
+echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS RENAME_x86:$RENAME_x86 target ${1-all}"
 
 OS=`uname`
 MACHINE=`uname -m`
 
-# get system arch, stripping out extra -gnu on Linux
-ARCHPERL=/usr/bin/perl
-if [ "$OS" = "FreeBSD" ]; then
-    ARCHPERL=/usr/local/bin/perl
-fi
-ARCH=`$ARCHPERL -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-
-if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" -o "$OS" = "SunOS" ]; then
-    echo "Building for $OS / $ARCH"
-else
+if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "SunOS" ]; then
     echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
     exit
 fi
@@ -142,7 +139,8 @@ if [ "$OS" = "FreeBSD" ]; then
     fi
 fi
 
-for i in $GCC cpp rsync make ; do
+# Begin checks for presence of dependencies
+for i in $GCC $GPP rsync make ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
@@ -150,13 +148,70 @@ for i in $GCC cpp rsync make ; do
     fi
 done
 
+which yasm > /dev/null
+if [ $? -ne 0 ] ; then
+    which nasm > /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "please install either yasm or nasm."
+        exit 1
+    fi
+fi
+
+if [ "$OS" = "Linux" ]; then
+        for i in libz libgd ; do
+            ldconfig -p | grep "${i}.so" > /dev/null
+            if [ $? -ne 0 ] ; then
+                echo "$i not found - please install it"
+                exit 1
+            fi
+        done
+fi
+
+if [ "$OS" = "FreeBSD" ]; then
+        for i in libz libgd ; do
+            ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
+            if [ $? -ne 0 ] ; then
+                echo "$i not found - please install it"
+                exit 1
+            fi
+        done
+fi
+
+find /usr/lib/ -maxdepth 1 | grep libungif
+if [ $? -eq 0 ] ; then
+    echo "ON SOME PLATFORMS (Ubuntu/Debian at least) THE ABOVE LIBRARIES MAY NEED TO BE TEMPORARILY REMOVED TO ALLOW THE BUILD TO WORK"
+fi
+
+# FreeBSD's make sucks
+if [ "$OS" = "FreeBSD" ]; then
+    if [ ! -x /usr/local/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi
+    export MAKE=/usr/local/bin/gmake
+elif [ "$OS" = "SunOS" ]; then
+    if [ ! -x /usr/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi
+    export MAKE=/usr/bin/gmake
+else
+    # Support a newer make if available, needed on ReadyNAS
+    if [ -x /usr/local/bin/make ]; then
+        export MAKE=/usr/local/bin/make
+    else
+        export MAKE=/usr/bin/make
+    fi
+fi
+# End checks for presence of dependencies
+
 echo "Looks like your compiler is $GCC"
 $GCC --version
 
 # This method works for FreeBSD, with "normal" installs of GCC and clang.
 CC_TYPE=`$GCC --version | head -1`
 
-# Determine compiler type and version
+# Determine compiler type and version, and appropriateness
 CC_IS_CLANG=false
 CC_IS_GCC=false
 # Heavy wizardry begins here
@@ -214,56 +269,6 @@ else
     echo "*"
     echo "********************************************************************************************"
     GCC_LIBCPP=false
-fi
-
-PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\'.*##g"`
-
-if [[ "$PERL_CC" != "$GCC" ]]; then
-    echo "********************************************** WARNING *************************************"
-    echo "*                                                                                          *"
-    echo "*    Perl was compiled with $PERL_CC,"
-    echo "*    which is different than $GCC."
-    echo "*    This may cause significant problems.                                                  *"
-    echo "*                                                                                          *"
-    echo "* Press CTRL^C to stop the build now...                                                    *"
-    echo "********************************************************************************************"
-    sleep 3
-fi
-
-which yasm > /dev/null
-if [ $? -ne 0 ] ; then
-    which nasm > /dev/null
-    if [ $? -ne 0 ] ; then
-        echo "please install either yasm or nasm."
-        exit 1
-    fi
-fi
-
-if [ "$OS" = "Linux" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
-	    ldconfig -p | grep "${i}.so" > /dev/null
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-fi
-
-if [ "$OS" = "FreeBSD" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
-	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-fi
-
-find /usr/lib/ -maxdepth 1 | grep libungif
-if [ $? -eq 0 ] ; then
-    echo "ON SOME PLATFORMS (Ubuntu/Debian at least) THE ABOVE LIBRARIES MAY NEED TO BE TEMPORARILY REMOVED TO ALLOW THE BUILD TO WORK"
 fi
 
 # figure out OSX version and customize SDK options
@@ -452,32 +457,32 @@ if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
 
 fi
 
+# We have found Perl, so get system arch, stripping out extra -gnu on Linux
+ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/armv.*?-/arm-/' `
+# Default behavior is to rename all x86 architectures to i386
+if [ $RENAME_x86 -eq 1 ]; then
+   ARCH=`echo "$ARCH" | sed 's/^i[3456]86-/i386-/'`
+fi
+
+# Check to make sure this script and perl use the same compiler
+PERL_CC=`$PERL_BIN -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\'.*##g"`
+
+if [[ "$PERL_CC" != "$GCC" ]]; then
+    echo "********************************************** WARNING *************************************"
+    echo "*                                                                                          *"
+    echo "*    Perl was compiled with $PERL_CC,"
+    echo "*    which is different than $GCC."
+    echo "*    This may cause significant problems.                                                  *"
+    echo "*                                                                                          *"
+    echo "* Press CTRL^C to stop the build now...                                                    *"
+    echo "********************************************************************************************"
+    sleep 3
+fi
+
+echo "Building for $OS / $ARCH"
 echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
 PERL_BASE=$BUILD/5.$PERL_MINOR_VER
 PERL_ARCH=$BUILD/arch/5.$PERL_MINOR_VER
-
-
-# FreeBSD's make sucks
-if [ "$OS" = "FreeBSD" ]; then
-    if [ ! -x /usr/local/bin/gmake ]; then
-        echo "ERROR: Please install GNU make (gmake)"
-        exit
-    fi
-    export MAKE=/usr/local/bin/gmake
-elif [ "$OS" = "SunOS" ]; then
-    if [ ! -x /usr/bin/gmake ]; then
-        echo "ERROR: Please install GNU make (gmake)"
-        exit
-    fi 
-    export MAKE=/usr/bin/gmake
-else
-    # Support a newer make if available, needed on ReadyNAS                                                                              
-    if [ -x /usr/local/bin/make ]; then                                               
-        export MAKE=/usr/local/bin/make                                         
-    else                                                                           
-        export MAKE=/usr/bin/make                        
-    fi
-fi
 
 #  Clean up
 if [ $CLEAN -eq 1 ]; then
@@ -1558,10 +1563,6 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
-if [ $PERL_MINOR_VER -ge 12 ]; then
-    # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-fi
 mkdir -p $PERL_ARCH/$ARCH
 rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/$ARCH $PERL_ARCH/
 rsync -amv --exclude=$ARCH --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/ $PERL_ARCH/$ARCH/
