@@ -1,0 +1,21 @@
+--- Makefile.PL.orig	2017-11-05 19:43:51.124820164 +0000
++++ Makefile.PL	2017-11-05 20:31:04.049568131 +0000
+@@ -117,12 +117,12 @@
+     }
+ }
+ 
+-my $xt = $ENV{NO_NETWORK_TESTING} && 'n';
+-$xt ||= $yesno->( "Should I do external tests?\n".
+-    "These test will detect if there are network problems and fail soft,\n".
+-    "so please disable them only if you definitely don't want to have any\n".
+-    "network traffic to external sites.  [Y/n]", 'y' );
+-
++#my $xt = $ENV{NO_NETWORK_TESTING} && 'n';
++#$xt ||= $yesno->( "Should I do external tests?\n".
++#    "These test will detect if there are network problems and fail soft,\n".
++#    "so please disable them only if you definitely don't want to have any\n".
++#    "network traffic to external sites.  [Y/n]", 'y' );
++my $xt = 'y';
+ 
+ # See lib/ExtUtils/MakeMaker.pm for details of how to influence
+ # the contents of the Makefile that is written.
