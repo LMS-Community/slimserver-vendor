@@ -133,6 +133,7 @@ if [ "$OS" = "FreeBSD" ]; then
     fi
 fi
 
+# Begin checks for presence of dependencies
 for i in $GCC $GPP rsync make ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
@@ -141,13 +142,70 @@ for i in $GCC $GPP rsync make ; do
     fi
 done
 
+which yasm > /dev/null
+if [ $? -ne 0 ] ; then
+    which nasm > /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "please install either yasm or nasm."
+        exit 1
+    fi
+fi
+
+if [ "$OS" = "Linux" ]; then
+        for i in libz libgd ; do
+            ldconfig -p | grep "${i}.so" > /dev/null
+            if [ $? -ne 0 ] ; then
+                echo "$i not found - please install it"
+                exit 1
+            fi
+        done
+fi
+
+if [ "$OS" = "FreeBSD" ]; then
+        for i in libz libgd ; do
+            ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
+            if [ $? -ne 0 ] ; then
+                echo "$i not found - please install it"
+                exit 1
+            fi
+        done
+fi
+
+find /usr/lib/ -maxdepth 1 | grep libungif
+if [ $? -eq 0 ] ; then
+    echo "ON SOME PLATFORMS (Ubuntu/Debian at least) THE ABOVE LIBRARIES MAY NEED TO BE TEMPORARILY REMOVED TO ALLOW THE BUILD TO WORK"
+fi
+
+# FreeBSD's make sucks
+if [ "$OS" = "FreeBSD" ]; then
+    if [ ! -x /usr/local/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi
+    export MAKE=/usr/local/bin/gmake
+elif [ "$OS" = "SunOS" ]; then
+    if [ ! -x /usr/bin/gmake ]; then
+        echo "ERROR: Please install GNU make (gmake)"
+        exit
+    fi
+    export MAKE=/usr/bin/gmake
+else
+    # Support a newer make if available, needed on ReadyNAS
+    if [ -x /usr/local/bin/make ]; then
+        export MAKE=/usr/local/bin/make
+    else
+        export MAKE=/usr/bin/make
+    fi
+fi
+# End checks for presence of dependencies
+
 echo "Looks like your compiler is $GCC"
 $GCC --version
 
 # This method works for FreeBSD, with "normal" installs of GCC and clang.
 CC_TYPE=`$GCC --version | head -1`
 
-# Determine compiler type and version
+# Determine compiler type and version, and appropriateness
 CC_IS_CLANG=false
 CC_IS_GCC=false
 # Heavy wizardry begins here
@@ -205,42 +263,6 @@ else
     echo "*"
     echo "********************************************************************************************"
     GCC_LIBCPP=false
-fi
-
-which yasm > /dev/null
-if [ $? -ne 0 ] ; then
-    which nasm > /dev/null
-    if [ $? -ne 0 ] ; then
-        echo "please install either yasm or nasm."
-        exit 1
-    fi
-fi
-
-if [ "$OS" = "Linux" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
-	    ldconfig -p | grep "${i}.so" > /dev/null
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-fi
-
-if [ "$OS" = "FreeBSD" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
-	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-fi
-
-find /usr/lib/ -maxdepth 1 | grep libungif
-if [ $? -eq 0 ] ; then
-    echo "ON SOME PLATFORMS (Ubuntu/Debian at least) THE ABOVE LIBRARIES MAY NEED TO BE TEMPORARILY REMOVED TO ALLOW THE BUILD TO WORK"
 fi
 
 # figure out OSX version and customize SDK options
@@ -450,28 +472,6 @@ echo "Building for $OS / $ARCH"
 echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
 PERL_BASE=$BUILD/5.$PERL_MINOR_VER
 PERL_ARCH=$BUILD/arch/5.$PERL_MINOR_VER
-
-# FreeBSD's make sucks
-if [ "$OS" = "FreeBSD" ]; then
-    if [ ! -x /usr/local/bin/gmake ]; then
-        echo "ERROR: Please install GNU make (gmake)"
-        exit
-    fi
-    export MAKE=/usr/local/bin/gmake
-elif [ "$OS" = "SunOS" ]; then
-    if [ ! -x /usr/bin/gmake ]; then
-        echo "ERROR: Please install GNU make (gmake)"
-        exit
-    fi 
-    export MAKE=/usr/bin/gmake
-else
-    # Support a newer make if available, needed on ReadyNAS                                                                              
-    if [ -x /usr/local/bin/make ]; then                                               
-        export MAKE=/usr/local/bin/make                                         
-    else                                                                           
-        export MAKE=/usr/bin/make                        
-    fi
-fi
 
 #  Clean up
 if [ $CLEAN -eq 1 ]; then
