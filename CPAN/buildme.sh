@@ -93,16 +93,7 @@ echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS target ${1-all}"
 OS=`uname`
 MACHINE=`uname -m`
 
-# get system arch, stripping out extra -gnu on Linux
-ARCHPERL=/usr/bin/perl
-if [ "$OS" = "FreeBSD" ]; then
-    ARCHPERL=/usr/local/bin/perl
-fi
-ARCH=`$ARCHPERL -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-
-if [ "$OS" = "Linux" -o "$OS" = "Darwin" -o "$OS" = "FreeBSD" -o "$OS" = "SunOS" ]; then
-    echo "Building for $OS / $ARCH"
-else
+if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "SunOS" ]; then
     echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
     exit
 fi
@@ -214,20 +205,6 @@ else
     echo "*"
     echo "********************************************************************************************"
     GCC_LIBCPP=false
-fi
-
-PERL_CC=`$ARCHPERL -V | grep cc=\' | sed "s#.*cc=\'##g" | sed "s#\'.*##g"`
-
-if [[ "$PERL_CC" != "$GCC" ]]; then
-    echo "********************************************** WARNING *************************************"
-    echo "*                                                                                          *"
-    echo "*    Perl was compiled with $PERL_CC,"
-    echo "*    which is different than $GCC."
-    echo "*    This may cause significant problems.                                                  *"
-    echo "*                                                                                          *"
-    echo "* Press CTRL^C to stop the build now...                                                    *"
-    echo "********************************************************************************************"
-    sleep 3
 fi
 
 which yasm > /dev/null
@@ -452,10 +429,27 @@ if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
 
 fi
 
+# We have found Perl, so get system arch, stripping out extra -gnu on Linux
+ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
+# Check to make sure this script and perl use the same compiler
+PERL_CC=`$PERL_BIN -V | grep "cc='" | sed "s#.*cc='##g" | sed "s#'.*##g"`
+
+if [[ "$PERL_CC" != "$GCC" ]]; then
+    echo "********************************************** WARNING *************************************"
+    echo "*                                                                                          *"
+    echo "*    Perl was compiled with $PERL_CC,"
+    echo "*    which is different than $GCC."
+    echo "*    This may cause significant problems.                                                  *"
+    echo "*                                                                                          *"
+    echo "* Press CTRL^C to stop the build now...                                                    *"
+    echo "********************************************************************************************"
+    sleep 3
+fi
+
+echo "Building for $OS / $ARCH"
 echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
 PERL_BASE=$BUILD/5.$PERL_MINOR_VER
 PERL_ARCH=$BUILD/arch/5.$PERL_MINOR_VER
-
 
 # FreeBSD's make sucks
 if [ "$OS" = "FreeBSD" ]; then
@@ -1558,10 +1552,6 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
-if [ $PERL_MINOR_VER -ge 12 ]; then
-    # Check for Perl using use64bitint and add -64int
-    ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-fi
 mkdir -p $PERL_ARCH/$ARCH
 rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/$ARCH $PERL_ARCH/
 rsync -amv --exclude=$ARCH --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/ $PERL_ARCH/$ARCH/
