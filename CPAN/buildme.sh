@@ -251,8 +251,11 @@ if [ "$OS" = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
     REGEX=' OS X.* (10\.[5-9])'
     REGEX2=' OS X.* (10\.1[0-9])'
+    REGEX3=' macOS (10\.1[0-9])'
 
-    if [[ $OSX_VER =~ $REGEX ]]; then
+    if [[ $OSX_VER =~ $REGEX3 ]]; then
+        OSX_VER=${BASH_REMATCH[1]}
+    elif [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
     elif [[ $OSX_VER =~ $REGEX2 ]]; then
         OSX_VER=${BASH_REMATCH[1]}
@@ -281,6 +284,9 @@ if [ "$OS" = "Darwin" ]; then
         # Yosemite, build for x86_64 with support back to 10.10
         OSX_ARCH="-arch x86_64"
         OSX_FLAGS="-mmacosx-version-min=10.10"
+    else
+        OSX_ARCH="-arch x86_64"
+        OSX_FLAGS="-mmacosx-version-min=$OSX_VER"
     fi
 fi
 
@@ -787,13 +793,13 @@ function build {
             # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
 
-            tar_wrapper zxvf Image-Scale-0.11.tar.gz
-            cd Image-Scale-0.11
+            tar_wrapper zxvf Image-Scale-0.14.tar.gz
+            cd Image-Scale-0.14
 
             cp -Rv ../hints .
             cd ..
             
-            build_module Image-Scale-0.11 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
+            build_module Image-Scale-0.14 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$PERL_BASE"
