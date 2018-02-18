@@ -160,7 +160,7 @@ if [[ "$CC_TYPE" =~ "clang" ]]; then
     CC_IS_CLANG=true
 elif [[ "$CC_TYPE" =~ "gcc" || "$CC_TYPE" =~ "GCC" ]]; then
     CC_IS_GCC=true
-    CC_VERSION=`$GCC -dumpversion | sed "s#\ *)\ *##g" | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'`
+    CC_VERSION=`$GCC -dumpfullversion -dumpversion | sed "s#\ *)\ *##g" | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'`
 else
     echo "********************************************** ERROR ***************************************"
     echo "*"
