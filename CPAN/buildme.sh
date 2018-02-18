@@ -3,7 +3,7 @@
 # $Id$
 #
 # This script builds all binary Perl modules required by Squeezebox Server.
-# 
+#
 # Supported OSes:
 #
 # Linux (Perl 5.8.8, 5.10.0, 5.12.4, 5.14.1, 5.16.3)
@@ -19,7 +19,7 @@
 #   Under 10.10, builds for x86_64 Perl 5.18
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
-# Solaris 
+# Solaris
 #   builds are best done with custom compiled perl and gcc
 #   using the following PATH=/opt/gcc-5.1.0/bin:/usr/gnu/bin:$PATH
 #   plus a path to a version of yasm and nasm
@@ -218,7 +218,7 @@ fi
 
 if [ "$OS" = "Linux" ]; then
 	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
+	for i in libz ; do
 	    ldconfig -p | grep "${i}.so" > /dev/null
 	    if [ $? -ne 0 ] ; then
 	        echo "$i not found - please install it"
@@ -229,7 +229,7 @@ fi
 
 if [ "$OS" = "FreeBSD" ]; then
 	#for i in libgif libz libgd ; do
-	for i in libz libgd ; do
+	for i in libz ; do
 	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
 	    if [ $? -ne 0 ] ; then
 	        echo "$i not found - please install it"
@@ -263,7 +263,7 @@ if [ "$OS" = "Darwin" ]; then
         echo "Unable to determine OSX version"
         exit 0
     fi
-    
+
     if [ "$OSX_VER" = "10.5" ]; then
         # Leopard, build for i386/ppc with support back to 10.4
         OSX_ARCH="-arch i386 -arch ppc"
@@ -468,14 +468,14 @@ elif [ "$OS" = "SunOS" ]; then
     if [ ! -x /usr/bin/gmake ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
-    fi 
+    fi
     export MAKE=/usr/bin/gmake
 else
-    # Support a newer make if available, needed on ReadyNAS                                                                              
-    if [ -x /usr/local/bin/make ]; then                                               
-        export MAKE=/usr/local/bin/make                                         
-    else                                                                           
-        export MAKE=/usr/bin/make                        
+    # Support a newer make if available, needed on ReadyNAS
+    if [ -x /usr/local/bin/make ]; then
+        export MAKE=/usr/local/bin/make
+    else
+        export MAKE=/usr/bin/make
     fi
 fi
 
@@ -521,14 +521,14 @@ function build_module {
     fi
 
     cd "${module}"
-    
+
     if [ $local_use_hints -eq 1 ]; then
         # Always copy in our custom hints for OSX
         cp -Rv ../hints .
     fi
     if [ $PERL_BIN ]; then
         export PERL5LIB=$PERL_BASE/lib/perl5
-        
+
         $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $makefile_args
         if [ $local_run_tests -eq 1 ]; then
             $MAKE test
@@ -616,7 +616,7 @@ function build {
                 rm -rf Class-C3-XS-0.11
             fi
             ;;
-        
+
         Class::XSAccessor)
             if [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module Class-XSAccessor-1.18
@@ -628,13 +628,13 @@ function build {
                 fi
             fi
             ;;
-        
+
         Compress::Raw::Zlib)
             if [ $PERL_MINOR_VER -eq 8 -o $PERL_MINOR_VER -eq 10 ]; then
 	            build_module Compress-Raw-Zlib-2.033
             fi
             ;;
-        
+
         DBI)
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
@@ -642,7 +642,7 @@ function build {
                 build_module DBI-1.616 "" 0
             fi
             ;;
-        
+
         DBD::SQLite)
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628 "" 0
@@ -680,21 +680,21 @@ function build {
                     exit $?
                 fi
                 $MAKE install
-            
-                cd ../..                
+
+                cd ../..
                 rm -rf icu
 
                 # Symlink static versions of libraries
                 cd build/lib
                 ln -sf libicudata.a libicudata_s.a
                 ln -sf libicui18n.a libicui18n_s.a
-                ln -sf libicuuc.a libicuuc_s.a 
+                ln -sf libicuuc.a libicuuc_s.a
                 cd ../..
             fi
-            
+
             # Point to data directory for test suite
             export ICU_DATA=$BUILD/share/icu/58.2
-            
+
             # Replace huge data file with smaller one containing only our collations
             rm -f $BUILD/share/icu/59.1/icudt58*.dat
             cp -v icudt58*.dat $BUILD/share/icu/58.2
@@ -712,7 +712,7 @@ function build {
                 patch -p0 < ../DBD-SQLite-XOPEN.patch
             fi
             cp -Rv ../hints .
-            
+
             if [ $PERL_MINOR_VER -eq 8 ]; then
                 # Running 5.8
                 export PERL5LIB=$PERL_BASE/lib/perl5
@@ -733,7 +733,7 @@ function build {
                 if [ $CLEAN -eq 1 ]; then
                     $MAKE clean
                 fi
-    
+
                 cd ..
                 rm -rf DBD-SQLite-1.34_01
             else
@@ -744,19 +744,19 @@ function build {
 		   build_module DBD-SQLite-1.34_01
 		fi
             fi
-            
+
             ;;
-        
+
         Digest::SHA1)
             build_module Digest-SHA1-2.13
             ;;
-        
+
         EV)
             build_module common-sense-2.0
 
             # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
-            
+
             tar_wrapper zxvf EV-4.03.tar.gz
             cd EV-4.03
             patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
@@ -767,19 +767,19 @@ function build {
             fi
             cp -Rv ../hints .
             cd ..
-            
+
             build_module EV-4.03
 
             export PERL_MM_USE_DEFAULT=
             ;;
-        
+
         Encode::Detect)
             build_module Data-Dump-1.19
             build_module ExtUtils-CBuilder-0.260301
             build_module Module-Build-0.35 "" 0
             build_module Encode-Detect-1.00
             ;;
-        
+
         HTML::Parser)
             build_module HTML-Tagset-3.20
             build_module HTML-Parser-3.68
@@ -789,7 +789,7 @@ function build {
             build_libjpeg
             build_libpng
             build_giflib
-            
+
             # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
 
@@ -798,23 +798,23 @@ function build {
 
             cp -Rv ../hints .
             cd ..
-            
+
             build_module Image-Scale-0.14 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static \
                     INSTALL_BASE=$PERL_BASE"
-            
+
             ;;
-        
+
         IO::AIO)
             if [ "$OS" != "FreeBSD" ]; then
                 build_module common-sense-2.0
-            
+
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
                 build_module IO-AIO-3.71 "" 0 $CLEAN 0
             fi
             ;;
-        
+
         IO::Interface)
             # The IO::Interface tests erroneously require that lo0 be 127.0.0.1. This can be tough in jails.
             if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 ]]; then
@@ -833,33 +833,33 @@ function build {
             patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
             cd ..
 
-            build_module Net-SSLeay-1.82   
+            build_module Net-SSLeay-1.82
 
             tar_wrapper zxvf IO-Socket-SSL-2.052.tar.gz
-            cd IO-Socket-SSL-2.052 
+            cd IO-Socket-SSL-2.052
             patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
             cd ..
 
-            build_module IO-Socket-SSL-2.052 
+            build_module IO-Socket-SSL-2.052
 	    ;;
- 
+
         JSON::XS)
             build_module common-sense-2.0
-            
+
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module JSON-XS-2.34
             else
                 build_module JSON-XS-2.3
             fi
             ;;
-        
+
         Linux::Inotify2)
             if [ "$OS" = "Linux" ]; then
                 build_module common-sense-2.0
                 build_module Linux-Inotify2-1.21
             fi
             ;;
-        
+
         Locale::Hebrew)
             build_module Locale-Hebrew-1.04
             ;;
@@ -869,11 +869,11 @@ function build {
                 build_module Mac-FSEvents-0.04 "" 0
             fi
             ;;
-        
+
         Sub::Name)
             build_module Sub-Name-0.05
             ;;
-        
+
         YAML::LibYAML)
             # Needed because LibYAML 0.35 used . in @INC (not permitted in Perl 5.26)
             if [ $PERL_MINOR_VER -ge 26 ]; then
@@ -884,7 +884,7 @@ function build {
                 build_module YAML-LibYAML-0.35
             fi
             ;;
-        
+
         Audio::Scan)
             build_module Sub-Uplevel-0.22 "" 0
             build_module Tree-DAG_Node-1.06 "" 0
@@ -895,8 +895,8 @@ function build {
         MP3::Cut::Gapless)
             build_module Audio-Cuefile-Parser-0.02
             build_module MP3-Cut-Gapless-0.03
-            ;;  
-        
+            ;;
+
         Template)
             # Template, custom build due to 2 Makefile.PL's
             tar_wrapper zxvf Template-Toolkit-2.21.tar.gz
@@ -909,7 +909,7 @@ function build {
             build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
 
             ;;
-        
+
         DBD::mysql)
             # Build libmysqlclient
             tar_wrapper jxvf mysql-5.1.37.tar.bz2
@@ -938,11 +938,11 @@ function build {
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             cd ..
-            
+
             build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\" INSTALL_BASE=$PERL_BASE"
-            
+
             ;;
-        
+
         XML::Parser)
             # build expat
             tar_wrapper zxvf expat-2.0.1.tar.gz
@@ -973,26 +973,26 @@ function build {
             cp -Rv ../hints .
             cp -Rv ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
-            
+
             cd ..
-            
-            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include" 
-            
+
+            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+
             rm -rf expat-2.0.1
             ;;
-        
+
         Font::FreeType)
             # build freetype
             tar_wrapper zxvf freetype-2.4.2.tar.gz
             cd freetype-2.4.2
             . ../update-config.sh
-            
+
             # Disable features we don't need for CODE2000
             cp -fv ../freetype-ftoption.h objs/ftoption.h
-            
+
             # Disable modules we don't need for CODE2000
             cp -fv ../freetype-modules.cfg modules.cfg
-            
+
             # libfreetype.a size (i386/x86_64 universal binary):
             #   1634288 (default)
             #    461984 (with custom ftoption.h/modules.cfg)
@@ -1000,14 +1000,14 @@ function build {
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD
-            $MAKE # needed for FreeBSD to use gmake 
+            $MAKE # needed for FreeBSD to use gmake
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
             $MAKE install
             cd ..
-            
+
             # Symlink static version of library to avoid OSX linker choosing dynamic versions
             cd build/lib
             ln -sf libfreetype.a libfreetype_s.a
@@ -1015,29 +1015,29 @@ function build {
 
             tar_wrapper zxvf Font-FreeType-0.03.tar.gz
             cd Font-FreeType-0.03
-            
+
             # Build statically
             patch -p0 < ../Font-FreeType-Makefile.patch
-            
+
             # Disable some functions so we can compile out more freetype modules
             patch -p0 < ../Font-FreeType-lean.patch
-            
+
             cp -Rv ../hints .
             cd ..
-            
+
             build_module Font-FreeType-0.03
-            
+
             rm -rf freetype-2.4.2
             ;;
-        
-        Media::Scan)            
+
+        Media::Scan)
             build_ffmpeg
             build_libexif
             build_libjpeg
             build_libpng
             build_giflib
             build_bdb
-            
+
             # build libmediascan
             # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
@@ -1052,7 +1052,7 @@ function build {
             if [ "$OS" = "FreeBSD" ]; then
             	patch -p1 < ../libmediascan-freebsd.patch
             elif [ "$OS" = "SunOS" ]; then
-                patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch 
+                patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch
             fi
             . ../update-config.sh
 
@@ -1065,14 +1065,14 @@ function build {
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
-            fi            
+            fi
             $MAKE install
             cd ..
 
             # build Media::Scan
             cd libmediascan-0.1/bindings/perl
             # LMS's hints file is OK and also has custom frameworks added
-            
+
             MSOPTS="--with-static \
                 --with-ffmpeg-includes=$BUILD/include \
                 --with-lms-includes=$BUILD/include \
@@ -1081,7 +1081,7 @@ function build {
                 --with-png-includes=$BUILD/include \
                 --with-gif-includes=$BUILD/include \
                 --with-bdb-includes=$BUILD/include"
-                
+
             if [ $PERL_BIN ]; then
                 $PERL_BIN Makefile.PL $MSOPTS INSTALL_BASE=$PERL_BASE
                 $MAKE
@@ -1100,7 +1100,7 @@ function build {
                     $MAKE clean
                 fi
             fi
-            
+
             cd ../../..
             rm -rf libmediascan-0.1
             ;;
@@ -1111,12 +1111,12 @@ function build_libexif {
     if [ -f $BUILD/include/libexif/exif-data.h ]; then
         return
     fi
-    
+
     # build libexif
     tar_wrapper jxvf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     . ../update-config.sh
-    
+
     CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1129,25 +1129,25 @@ function build_libexif {
     fi
     $MAKE install
     cd ..
-    
+
     rm -rf libexif-0.6.20
-}    
+}
 
 function build_libjpeg {
     if [ -f $BUILD/include/jpeglib.h ]; then
         return
     fi
-    
+
     # build libjpeg-turbo on x86 platforms
     # skip on 10.9 until we've been able to build nasm from macports
     if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
-        
+
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-        
+
         # Build 64-bit fork
         CFLAGS="-O3 $OSX_FLAGS" \
         CXXFLAGS="-O3 $OSX_FLAGS" \
@@ -1160,7 +1160,7 @@ function build_libjpeg {
             exit $?
         fi
         cp -fv .libs/libjpeg.a libjpeg-x86_64.a
-        
+
         # Build 32-bit fork
         if [ $CLEAN -eq 1 ]; then
             $MAKE clean
@@ -1176,25 +1176,25 @@ function build_libjpeg {
             exit $?
         fi
         cp -fv .libs/libjpeg.a libjpeg-i386.a
-        
+
         # Combine the forks
         lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
-        
+
         # Install and replace libjpeg.a with universal version
         $MAKE install
         cp -f libjpeg.a $BUILD/lib/libjpeg.a
         cd ..
-    
+
     elif [ "$OS" = "Darwin" -a "$OSX_VER" = "10.5" ]; then
         # combine i386 turbo with ppc libjpeg
-        
+
         # build i386 turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
-        
+
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-        
+
         CFLAGS="-O3 -m32 $OSX_FLAGS" \
         CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
         LDFLAGS="-m32 $OSX_FLAGS" \
@@ -1208,14 +1208,14 @@ function build_libjpeg {
         $MAKE install
         cp -fv .libs/libjpeg.a ../libjpeg-i386.a
         cd ..
-        
+
         # build ppc libjpeg 6b
         tar_wrapper zxvf jpegsrc.v6b.tar.gz
         cd jpeg-6b
-        
+
         # Disable features we don't need
         cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
-        
+
         CFLAGS="-arch ppc -O3 $OSX_FLAGS" \
         LDFLAGS="-arch ppc -O3 $OSX_FLAGS" \
             ./configure --prefix=$BUILD \
@@ -1227,22 +1227,22 @@ function build_libjpeg {
         fi
         cp -fv libjpeg.a ../libjpeg-ppc.a
         cd ..
-        
+
         # Combine the forks
         lipo -create libjpeg-i386.a libjpeg-ppc.a -output libjpeg.a
-        
+
         # Replace libjpeg library
         mv -fv libjpeg.a $BUILD/lib/libjpeg.a
         rm -fv libjpeg-i386.a libjpeg-ppc.a
-        
+
     elif [ "$ARCH" = "i386-linux-thread-multi" -o "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" -o "$OS" = "FreeBSD" ]; then
         # build libjpeg-turbo
         tar_wrapper zxvf libjpeg-turbo-1.1.1.tar.gz
         cd libjpeg-turbo-1.1.1
-        
+
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
-        
+
         CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
@@ -1251,10 +1251,10 @@ function build_libjpeg {
             echo "make failed"
             exit $?
         fi
-        
+
         $MAKE install
         cd ..
-        
+
     # build libjpeg v8 on other platforms
     else
         tar_wrapper zxvf jpegsrc.v8b.tar.gz
@@ -1262,7 +1262,7 @@ function build_libjpeg {
         . ../update-config.sh
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
-        
+
         CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1276,7 +1276,7 @@ function build_libjpeg {
         $MAKE install
         cd ..
     fi
-    
+
     rm -rf jpeg-8b
     rm -rf jpeg-6b
     rm -rf libjpeg-turbo-1.1.1
@@ -1286,15 +1286,15 @@ function build_libpng {
     if [ -f $BUILD/include/png.h ]; then
         return
     fi
-    
+
     # build libpng
     tar_wrapper zxvf libpng-1.4.3.tar.gz
     cd libpng-1.4.3
-    
+
     # Disable features we don't need
     cp -fv ../libpng-pngconf.h pngconf.h
     . ../update-config.sh
-    
+
     CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1307,7 +1307,7 @@ function build_libpng {
     fi
     $MAKE install
     cd ..
-    
+
     rm -rf libpng-1.4.3
 }
 
@@ -1315,7 +1315,7 @@ function build_giflib {
     if [ -f $BUILD/include/gif_lib.h ]; then
         return
     fi
-    
+
     # build giflib
     tar_wrapper zxvf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
@@ -1332,7 +1332,7 @@ function build_giflib {
     fi
     $MAKE install
     cd ..
-    
+
     rm -rf giflib-4.1.6
 }
 
@@ -1342,18 +1342,18 @@ function build_ffmpeg {
         echo "found avformat.h - returning"
         return
     fi
-    
+
     # build ffmpeg, enabling only the things libmediascan uses
     tar_wrapper jxvf ffmpeg-0.8.4.tar.bz2
     cd ffmpeg-0.8.4
     . ../update-config.sh
-    
+
     if [ "$MACHINE" = "padre" ]; then
         patch -p0 < ../ffmpeg-padre-configure.patch
     fi
-    
+
     echo "Configuring FFmpeg..."
-    
+
     # x86: Disable all but the lowend MMX ASM
     # ARM: Disable all
     # PPC: Disable AltiVec
@@ -1381,7 +1381,7 @@ function build_ffmpeg {
         --enable-demuxer=asf --enable-demuxer=avi --enable-demuxer=flv --enable-demuxer=h264 \
         --enable-demuxer=matroska --enable-demuxer=mov --enable-demuxer=mpegps --enable-demuxer=mpegts --enable-demuxer=mpegvideo \
         --enable-protocol=file --cc=$GCC"
-    
+
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
     if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" ]; then
@@ -1391,67 +1391,67 @@ function build_ffmpeg {
     if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
         FFOPTS="$FFOPTS --arch=x86"
     fi
-    
+
     if [ "$OS" = "Darwin" ]; then
         SAVED_FLAGS=$FLAGS
-        
+
         # Build 64-bit fork (10.6/10.7)
         if [ "$OSX_VER" != "10.5" ]; then
-            FLAGS="-arch x86_64 -O3 -fPIC $OSX_FLAGS"      
+            FLAGS="-arch x86_64 -O3 -fPIC $OSX_FLAGS"
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure $FFOPTS --arch=x86_64
-        
+
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
-        
+
             cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
             cp -fv libavformat/libavformat.a libavformat-x86_64.a
             cp -fv libavutil/libavutil.a libavutil-x86_64.a
             cp -fv libswscale/libswscale.a libswscale-x86_64.a
         fi
-        
+
         # Build 32-bit fork (all OSX versions)
         $MAKE clean
-        FLAGS="-arch i386 -O3 $OSX_FLAGS"      
+        FLAGS="-arch i386 -O3 $OSX_FLAGS"
         CFLAGS="$FLAGS" \
         LDFLAGS="$FLAGS" \
             ./configure $FFOPTS --arch=x86_32
-        
+
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
             exit $?
         fi
-        
+
         cp -fv libavcodec/libavcodec.a libavcodec-i386.a
         cp -fv libavformat/libavformat.a libavformat-i386.a
         cp -fv libavutil/libavutil.a libavutil-i386.a
         cp -fv libswscale/libswscale.a libswscale-i386.a
-        
+
         # Build PPC fork (10.5)
         if [ "$OSX_VER" = "10.5" ]; then
             $MAKE clean
-            FLAGS="-arch ppc -O3 $OSX_FLAGS"      
+            FLAGS="-arch ppc -O3 $OSX_FLAGS"
             CFLAGS="$FLAGS" \
             LDFLAGS="$FLAGS" \
                 ./configure $FFOPTS --arch=ppc --disable-altivec
-        
+
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
                 exit $?
             fi
-        
+
             cp -fv libavcodec/libavcodec.a libavcodec-ppc.a
             cp -fv libavformat/libavformat.a libavformat-ppc.a
             cp -fv libavutil/libavutil.a libavutil-ppc.a
             cp -fv libswscale/libswscale.a libswscale-ppc.a
         fi
-        
+
         # Combine the forks
         if [ "$OSX_VER" = "10.5" ]; then
             lipo -create libavcodec-i386.a libavcodec-ppc.a -output libavcodec.a
@@ -1464,22 +1464,22 @@ function build_ffmpeg {
             lipo -create libavutil-x86_64.a libavutil-i386.a -output libavutil.a
             lipo -create libswscale-x86_64.a libswscale-i386.a -output libswscale.a
         fi
-        
+
         # Install and replace libs with universal versions
         $MAKE install
         cp -f libavcodec.a $BUILD/lib/libavcodec.a
         cp -f libavformat.a $BUILD/lib/libavformat.a
         cp -f libavutil.a $BUILD/lib/libavutil.a
         cp -f libswscale.a $BUILD/lib/libswscale.a
-        
+
         FLAGS=$SAVED_FLAGS
         cd ..
-    else           
+    else
         CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
-        
+
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
@@ -1488,7 +1488,7 @@ function build_ffmpeg {
         $MAKE install
         cd ..
     fi
-    
+
     rm -rf ffmpeg-0.8.4
 }
 
@@ -1496,19 +1496,19 @@ function build_bdb {
     if [ -f $BUILD/include/db.h ]; then
         return
     fi
-    
+
     # --enable-posixmutexes is needed to build on ReadyNAS Sparc.
     MUTEX=""
     if [ "$MACHINE" = "padre" ]; then
       MUTEX="--enable-posixmutexes"
     fi
-    
+
     # build bdb
     tar_wrapper zxvf db-5.1.25.tar.gz
     cd db-5.1.25/dist
     . ../../update-config.sh
     cd ../build_unix
-    
+
     if [ "$OS" = "Darwin" -o "$OS" = "FreeBSD" ]; then
        pushd ..
        patch -p0 < ../db51-src_dbinc_atomic.patch
@@ -1527,7 +1527,7 @@ function build_bdb {
     fi
     $MAKE install
     cd ../..
-    
+
     rm -rf db-5.1.25
 }
 
