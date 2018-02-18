@@ -655,6 +655,8 @@ function build {
             if [ ! -f build/lib/libicudata_s.a ]; then
                 tar_wrapper zxvf icu4c-58_2-src.tgz
                 cd icu/source
+                # Need to patch ICU to adapt to removal of xlocale.h on some platforms.
+                patch -p0 < ../../icu58_patches/digitlst.cpp.patch
                 . ../../update-config.sh
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
