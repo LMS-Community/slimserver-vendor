@@ -225,6 +225,13 @@ if [ "$OS" = "Linux" ]; then
 	        exit 1
 	    fi
 	done
+	for hdr in "zlib.h"; do
+	    hdr_found=$(find /usr/include -name "$hdr");
+	    if [ ! "$hdr_found" ]; then
+	        echo "$hdr not found - please install appropriate development package"
+	        exit 1
+	    fi
+	done
 fi
 
 if [ "$OS" = "FreeBSD" ]; then
@@ -233,6 +240,13 @@ if [ "$OS" = "FreeBSD" ]; then
 	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
 	    if [ $? -ne 0 ] ; then
 	        echo "$i not found - please install it"
+	        exit 1
+	    fi
+	done
+	for hdr in "zlib.h"; do
+	    hdr_found=$(find /usr/include -name "$hdr");
+	    if [ ! "$hdr_found" ]; then
+	        echo "$hdr not found - please install appropriate development package"
 	        exit 1
 	    fi
 	done
