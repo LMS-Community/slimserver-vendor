@@ -435,8 +435,10 @@ if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
 
 fi
 
-# We have found Perl, so get system arch, stripping out extra -gnu on Linux
-ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}' | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
+# We have found Perl, so get system arch, according to Perl
+RAW_ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}'`
+# Strip out extra -gnu on Linux for use within this build script
+ARCH=`echo $RAW_ARCH | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
 # Check to make sure this script and perl use the same compiler
 PERL_CC=`$PERL_BIN -V | grep "cc='" | sed "s#.*cc='##g" | sed "s#'.*##g"`
 
@@ -1559,8 +1561,8 @@ find $BUILD -name '*.packlist' -exec rm -f {} \;
 # create our directory structure
 # rsync is used to avoid copying non-binary modules or other extra stuff
 mkdir -p $PERL_ARCH/$ARCH
-rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/$ARCH $PERL_ARCH/
-rsync -amv --exclude=$ARCH --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/ $PERL_ARCH/$ARCH/
+rsync -amv --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/$RAW_ARCH $PERL_ARCH/
+rsync -amv --exclude=$RAW_ARCH --include='*/' --include='*.so' --include='*.bundle' --include='autosplit.ix' --include='*.pm' --include='*.al' --exclude='*' $PERL_BASE/lib/perl5/ $PERL_ARCH/$ARCH/
 
 if [ $LMSBASEDIR ]; then
     if [ ! -d $LMSBASEDIR/CPAN/arch/5.$PERL_MINOR_VER/$ARCH ]; then
