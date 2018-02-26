@@ -910,8 +910,8 @@ function build {
             cp -Rv ../hints ./xs
             cd ..
 
-            $MAKE # minor test failure, so don't test
-            build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
+            # minor test failure, so don't test
+            build_module Template-Toolkit-2.21 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
 
             ;;
 
@@ -944,7 +944,7 @@ function build {
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             cd ..
 
-            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\" INSTALL_BASE=$PERL_BASE"
+            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\""
 
             ;;
 
@@ -981,7 +981,7 @@ function build {
 
             cd ..
 
-            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+            build_module XML-Parser-2.41 "EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
 
             rm -rf expat-2.0.1
             ;;
