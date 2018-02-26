@@ -804,20 +804,10 @@ function build {
             build_libpng
             build_giflib
 
-            # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
-
-            tar_wrapper zxvf Image-Scale-0.14.tar.gz
-            cd Image-Scale-0.14
-
-            cp -Rv ../hints .
-            cd ..
-
             build_module Image-Scale-0.14 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$PERL_BASE"
-
+                    --with-gif-includes="$BUILD/include" --with-gif-static"
             ;;
 
         IO::AIO)
