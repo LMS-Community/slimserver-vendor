@@ -573,7 +573,8 @@ function build_all {
     build Class::C3::XS
     build Class::XSAccessor
     build Compress::Raw::Zlib
-    build DBI
+    # DBD::SQLite builds DBI, so don't need it here as well.
+#   build DBI
 #   build DBD::mysql
     build DBD::SQLite
     build Digest::SHA1
@@ -653,16 +654,14 @@ function build {
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
             else
-                build_module DBI-1.616 "" 0
+                build_module DBI-1.616
             fi
             ;;
 
         DBD::SQLite)
-            if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module DBI-1.628 "" 0
-            else
-                build_module DBI-1.616 "" 0
-            fi
+            # Build DBI before DBD::SQLite so that DBD::SQLite is built
+            # against _our_ DBI, not one already present on the system.
+            build DBI
 
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
@@ -752,11 +751,7 @@ function build {
                 rm -rf DBD-SQLite-1.34_01
             else
                 cd ..
-                if [ $PERL_MINOR_VER -ge 16 ]; then
-                   build_module DBD-SQLite-1.34_01 "" 0
-                else
-		   build_module DBD-SQLite-1.34_01
-		fi
+                build_module DBD-SQLite-1.34_01
             fi
 
             ;;
