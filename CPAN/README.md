@@ -30,3 +30,7 @@ On FreeBSD, FreeNAS, etc. make sure you have the following packages/ports instal
 * devel/gmake
 * net/rsync
 * lang/perl5 (or perl5.22 or perl5.26)
+
+In addition, you should make sure that your Perl was compiled with the same family of compiler 
+(gcc or clang) as you are attempting to use with buildme.sh. Compiler mismatches can cause 
+signficant problems.
