@@ -8,7 +8,7 @@ In most cases it should be good enough to just run `./buildme.sh` from this fold
 Once compilation is done, copy the folder in `build/arch/{Perl version}/{your architecture string}/auto/` to the corresponding folder in the Logitech Media Server `CPAN` folder. Eg. from this CPAN folder:
 
 ```
-cp -r build/arch/5.26/aarch64-linux-thread-multi/aarch64-linux-gnu-thread-multi /path/to/slimserver/CPAN/arch/5.26/
+cp -r build/arch/5.26/aarch64-linux-thread-multi /path/to/slimserver/CPAN/arch/5.26/
 ```
 
 ### Preparation of a Debian based system
