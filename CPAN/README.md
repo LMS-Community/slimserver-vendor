@@ -5,7 +5,7 @@ Building Perl binaries for Logitech Media Server
 
 In most cases it should be good enough to just run `./buildme.sh` from this folder.
 
-Once compilation is done, copy the folder in `build/arch/{Perl version}/{your architecture string}/auto/` to the corresponding folder in the Logitech Media Server `CPAN` folder. Eg. from this CPAN folder:
+Once compilation is done, copy the folder in `build/arch/{Perl version}/{your architecture string}/` to the corresponding folder in the Logitech Media Server `CPAN` folder. Eg. from this CPAN folder:
 
 ```
 cp -r build/arch/5.26/aarch64-linux-thread-multi /path/to/slimserver/CPAN/arch/5.26/
