@@ -225,6 +225,13 @@ if [ "$OS" = "Linux" ]; then
 	        exit 1
 	    fi
 	done
+	for hdr in "zlib.h"; do
+	    hdr_found=$(find /usr/include -name "$hdr");
+	    if [ ! "$hdr_found" ]; then
+	        echo "$hdr not found - please install appropriate development package"
+	        exit 1
+	    fi
+	done
 fi
 
 if [ "$OS" = "FreeBSD" ]; then
@@ -233,6 +240,13 @@ if [ "$OS" = "FreeBSD" ]; then
 	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
 	    if [ $? -ne 0 ] ; then
 	        echo "$i not found - please install it"
+	        exit 1
+	    fi
+	done
+	for hdr in "zlib.h"; do
+	    hdr_found=$(find /usr/include -name "$hdr");
+	    if [ ! "$hdr_found" ]; then
+	        echo "$hdr not found - please install appropriate development package"
 	        exit 1
 	    fi
 	done
@@ -547,7 +561,8 @@ function build_all {
     build Class::C3::XS
     build Class::XSAccessor
     build Compress::Raw::Zlib
-    build DBI
+    # DBD::SQLite builds DBI, so don't need it here as well.
+#   build DBI
 #   build DBD::mysql
     build DBD::SQLite
     build Digest::SHA1
@@ -627,22 +642,22 @@ function build {
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
             else
-                build_module DBI-1.616 "" 0
+                build_module DBI-1.616
             fi
             ;;
 
         DBD::SQLite)
-            if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module DBI-1.628 "" 0
-            else
-                build_module DBI-1.616 "" 0
-            fi
+            # Build DBI before DBD::SQLite so that DBD::SQLite is built
+            # against _our_ DBI, not one already present on the system.
+            build DBI
 
             # build ICU, but only if it doesn't exist in the build dir,
             # because it takes so damn long on slow platforms
             if [ ! -f build/lib/libicudata_s.a ]; then
                 tar_wrapper zxvf icu4c-58_2-src.tgz
                 cd icu/source
+                # Need to patch ICU to adapt to removal of xlocale.h on some platforms.
+                patch -p0 < ../../icu58_patches/digitlst.cpp.patch
                 . ../../update-config.sh
                 if [ "$OS" = 'Darwin' ]; then
                     ICUFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -DU_USING_ICU_NAMESPACE=0 -DU_CHARSET_IS_UTF8=1" # faster code for native UTF-8 systems
@@ -726,11 +741,7 @@ function build {
                 rm -rf DBD-SQLite-1.34_01
             else
                 cd ..
-                if [ $PERL_MINOR_VER -ge 16 ]; then
-                   build_module DBD-SQLite-1.34_01 "" 0
-                else
-		   build_module DBD-SQLite-1.34_01
-		fi
+                build_module DBD-SQLite-1.34_01
             fi
 
             ;;
@@ -778,20 +789,10 @@ function build {
             build_libpng
             build_giflib
 
-            # build Image::Scale
             build_module Test-NoWarnings-1.02 "" 0
-
-            tar_wrapper zxvf Image-Scale-0.14.tar.gz
-            cd Image-Scale-0.14
-
-            cp -Rv ../hints .
-            cd ..
-
             build_module Image-Scale-0.14 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
-                    --with-gif-includes="$BUILD/include" --with-gif-static \
-                    INSTALL_BASE=$PERL_BASE"
-
+                    --with-gif-includes="$BUILD/include" --with-gif-static"
             ;;
 
         IO::AIO)
@@ -864,7 +865,8 @@ function build {
 
         YAML::LibYAML)
             # Needed because LibYAML 0.35 used . in @INC (not permitted in Perl 5.26)
-            if [ $PERL_MINOR_VER -ge 26 ]; then
+            # Needed for Debian's Perl 5.24 as well, for the same reason
+            if [ $PERL_MINOR_VER -ge 24 ]; then
                 build_module YAML-LibYAML-0.65
             elif [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
@@ -893,8 +895,8 @@ function build {
             cp -Rv ../hints ./xs
             cd ..
 
-            $MAKE # minor test failure, so don't test
-            build_module Template-Toolkit-2.21 "INSTALL_BASE=$PERL_BASE TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
+            # minor test failure, so don't test
+            build_module Template-Toolkit-2.21 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
 
             ;;
 
@@ -927,7 +929,7 @@ function build {
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             cd ..
 
-            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\" INSTALL_BASE=$PERL_BASE"
+            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\""
 
             ;;
 
@@ -964,7 +966,7 @@ function build {
 
             cd ..
 
-            build_module XML-Parser-2.41 "INSTALL_BASE=$PERL_BASE EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+            build_module XML-Parser-2.41 "EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
 
             rm -rf expat-2.0.1
             ;;

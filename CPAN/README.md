@@ -23,7 +23,10 @@ On Debian, Ubuntu etc. make sure you have the following packages installed:
 * libgd-dev
 * libmodule-install-perl
 
-In addition you should make sure you do have `/usr/include/xlocale.h` available on your system. If you don't, then simply symlink locale.h:
-```
-sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
-```
+### Preparation of a FreeBSD based system
+On FreeBSD, FreeNAS, etc. make sure you have the following packages/ports installed:
+* devel/nasm
+* shells/bash
+* devel/gmake
+* net/rsync
+* lang/perl5 (or perl5.22 or perl5.26)
