@@ -453,20 +453,6 @@ fi
 RAW_ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}'`
 # Strip out extra -gnu on Linux for use within this build script
 ARCH=`echo $RAW_ARCH | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
-# Check to make sure this script and perl use the same compiler
-PERL_CC=`$PERL_BIN -V | grep "cc='" | sed "s#.*cc='##g" | sed "s#'.*##g"`
-
-if [[ "$PERL_CC" != "$GCC" ]]; then
-    echo "********************************************** WARNING *************************************"
-    echo "*                                                                                          *"
-    echo "*    Perl was compiled with $PERL_CC,"
-    echo "*    which is different than $GCC."
-    echo "*    This may cause significant problems.                                                  *"
-    echo "*                                                                                          *"
-    echo "* Press CTRL^C to stop the build now...                                                    *"
-    echo "********************************************************************************************"
-    sleep 3
-fi
 
 echo "Building for $OS / $ARCH"
 echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
