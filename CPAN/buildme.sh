@@ -99,8 +99,21 @@ if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "Su
 fi
 
 # Set default values prior to potential overwrite
-GCC=gcc
-GXX=g++
+# Check to see if CC and CXX are already defined
+if [[ ! -z "$CC" ]]; then
+   GCC="$CC"
+else
+   # Take a guess
+   GCC=gcc
+fi
+if [[ ! -z "$CXX" ]]; then
+   GXX="$CXX"
+else
+   GXX=g++
+fi
+
+# FreeBSD uses the following precedence: 1. Environment values for CC/CXX/CPP,
+# 2. Values defined in or 3. Stock build chain.
 if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
@@ -109,7 +122,9 @@ if [ "$OS" = "FreeBSD" ]; then
         MAKE_CXX=`grep ^CXX= /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
         MAKE_CPP=`grep ^CPP= /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
     fi
-    if [[ ! -z "$MAKE_CC" ]]; then
+    if [[ ! -z "$CC" ]]; then
+        GCC="$CC"
+    elif [[ ! -z "$MAKE_CC" ]]; then
         GCC="$MAKE_CC"
     elif [ $BSD_MAJOR_VER -ge 10 ]; then
         # FreeBSD started using clang as the default compiler starting with 10.
@@ -117,7 +132,9 @@ if [ "$OS" = "FreeBSD" ]; then
     else
         GCC=gcc
     fi
-    if [[ ! -z "$MAKE_CXX" ]]; then
+    if [[ ! -z "$CXX" ]]; then
+        GXX="$CXX"
+    elif [[ ! -z "$MAKE_CXX" ]]; then
         GXX="$MAKE_CXX"
     elif [ $BSD_MAJOR_VER -ge 10 ]; then
         # FreeBSD started using clang++ as the default compiler starting with 10.
@@ -125,7 +142,9 @@ if [ "$OS" = "FreeBSD" ]; then
     else
         GXX=g++
     fi
-    if [[ ! -z "$MAKE_CPP" ]]; then
+    if [[ ! -z "$CPP" ]]; then
+        GPP="$CPP"
+    elif [[ ! -z "$MAKE_CPP" ]]; then
         GPP="$MAKE_CPP"
     else
         GPP=cpp
