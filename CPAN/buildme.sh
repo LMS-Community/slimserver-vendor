@@ -98,10 +98,9 @@ if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "Su
     exit
 fi
 
-# Set default values prior to potential overwrite for FreeBSD platforms
+# Set default values prior to potential overwrite
 GCC=gcc
 GXX=g++
-GPP=cpp
 if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
@@ -131,9 +130,14 @@ if [ "$OS" = "FreeBSD" ]; then
     else
         GPP=cpp
     fi
+    # Ensure the environment makes use of the desired/specified compilers and
+    # pre-processor
+    export CC=$GCC
+    export CXX=$GXX
+    export CPP=$GPP
 fi
 
-for i in $GCC $GPP rsync make ; do
+for i in $GCC $GXX rsync make ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
@@ -674,7 +678,6 @@ function build {
                     for i in ../../icu58_patches/freebsd/patch-*;
                         do patch -p0 < $i; done
                 fi
-                CC="$GCC" CXX="$GXX" CPP="$GPP" \
                 CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
                 $MAKE
@@ -939,7 +942,6 @@ function build {
             cd expat-2.0.1/conftools
             . ../../update-config.sh
             cd ..
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
@@ -986,7 +988,6 @@ function build {
             # libfreetype.a size (i386/x86_64 universal binary):
             #   1634288 (default)
             #    461984 (with custom ftoption.h/modules.cfg)
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD
@@ -1046,7 +1047,6 @@ function build {
             fi
             . ../update-config.sh
 
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             OBJCFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1107,7 +1107,6 @@ function build_libexif {
     cd libexif-0.6.20
     . ../update-config.sh
 
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1233,7 +1232,6 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
 
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
         $MAKE
@@ -1253,7 +1251,6 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
 
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             ./configure --prefix=$BUILD \
@@ -1285,7 +1282,6 @@ function build_libpng {
     cp -fv ../libpng-pngconf.h pngconf.h
     . ../update-config.sh
 
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1310,7 +1306,6 @@ function build_giflib {
     tar_wrapper zxf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
     . ../update-config.sh
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1465,7 +1460,6 @@ function build_ffmpeg {
         FLAGS=$SAVED_FLAGS
         cd ..
     else
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
@@ -1504,7 +1498,6 @@ function build_bdb {
        patch -p0 < ../db51-src_dbinc_atomic.patch
        popd
     fi
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ../dist/configure --prefix=$BUILD $MUTEX \
