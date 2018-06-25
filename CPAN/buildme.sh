@@ -267,7 +267,7 @@ if [ "$OS" = "FreeBSD" ]; then
 	    fi
 	done
 	for hdr in "zlib.h"; do
-	    hdr_found=$(find /usr/include -name "$hdr");
+	    hdr_found=$(find /usr/include/ -name "$hdr");
 	    if [ ! "$hdr_found" ]; then
 	        echo "$hdr not found - please install appropriate development package"
 	        exit 1
