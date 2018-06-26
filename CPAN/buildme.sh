@@ -664,6 +664,8 @@ function build {
         DBI)
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
+            elif [ $PERL_MINOR_VER -eq 8 ]; then
+                build_module DBI-1.616 "" 0
             else
                 build_module DBI-1.616
             fi
