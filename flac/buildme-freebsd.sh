@@ -1,10 +1,11 @@
 #!/bin/sh
 
-OGG=1.1.3
-FLAC=1.2.1
+OGG=1.3.3
+FLAC=1.3.2
+OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
+FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
 LOG=$PWD/config.log
-ARCH=`uname -m`
-CHANGENO=`git rev-parse --short HEAD`
+CHANGENO=$(git rev-parse --short HEAD)
 OUTPUT=$PWD/flac-build-$ARCH-$CHANGENO
 
 if [ -f "/etc/make.conf" ]; then
@@ -31,7 +32,7 @@ date > $LOG
 
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
-tar -zxf libogg-$OGG.tar.gz
+tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
 cd libogg-$OGG
 echo "Configuring..."
 CC=$CC CXX=$CXX ./configure --disable-shared >> $LOG
@@ -41,12 +42,9 @@ cd ..
 
 ## Build
 echo "Untarring..."
-tar zxvf flac-$FLAC.tar.gz >> $LOG
+tar zxvf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
-patch -p0 < ../sc.patch >> $LOG
-patch -p0 < ../triode-ignore-wav-length.patch >> $LOG
-patch -p0 < ../steven-allow-bad-ssnd-chunk-size.patch >> $LOG
-patch -p0 < ../flac_configure.in.patch >> $LOG
+patch -p1 < ../01-flac.patch >> $LOG
 mv configure.in configure.ac
 autoreconf -fi
 ./autogen.sh
