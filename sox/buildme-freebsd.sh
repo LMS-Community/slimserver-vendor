@@ -1,13 +1,11 @@
 #!/bin/sh
 
-FLAC=1.2.1
-SOX=14.3.1
-OGG=1.1.4
-VORBIS=1.2.3
-MAD=0.15.1b
-WAVPACK=4.60.1
+OGG=1.3.3
+FLAC=1.3.2
+OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
+FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
 LOG=$PWD/config.log
-CHANGENO=`git rev-parse --short HEAD`
+CHANGENO=$(git rev-parse --short HEAD)
 ARCH=`uname -m`
 OUTPUT=$PWD/sox-build-$ARCH-$CHANGENO
 
@@ -42,7 +40,7 @@ date > $LOG
 
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
-tar -zxf libogg-$OGG.tar.gz 
+tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
 cd libogg-$OGG
 echo "Configuring..."
 CC=$CC CXX=$CXX ./configure --disable-shared >> $LOG
@@ -66,9 +64,10 @@ cd ..
 
 ## Build FLAC
 echo "Untarring flac-$FLAC.tar.gz..."
-tar -zxf flac-$FLAC.tar.gz 
+tar zxf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC
 patch -p0 < ../patch/flac_configure.in.patch
+patch -p1 < ../01-flac.patch >> $LOG
 autoreconf -fi
 sh autogen.sh
 echo "Configuring..."
@@ -79,7 +78,7 @@ cd ..
 
 ## Build LibMAD
 echo "Untarring libmad-$MAD.tar.gz..."
-tar -zxf libmad-$MAD.tar.gz
+tar -zxf libmad-$MAD${MAD_SUB}.tar.gz
 cd libmad-$MAD
 # Remove -fforce-mem line as it doesn't work with newer gcc
 patch -p0 < ../patch/libmad_configure.ac.patch
