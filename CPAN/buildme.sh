@@ -1395,12 +1395,16 @@ function build_ffmpeg {
 
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
-    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" ]; then
+    if [[ "$ARCH" = "x86_64-linux-thread-multi" || "$ARCH" =~ "amd64-freebsd" || "$ARCH" = "i86pc-solaris-thread-multi-64int" ]]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     # FreeBSD amd64 needs arch option
-    if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
+    if [[ "$ARCH" =~ "amd64-freebsd" ]]; then
         FFOPTS="$FFOPTS --arch=x86"
+        # FFMPEG has known issues with GCC 4.2. See: https://trac.ffmpeg.org/ticket/3970
+        if [[ "$CC_IS_GCC" == true && "$CC_VERSION" -ge 40200 && "$CC_VERSION" -lt 40300 ]]; then
+            FFOPTS="$FFOPTS --disable-asm"
+        fi
     fi
 
     if [ "$OS" = "Darwin" ]; then
