@@ -1,13 +1,16 @@
 #!/bin/sh
 
 #pCP package Dependancies
-tce-load -i git compiletc automake gettext-dev
+tce-load -i git compiletc automake libtool gettext-dev
 
 FLAC=1.3.2
 SOX=14.4.2
 OGG=1.3.3
+OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
+FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
 VORBIS=1.3.6
 MAD=0.15.1b
+MAD_SUB="-8"
 WAVPACK=5.1.0
 LOG=$PWD/config.log
 CHANGENO=$(git rev-parse --short HEAD)
@@ -37,10 +40,8 @@ echo "Most log mesages sent to $LOG... only 'errors' displayed here"
 date > $LOG
 
 ## Build Ogg first
-#echo "Untarring libogg-$OGG.tar.gz..."
-#tar -xf libogg-$OGG.tar.gz
-echo "Cloning ligogg....."
-[ -d libogg-$OGG ] || git clone https://github.com/xiph/ogg.git libogg-$OGG >> $LOG
+echo "Untarring libogg-$OGG.tar.gz..."
+tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
 cd libogg-$OGG
 #. ../../CPAN/update-config.sh
 [ -x configure ] || ./autogen.sh >> $LOG
@@ -63,9 +64,7 @@ cd ..
 
 ## Build FLAC
 #echo "Untarring flac-$FLAC.tar.gz..."
-#tar -xf flac-$FLAC.tar.xz
-echo "Cloning FLAC....."
-[ -d flac-$FLAC ] || git clone --depth 1 https://github.com/xiph/flac.git flac-$FLAC >> $LOG
+tar zxf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC
 patch -p1 < ../01-flac.patch
 #. ../../CPAN/update-config.sh
@@ -106,14 +105,14 @@ cd ../..
 ## finally, build SOX against FLAC
 echo "Untarring sox-$SOX.tar.gz..."
 tar -xf sox-$SOX.tar.gz >> $LOG
-cd sox-sox-$SOX >> $LOG
+cd sox-$SOX >> $LOG
 #. ../../CPAN/update-config.sh
-autoreconf -i
+patch -p1 < ../02-restore-short-options.patch
 echo "Configuring..."
 CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
 export LDFLAGS="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
 export CFLAGS="$CFLAGS $CPF"
-./configure --with-pulseaudio=no --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
+./configure --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 echo "Running make install"

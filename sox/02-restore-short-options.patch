@@ -1,0 +1,53 @@
+diff -urN sox-14.4.2-orig/src/sox.c sox-14.4.2/src/sox.c
+--- sox-14.4.2-orig/src/sox.c	2014-10-06 11:02:30 +0900
++++ sox-14.4.2/src/sox.c	2015-03-19 08:49:17 +0900
+@@ -1977,7 +1977,19 @@
+ "-e|--encoding ENCODING   Set encoding (ENCODING may be one of signed-integer,",
+ "                         unsigned-integer, floating-point, mu-law, a-law,",
+ "                         ima-adpcm, ms-adpcm, gsm-full-rate)",
++"-s                       Equivalent to -e signed-integer",
++"-u                       Equivalent to -e unsigned-integer",
++"-f                       Equivalent to -e floating-point",
++"-a                       Equivalent to -e ms-adpcm",
++"-i                       Equivalent to -e ima-adpcm",
++"-o                       Equivalent to -e oki-adpcm",
++"-g                       Equivalent to -e gsm-full-rate",
+ "-b|--bits BITS           Encoded sample size in bits",
++"-1                       Equivalent to -b 8",
++"-2                       Equivalent to -b 16",
++"-3                       Equivalent to -b 24",
++"-4                       Equivalent to -b 32",
++"-8                       Equivalent to -b 64",
+ "-N|--reverse-nibbles     Encoded nibble-order",
+ "-X|--reverse-bits        Encoded bit-order",
+ "--endian little|big|swap Encoded byte-order; swap means opposite to default",
+@@ -2165,7 +2177,7 @@
+ }
+ 
+ static char const * const getoptstr =
+-  "+b:c:de:hmnpqr:t:v:xBC:DGLMNRSTV::X";
++  "+b:c:de:hmnpqr:t:v:xBC:DGLMNRSTV::X12348sufaiog";
+ 
+ static struct lsx_option_t const long_options[] = {
+   {"add-comment"     , lsx_option_arg_required, NULL, 0},
+@@ -2480,6 +2492,20 @@
+       }
+       break;
+ 
++    case '1': f->encoding.bits_per_sample = 8;  break;
++    case '2': f->encoding.bits_per_sample = 16; break;
++    case '3': f->encoding.bits_per_sample = 24; break;
++    case '4': f->encoding.bits_per_sample = 32; break;
++    case '8': f->encoding.bits_per_sample = 64; break;
++
++    case 's': f->encoding.encoding = SOX_ENCODING_SIGN2;     break;
++    case 'u': f->encoding.encoding = SOX_ENCODING_UNSIGNED;  break;
++    case 'f': f->encoding.encoding = SOX_ENCODING_FLOAT;     break;
++    case 'a': f->encoding.encoding = SOX_ENCODING_MS_ADPCM;  break;
++    case 'i': f->encoding.encoding = SOX_ENCODING_IMA_ADPCM; break;
++    case 'o': f->encoding.encoding = SOX_ENCODING_OKI_ADPCM; break;
++    case 'g': f->encoding.encoding = SOX_ENCODING_GSM;       break;
++
+     case 'L': case 'B': case 'x':
+       if (f->encoding.reverse_bytes != sox_option_default || f->encoding.opposite_endian)
+         usage("only one endian option per file is allowed");
