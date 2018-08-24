@@ -112,8 +112,10 @@ else
    GXX=g++
 fi
 
-# FreeBSD uses the following precedence: 1. Environment values for CC/CXX/CPP,
-# 2. Values defined in or 3. Stock build chain.
+# This script uses the following precedence for FreeBSD:
+# 1. Environment values for CC/CXX/CPP (checks if $CC is already defined)
+# 2. Values defined in /etc/make.conf, or
+# 3. Stock build chain
 if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
