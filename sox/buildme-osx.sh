@@ -1,13 +1,16 @@
 #!/bin/sh
 
-FLAC=1.2.1
-SOX=14.3.1
-OGG=1.1.4
-VORBIS=1.2.3
+SOX=14.4.2
+FLAC=1.3.2
+OGG=1.3.3
+OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
+FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
+VORBIS=1.3.6
 MAD=0.15.1b
-WAVPACK=4.60.1
+MAD_SUB="-8"
+WAVPACK=5.1.0
 LOG=$PWD/config.log
-CHANGENO=`git show -s --format=%h`
+CHANGENO=$(git rev-parse --short HEAD)
 ARCH="osx"
 OUTPUT=$PWD/sox-build-$ARCH-$CHANGENO
 
@@ -32,7 +35,7 @@ date > $LOG
 
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
-tar -zxf libogg-$OGG.tar.gz 
+tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz 
 cd libogg-$OGG
 echo "Configuring..."
 ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --disable-shared --disable-dependency-tracking >> $LOG
@@ -53,7 +56,7 @@ cd ..
 ## Build FLAC
 # Mac: Disabled ASM code
 echo "Untarring flac-$FLAC.tar.gz..."
-tar -zxf flac-$FLAC.tar.gz 
+tar zxf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC
 echo "Configuring..."
 ./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-shared --disable-xmms-plugin --disable-dependency-tracking --disable-asm-optimizations --disable-cpplibs >> $LOG
@@ -92,10 +95,11 @@ cd ../..
 echo "Untarring sox-$SOX.tar.gz..."
 tar -zxf sox-$SOX.tar.gz >> $LOG
 cd sox-$SOX >> $LOG
+patch -p1 < ../02-restore-short-options.patch
 echo "Configuring..."
 CPF="$CFLAGS -I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/" 
 LDF="$LDFLAGS -L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
-./configure CFLAGS="$CPF" LDFLAGS="$LDF" --with-flac --with-oggvorbis --without-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --disable-dependency-tracking --prefix $OUTPUT >> $LOG
+./configure CFLAGS="$CPF" LDFLAGS="$LDF" --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --without-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --disable-dependency-tracking --prefix $OUTPUT >> $LOG
 echo "Running make"
 make  >> $LOG
 echo "Running make install"

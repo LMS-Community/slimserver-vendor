@@ -1,0 +1,13 @@
+diff --git a/src/flac/encode.c b/src/flac/encode.c
+index be3869f..0377364 100644
+--- a/src/flac/encode.c
++++ b/src/flac/encode.c
+@@ -1386,7 +1386,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
+ 			case FORMAT_AIFF:
+ 			case FORMAT_AIFF_C:
+ 				while(encoder_session.fmt.iff.data_bytes > 0) {
+-					const size_t bytes_to_read =
++					size_t bytes_to_read =
+ 						(size_t) min (sizeof (ubuffer.u8),
+ 							min (encoder_session.fmt.iff.data_bytes,
+ 								CHUNK_OF_SAMPLES * (uint64_t) encoder_session.info.bytes_per_wide_sample));
