@@ -18,8 +18,8 @@ OUTPUT=$PWD/sox-build-$ARCH-$CHANGENO
 # Mac Universal Binary support
 #CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
 #LDFLAGS="-arch i386 -arch ppc"
-#CFLAGS="-arch x86_64"
-#LDFLAGS="-arch x86_64"
+CFLAGS="-arch x86_64"
+LDFLAGS="-arch x86_64"
 
 # Clean up
 rm -rf $OUTPUT
