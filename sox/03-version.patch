@@ -1,0 +1,23 @@
+diff --git a/src/sox.h b/src/sox.h
+index 7d30742..c640789 100644
+--- a/src/sox.h
++++ b/src/sox.h
+@@ -677,7 +677,7 @@ The API version of the sox.h file. It is not meant to follow the version
+ number of SoX but it has historically. Please do not count on
+ SOX_LIB_VERSION_CODE staying in sync with the libSoX version.
+ */
+-#define SOX_LIB_VERSION_CODE   SOX_LIB_VERSION(14, 4, 2)
++#define SOX_LIB_VERSION_CODE   SOX_LIB_VERSION(14, 4, 3)
+ 
+ /**
+ Client API:
+diff --git a/src/soxconfig.h.cmake b/src/soxconfig.h.cmake
+index 69f4640..77cbbd2 100644
+--- a/src/soxconfig.h.cmake
++++ b/src/soxconfig.h.cmake
+@@ -1,4 +1,4 @@
+-#define PACKAGE_VERSION "14.4.2"
++#define PACKAGE_VERSION "14.4.3"
+ 
+ #cmakedefine EXTERNAL_GSM             1
+ #cmakedefine EXTERNAL_LPC10           1

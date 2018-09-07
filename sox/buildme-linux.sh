@@ -1,10 +1,11 @@
 #!/bin/sh
 
-SOX=14.4.2
+SOX=14.4.3
 FLAC=1.3.2
 OGG=1.3.3
 OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
 FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
+SOX_GIT="-0be259eaa9ce3f3fa587a3ef0cf2c0b9c73167a2"
 VORBIS=1.3.6
 MAD=0.15.1b
 MAD_SUB="-8"
@@ -81,7 +82,7 @@ tar -jxf wavpack-$WAVPACK.tar.bz2
 cd wavpack-$WAVPACK
 . ../../CPAN/update-config.sh
 echo "Configuring..."
-./configure --disable-shared >> $LOG
+./configure --disable-shared --with-iconv=no --disable-apps >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 # sox looks for wavpack/wavpack.h so we need to make a symlink
@@ -91,14 +92,15 @@ cd ../..
 
 ## finally, build SOX against FLAC
 echo "Untarring sox-$SOX.tar.gz..."
-tar -zxf sox-$SOX.tar.gz >> $LOG
+tar -zxf sox-${SOX}${SOX_GIT}.tar.gz >> $LOG
 cd sox-$SOX >> $LOG
 patch -p1 < ../02-restore-short-options.patch
+patch -p1 < ../03-version.patch
 . ../../CPAN/update-config.sh
 echo "Configuring..."
 CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
 LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
-./configure CFLAGS="$CPF" LDFLAGS="$LDF" --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-ffmpeg --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
+./configure CFLAGS="$CPF" LDFLAGS="$LDF" --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 echo "Running make install"
