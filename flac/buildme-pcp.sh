@@ -6,7 +6,7 @@ tce-load -i git compiletc automake gettext-dev
 OGG=1.3.3
 FLAC=1.3.2
 OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
-FLAC_GIT="-452a44777892086892feb8ed7f1156e9b897b5c3"
+FLAC_GIT="-faafa4c82c31e5aed7bc7c0e87a379825372c6ac"
 LOG=$PWD/config.log
 CHANGENO=$(git rev-parse --short HEAD)
 ARCH=`arch`
