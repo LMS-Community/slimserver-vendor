@@ -725,12 +725,12 @@ function build {
             export ICU_DATA=$BUILD/share/icu/58.2
 
             # Replace huge data file with smaller one containing only our collations
-            rm -f $BUILD/share/icu/59.1/icudt58*.dat
+            rm -f $BUILD/share/icu/58.2/icudt58*.dat
             cp -v icudt58*.dat $BUILD/share/icu/58.2
 
             # Custom build for ICU support
-            tar_wrapper zxf DBD-SQLite-1.34_01.tar.gz
-            cd DBD-SQLite-1.34_01
+            tar_wrapper zxf DBD-SQLite-1.58.tar.gz
+            cd DBD-SQLite-1.58
             if [[ "$GCC_LIBCPP" == true ]] ; then
             # Need this because GLIBCXX uses -lstdc++, but LIBCPP uses -lc++
                 patch -p0 < ../DBD-SQLite-ICU-libcpp.patch
@@ -764,10 +764,10 @@ function build {
                 fi
 
                 cd ..
-                rm -rf DBD-SQLite-1.34_01
+                rm -rf DBD-SQLite-1.58
             else
                 cd ..
-                build_module DBD-SQLite-1.34_01
+                build_module DBD-SQLite-1.58
             fi
 
             ;;
