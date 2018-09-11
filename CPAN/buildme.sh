@@ -98,10 +98,24 @@ if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "Su
     exit
 fi
 
-# Set default values prior to potential overwrite for FreeBSD platforms
-GCC=gcc
-GXX=g++
-GPP=cpp
+# Set default values prior to potential overwrite
+# Check to see if CC and CXX are already defined
+if [[ ! -z "$CC" ]]; then
+   GCC="$CC"
+else
+   # Take a guess
+   GCC=gcc
+fi
+if [[ ! -z "$CXX" ]]; then
+   GXX="$CXX"
+else
+   GXX=g++
+fi
+
+# This script uses the following precedence for FreeBSD:
+# 1. Environment values for CC/CXX/CPP (checks if $CC is already defined)
+# 2. Values defined in /etc/make.conf, or
+# 3. Stock build chain
 if [ "$OS" = "FreeBSD" ]; then
     BSD_MAJOR_VER=`uname -r | sed 's/\..*//g'`
     BSD_MINOR_VER=`uname -r | sed 's/.*\.//g'`
@@ -110,7 +124,9 @@ if [ "$OS" = "FreeBSD" ]; then
         MAKE_CXX=`grep ^CXX= /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CXX=##g'`
         MAKE_CPP=`grep ^CPP= /etc/make.conf | grep -v CCACHE | grep -v \# | sed 's#CPP=##g'`
     fi
-    if [[ ! -z "$MAKE_CC" ]]; then
+    if [[ ! -z "$CC" ]]; then
+        GCC="$CC"
+    elif [[ ! -z "$MAKE_CC" ]]; then
         GCC="$MAKE_CC"
     elif [ $BSD_MAJOR_VER -ge 10 ]; then
         # FreeBSD started using clang as the default compiler starting with 10.
@@ -118,7 +134,9 @@ if [ "$OS" = "FreeBSD" ]; then
     else
         GCC=gcc
     fi
-    if [[ ! -z "$MAKE_CXX" ]]; then
+    if [[ ! -z "$CXX" ]]; then
+        GXX="$CXX"
+    elif [[ ! -z "$MAKE_CXX" ]]; then
         GXX="$MAKE_CXX"
     elif [ $BSD_MAJOR_VER -ge 10 ]; then
         # FreeBSD started using clang++ as the default compiler starting with 10.
@@ -126,14 +144,21 @@ if [ "$OS" = "FreeBSD" ]; then
     else
         GXX=g++
     fi
-    if [[ ! -z "$MAKE_CPP" ]]; then
+    if [[ ! -z "$CPP" ]]; then
+        GPP="$CPP"
+    elif [[ ! -z "$MAKE_CPP" ]]; then
         GPP="$MAKE_CPP"
     else
         GPP=cpp
     fi
+    # Ensure the environment makes use of the desired/specified compilers and
+    # pre-processor
+    export CC=$GCC
+    export CXX=$GXX
+    export CPP=$GPP
 fi
 
-for i in $GCC $GPP rsync make ; do
+for i in $GCC $GXX rsync make ; do
     which $i > /dev/null
     if [ $? -ne 0 ] ; then
         echo "$i not found - please install it"
@@ -244,7 +269,7 @@ if [ "$OS" = "FreeBSD" ]; then
 	    fi
 	done
 	for hdr in "zlib.h"; do
-	    hdr_found=$(find /usr/include -name "$hdr");
+	    hdr_found=$(find /usr/include/ -name "$hdr");
 	    if [ ! "$hdr_found" ]; then
 	        echo "$hdr not found - please install appropriate development package"
 	        exit 1
@@ -641,6 +666,8 @@ function build {
         DBI)
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module DBI-1.628
+            elif [ $PERL_MINOR_VER -eq 8 ]; then
+                build_module DBI-1.616 "" 0
             else
                 build_module DBI-1.616
             fi
@@ -674,7 +701,6 @@ function build {
                     for i in ../../icu58_patches/freebsd/patch-*;
                         do patch -p0 < $i; done
                 fi
-                CC="$GCC" CXX="$GXX" CPP="$GPP" \
                 CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
                 $MAKE
@@ -773,7 +799,12 @@ function build {
             ;;
 
         Encode::Detect)
-            build_module Data-Dump-1.19
+            if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 && $PERL_MINOR_VER -le 10 ]]; then
+                # Tests fail in jails with old Perl
+                build_module Data-Dump-1.19 "" 0
+            else
+                build_module Data-Dump-1.19
+            fi
             build_module ExtUtils-CBuilder-0.260301
             build_module Module-Build-0.35 "" 0
             build_module Encode-Detect-1.00
@@ -939,7 +970,6 @@ function build {
             cd expat-2.0.1/conftools
             . ../../update-config.sh
             cd ..
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD \
@@ -986,7 +1016,6 @@ function build {
             # libfreetype.a size (i386/x86_64 universal binary):
             #   1634288 (default)
             #    461984 (with custom ftoption.h/modules.cfg)
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                 ./configure --prefix=$BUILD
@@ -1046,7 +1075,6 @@ function build {
             fi
             . ../update-config.sh
 
-            CC="$GCC" CXX="$GXX" CPP="$GPP" \
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             OBJCFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1107,7 +1135,6 @@ function build_libexif {
     cd libexif-0.6.20
     . ../update-config.sh
 
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1233,7 +1260,6 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
 
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
         $MAKE
@@ -1253,7 +1279,6 @@ function build_libjpeg {
         # Disable features we don't need
         cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
 
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             ./configure --prefix=$BUILD \
@@ -1285,7 +1310,6 @@ function build_libpng {
     cp -fv ../libpng-pngconf.h pngconf.h
     . ../update-config.sh
 
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1310,7 +1334,6 @@ function build_giflib {
     tar_wrapper zxf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
     . ../update-config.sh
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1374,12 +1397,16 @@ function build_ffmpeg {
 
     # ASM doesn't work right on x86_64
     # XXX test --arch options on Linux
-    if [ "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "amd64-freebsd-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" ]; then
+    if [[ "$ARCH" = "x86_64-linux-thread-multi" || "$ARCH" =~ "amd64-freebsd" || "$ARCH" = "i86pc-solaris-thread-multi-64int" ]]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
     # FreeBSD amd64 needs arch option
-    if [ "$ARCH" = "amd64-freebsd" -o "$ARCH" = "amd64-freebsd-thread-multi" ]; then
+    if [[ "$ARCH" =~ "amd64-freebsd" ]]; then
         FFOPTS="$FFOPTS --arch=x86"
+        # FFMPEG has known issues with GCC 4.2. See: https://trac.ffmpeg.org/ticket/3970
+        if [[ "$CC_IS_GCC" == true && "$CC_VERSION" -ge 40200 && "$CC_VERSION" -lt 40300 ]]; then
+            FFOPTS="$FFOPTS --disable-asm"
+        fi
     fi
 
     if [ "$OS" = "Darwin" ]; then
@@ -1465,7 +1492,6 @@ function build_ffmpeg {
         FLAGS=$SAVED_FLAGS
         cd ..
     else
-        CC="$GCC" CXX="$GXX" CPP="$GPP" \
         CFLAGS="$FLAGS -O3" \
         LDFLAGS="$FLAGS -O3" \
             ./configure $FFOPTS
@@ -1504,7 +1530,6 @@ function build_bdb {
        patch -p0 < ../db51-src_dbinc_atomic.patch
        popd
     fi
-    CC="$GCC" CXX="$GXX" CPP="$GPP" \
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ../dist/configure --prefix=$BUILD $MUTEX \
