@@ -1,3 +1,6 @@
 CPAN/build/
 .*.sw?
 .project
+.vscode
+.vstags
+CPAN/DBD-SQLite*/
