@@ -29,6 +29,10 @@ rm -rf opusfile-$OPUSFILE
 rm -rf libmad-$MAD
 rm -rf wavpack-$WAVPACK
 
+export CFLAGS="-s -O3 -march=armv5te"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-s"
+
 ## Start
 echo "Most log mesages sent to $LOG... only 'errors' displayed here"
 date > $LOG
@@ -60,7 +64,7 @@ echo "Untarring opus-$OPUS.tar.gz..."
 tar -zxf opus-$OPUS.tar.gz
 cd opus-$OPUS
 echo "Configuring..."
-./configure --disable-extra-programs --enable-shared=no >> $LOG
+./configure --disable-extra-programs --enable-shared=no --enable-fixed-point --disable-float-api >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 cd ..
@@ -72,7 +76,7 @@ cd opusfile-$OPUSFILE
 echo "Configuring..."
 CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../opus-$OPUS/include"
 LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../opus-$OPUS/.libs"
-./configure DEPS_CFLAGS="$CPF" DEPS_LIBS="$LDF" --enable-shared=no --disable-examples --disable-doc >> $LOG
+./configure DEPS_CFLAGS="$CPF" DEPS_LIBS="$LDF" --enable-shared=no --enable-fixed-point --disable-float  --disable-examples --disable-doc >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 cd ..
@@ -108,7 +112,7 @@ tar -jxf wavpack-$WAVPACK.tar.bz2
 cd wavpack-$WAVPACK
 . ../../CPAN/update-config.sh
 echo "Configuring..."
-./configure --disable-shared --with-iconv=no --disable-apps >> $LOG
+./configure --disable-shared --disable-asm --with-iconv=no --disable-apps >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 # sox looks for wavpack/wavpack.h so we need to make a symlink

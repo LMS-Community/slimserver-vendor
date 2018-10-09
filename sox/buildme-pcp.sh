@@ -10,6 +10,8 @@ OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
 FLAC_GIT="-faafa4c82c31e5aed7bc7c0e87a379825372c6ac"
 SOX_GIT="-0be259eaa9ce3f3fa587a3ef0cf2c0b9c73167a2"
 VORBIS=1.3.6
+OPUS=1.2.1
+OPUSFILE=0.11
 MAD=0.15.1b
 MAD_SUB="-8"
 WAVPACK=5.1.0
@@ -25,12 +27,14 @@ rm -rf flac-$FLAC
 rm -rf sox-$SOX
 rm -rf libogg-$OGG
 rm -rf libvorbis-$VORBIS
+rm -rf opus-$OPUS
+rm -rf opusfile-$OPUSFILE
 rm -rf libmad-$MAD
 rm -rf wavpack-$WAVPACK
 
 #armv6
-export CFLAGS="-O2 -pipe -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard"
-export CXXFLAGS="-O2 -pipe -fno-exceptions -fno-rtti -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp"
+#export CFLAGS="-O2 -pipe -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard"
+#export CXXFLAGS="-O2 -pipe -fno-exceptions -fno-rtti -march=armv6zk -mtune=arm1176jzf-s -mfpu=vfp"
 
 #armv7
 #export CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O2 -pipe"
@@ -59,6 +63,28 @@ cd libvorbis-$VORBIS
 #. ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs --disable-shared >> $LOG
+echo "Running make"
+make -j $CORES >> $LOG
+cd ..
+
+## Build Opus
+echo "Untarring opus-$OPUS.tar.gz..."
+tar -zxf opus-$OPUS.tar.gz
+cd opus-$OPUS
+echo "Configuring..."
+./configure --disable-extra-programs --enable-shared=no >> $LOG
+echo "Running make"
+make -j $CORES >> $LOG
+cd ..
+
+## Build Opusfile
+echo "Untarring opusfile-$OPUSFILE.tar.gz..."
+tar -zxf opusfile-$OPUSFILE.tar.gz
+cd opusfile-$OPUSFILE
+echo "Configuring..."
+CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../opus-$OPUS/include"
+LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../opus-$OPUS/.libs"
+./configure DEPS_CFLAGS="$CPF" DEPS_LIBS="$LDF" --enable-shared=no --disable-examples --disable-doc >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 cd ..
@@ -111,10 +137,9 @@ cd sox-$SOX >> $LOG
 patch -p1 < ../02-restore-short-options.patch
 patch -p1 < ../03-version.patch
 echo "Configuring..."
-CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD" 
-export LDFLAGS="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
-export CFLAGS="$CFLAGS $CPF"
-./configure --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --with-mp3 --with-wavpack --without-id3tag --without-lame --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
+CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../libvorbis-$VORBIS/include -I$PWD/../opus-$OPUS/include -I$PWD/../wavpack-$WAVPACK/include -I$PWD/../flac-$FLAC/include -I$PWD/../libmad-$MAD"
+LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../libvorbis-$VORBIS/lib/.libs -L$PWD/../opus-$OPUS/.libs -L$PWD/../wavpack-$WAVPACK/src/.libs -L$PWD/../libmad-$MAD/.libs -L$PWD/../flac-$FLAC/src/libFLAC/.libs"
+./configure CFLAGS="$CPF" LDFLAGS="$LDF" OPUS_CFLAGS="-I$PWD/../opusfile-$OPUSFILE/include" OPUS_LIBS="-L$PWD/../opusfile-$OPUSFILE/.libs -lopusfile -lopus" --without-ao --without-pulseaudio --disable-openmp --with-flac --with-oggvorbis --with-opus --with-mp3 --with-wavpack --without-id3tag --without-lame --without-png --without-ladspa --disable-shared --without-oss --without-alsa --disable-symlinks --without-coreaudio --prefix $OUTPUT >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 echo "Running make install"
@@ -128,6 +153,8 @@ tar -zcvf $OUTPUT.tgz $OUTPUT
 rm -rf $OUTPUT
 rm -rf flac-$FLAC
 rm -rf sox-$SOX
+rm -rf opus-$OPUS
+rm -rf opusfile-$OPUSFILE
 rm -rf libogg-$OGG
 rm -rf libvorbis-$VORBIS
 rm -rf libmad-$MAD
