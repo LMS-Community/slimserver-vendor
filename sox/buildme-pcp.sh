@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #pCP package Dependancies
-tce-load -i git compiletc automake libtool gettext-dev
+tce-load -i git compiletc automake libtool gettext-dev openssl-dev
 
 FLAC=1.3.2
 SOX=14.4.3
