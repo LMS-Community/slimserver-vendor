@@ -16,7 +16,11 @@ LOG=$PWD/config.log
 CHANGENO=$(git rev-parse --short HEAD)
 ARCH=`arch`
 OUTPUT=$(pwd)/sox-build-$ARCH-$CHANGENO
-CORES=$(grep -c ^processor /proc/cpuinfo)
+CORES=1
+CFLAGS="-s -O2"
+CPPFLAGS=$CFLAGS
+CXXFLAGS=$CFLAGS
+LDFLAGS="-s"
 
 # Clean up
 rm -rf $OUTPUT
@@ -60,7 +64,7 @@ echo "Untarring opus-$OPUS.tar.gz..."
 tar -zxf opus-$OPUS.tar.gz
 cd opus-$OPUS
 echo "Configuring..."
-./configure --disable-extra-programs --enable-shared=no >> $LOG
+./configure --disable-extra-programs --enable-shared=no --disable-intrinsics >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 cd ..
@@ -72,7 +76,7 @@ cd opusfile-$OPUSFILE
 echo "Configuring..."
 CPF="-I$PWD/../libogg-$OGG/include -I$PWD/../opus-$OPUS/include"
 LDF="-L$PWD/../libogg-$OGG/src/.libs -L$PWD/../opus-$OPUS/.libs"
-./configure DEPS_CFLAGS="$CPF" DEPS_LIBS="$LDF" --enable-shared=no --disable-examples --disable-doc >> $LOG
+./configure DEPS_CFLAGS="$CPF" DEPS_LIBS="$LDF" --enable-shared=no --disable-examples --disable-doc --disable-http >> $LOG
 echo "Running make"
 make -j $CORES >> $LOG
 cd ..
