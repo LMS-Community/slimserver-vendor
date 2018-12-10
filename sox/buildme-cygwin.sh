@@ -14,7 +14,8 @@ MAD_SUB="-8"
 WAVPACK=5.1.0
 LOG=$PWD/config.log
 CHANGENO=$(git rev-parse --short HEAD)
-ARCH=`arch`
+ARCH=$(uname -i)
+OSTYPE=$(uname -o)
 OUTPUT=$(pwd)/sox-build-$ARCH-$CHANGENO
 CORES=1
 CFLAGS="-s -O2"
@@ -110,6 +111,9 @@ cd ..
 echo "Untarring wavpack-$WAVPACK.tar.bz2..."
 tar -jxf wavpack-$WAVPACK.tar.bz2
 cd wavpack-$WAVPACK
+if [ "$OSTYPE" == "Msys" ]; then
+	patch -p1 < ../04-wavpack-mingw32.patch
+fi
 . ../../CPAN/update-config.sh
 echo "Configuring..."
 ./configure --disable-shared --with-iconv=no --disable-apps >> $LOG

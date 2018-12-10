@@ -1,0 +1,28 @@
+--- wavpack-5.1.0/src/read_words.c.orig	2016-12-22 00:50:03.000000000 -0500
++++ wavpack-5.1.0/src/read_words.c	2018-12-08 08:40:46.701863800 -0500
+@@ -124,11 +124,9 @@
+             wps->wvbits.bc += sizeof (*(wps->wvbits.ptr)) * 8;
+         }
+ 
+-#ifdef _WIN32
+-        _BitScanForward (&ones_count, ~wps->wvbits.sr);
+-#else
++
+         ones_count = __builtin_ctz (~wps->wvbits.sr);
+-#endif
++
+ 
+         if (ones_count >= LIMIT_ONES) {
+             wps->wvbits.bc -= ones_count;
+@@ -403,11 +401,7 @@
+             bs->bc += sizeof (*(bs->ptr)) * 8;
+         }
+ 
+-#ifdef _WIN32
+-        _BitScanForward (&ones_count, ~wps->wvbits.sr);
+-#else
+         ones_count = __builtin_ctz (~wps->wvbits.sr);
+-#endif
+ 
+         if (ones_count >= LIMIT_ONES) {
+             bs->bc -= ones_count;
