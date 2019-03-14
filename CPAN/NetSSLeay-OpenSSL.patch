@@ -1,0 +1,33 @@
+--- ./Net-SSLeay-1.85/SSLeay.xs	2018-01-27 21:43:03.000000000 +0000
++++ SSLeay.xs	2018-11-07 21:39:28.480255095 +0000
+@@ -5394,7 +5394,7 @@
+ 
+ #endif
+ 
+-#ifdef __ANDROID__
++#if defined(__ANDROID__) || OPENSSL_VERSION_NUMBER >= 0x10100000L
+ 
+ RSA *
+ RSA_generate_key(bits,ee,perl_cb=&PL_sv_undef,perl_data=&PL_sv_undef)
+@@ -5413,16 +5413,18 @@
+        e = BN_new();
+        BN_set_word(e, ee);
+        cb_data = simple_cb_data_new(perl_cb, perl_data);
+-       BN_GENCB new_cb;
+-       BN_GENCB_set_old(&new_cb, ssleay_RSA_generate_key_cb_invoke, cb_data);
++       BN_GENCB *new_cb;
++       new_cb = BN_GENCB_new();
++       BN_GENCB_set_old(new_cb, ssleay_RSA_generate_key_cb_invoke, cb_data);
+ 
+        ret = RSA_new();
+-       rc = RSA_generate_key_ex(ret, bits, e, &new_cb);
++       rc = RSA_generate_key_ex(ret, bits, e, new_cb);
+        
+        if (rc == -1 || ret == NULL)
+            croak("Couldn't generate RSA key");
+        simple_cb_data_free(cb_data);
+        BN_free(e);
++       BN_GENCB_free(new_cb);
+        e = NULL;
+        RETVAL = ret;
+     OUTPUT:

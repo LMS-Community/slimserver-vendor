@@ -1,0 +1,115 @@
+stage: "Trusty (14.04)"
+language: perl
+perl:
+  - "5.16"
+  - "5.18"
+  - "5.18-shrplib"
+  - "5.20"
+  - "5.20-shrplib"
+  - "5.22"
+  - "5.22-shrplib"
+  - "5.24"
+  - "5.24-shrplib"
+  - "5.26"
+  - "5.26-shrplib"
+os:
+  - linux
+env:
+  - CC=gcc && CXX=g++
+  - CC=clang && CXX=clang++
+
+addons:
+  apt:
+    update: true
+    packages:
+      - nasm
+      - rsync
+      - zlib1g-dev
+      - libmodule-install-perl
+# We can use this in lieu of the before_install code once 10.10 is deprecated.
+#  homebrew:
+#    update: true
+#    packages:
+#      - nasm
+#      - rsync
+
+
+jobs:
+  include:
+# Xenial does not have all the above version of Perl already installed
+# Matrix hack: Declare same stage multiple times...
+    - &xenial_alias
+      stage: "Xenial (16.04)"
+      dist: xenial
+      language: perl
+      perl: "5.22"
+      env: CC=gcc && CXX=g++
+
+    # Subsequent instances use alias to test different versions
+    - <<: *xenial_alias
+      perl: "5.22"
+      env: CC=clang && CXX=clang++
+    - <<: *xenial_alias
+      perl: "5.24"
+    - <<: *xenial_alias
+      perl: "5.24"
+      env: CC=clang && CXX=clang++
+    - <<: *xenial_alias
+      perl: "5.24-shrplib"
+    - <<: *xenial_alias
+      perl: "5.24-shrplib"
+      env: CC=clang && CXX=clang++
+    - <<: *xenial_alias
+      perl: "5.26"
+    - <<: *xenial_alias
+      perl: "5.26"
+      env: CC=clang && CXX=clang++
+    - <<: *xenial_alias
+      perl: "5.26-shrplib"
+    - <<: *xenial_alias
+      perl: "5.26-shrplib"
+      env: CC=clang && CXX=clang++
+
+# The macOS build images do not use perlbrew, so must masquerade as C++
+# projects to enable build using stock Perl. Matrix "env:" needs to be
+# overridden so that matrix expansion doesn't result in CC=gcc.
+# Matrix hack: Declare same stage multiple times...
+    - &macOS_alias
+      stage: macOS
+      os: osx
+      osx_image: xcode6.4
+      language: cpp
+      perl: "5.18"   # This label may not reflect reality
+      env: EVERYTHING=awesome
+      before_install:
+        - brew update
+        - brew install nasm rsync
+
+    # Subsequent instances use alias to test different versions
+    - <<: *macOS_alias
+      osx_image: xcode7.3
+    - <<: *macOS_alias
+      osx_image: xcode8
+    - <<: *macOS_alias
+      osx_image: xcode8.3
+    - <<: *macOS_alias
+      osx_image: xcode9
+    - <<: *macOS_alias
+      osx_image: xcode9.1
+    - <<: *macOS_alias
+      osx_image: xcode9.2
+    - <<: *macOS_alias
+      osx_image: xcode9.3
+    - <<: *macOS_alias
+      osx_image: xcode9.4
+    - <<: *macOS_alias
+      osx_image: xcode10
+    - <<: *macOS_alias
+      osx_image: xcode10.1
+
+install: true
+
+script:
+  - cd CPAN
+  - bash -o errexit buildme.sh -j 4
+

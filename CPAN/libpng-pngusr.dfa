@@ -1,0 +1,52 @@
+# pngusr.dfa
+#
+# Build time configuration of libpng for Squeezebox Server
+#
+# Tested with libpng-1.6.36 and Image::Scale v0.14
+option MNG_FEATURES off
+option FLOATING_ARITHMETIC off
+option FLOATING_POINT off
+option FIXED_POINT on
+option CONSOLE_IO off
+option READ_TEXT off
+option READ_hIST off
+option READ_iCCP off
+option READ_oFFs off
+option READ_pCAL off
+option READ_sCAL off
+option READ_pHYs off
+option READ_sBIT off
+option READ_sPLT off
+option READ_sRGB off
+option READ_tIME off
+option UNKNOWN_CHUNKS off
+
+option WRITE_cHRM off
+option WRITE_bKGD off
+option WRITE_gAMA off
+option WRITE_hIST off
+option WRITE_iCCP off
+option WRITE_oFFs off
+option WRITE_pCAL off
+option WRITE_sCAL off
+option WRITE_pHYs off
+option WRITE_sPLT off
+option WRITE_sRGB off
+option WRITE_tIME off
+option INFO_IMAGE off
+
+# These are all the options that were included as part of the libpng-1.4.3 conf
+# authored by agrundman. They are commented out because they prevent compilation
+# or prevent compilation of Image::Scale. Enable them at your own peril.
+
+# Disabling any of the following prevents libpng from compiling
+#option READ_cHRM off
+#option WRITE_TEXT off
+#option WRITE_sBIT off
+
+# Disabling any of the following causes libpng to fail one or more tests
+#option READ_gAMA off
+#option WRITE_tRNS off
+
+# Disabling any of the following causes Image::Scale to fail compilation
+#option STDIO off
