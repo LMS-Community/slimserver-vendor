@@ -45,6 +45,8 @@ RUN_TESTS=1
 USE_HINTS=1
 CLEAN=1
 FLAGS="-fPIC"
+# Default is to rename every x86 to i386
+RENAME_x86=1
 
 function usage {
     cat <<EOF
@@ -53,6 +55,7 @@ $0 [args] [target]
 -c            do not run make clean
 -i <lmsbase>  install modules in lmsbase directory
 -p <perlbin > set custom perl binary
+-r            do not rename all x86 archs to "i386"
 -t            do not run tests
 
 target: make target - if not specified all will be built
@@ -71,6 +74,9 @@ while getopts hci:p:t opt; do
   p)
       CUSTOM_PERL=$OPTARG
       ;;
+  r)
+      RENAME_x86=0
+      ;;
   t)
       RUN_TESTS=0
       ;;
@@ -88,7 +94,7 @@ done
 
 shift $((OPTIND - 1))
 
-echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS target ${1-all}"
+echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS RENAME_x86:$RENAME_x86 target ${1-all}"
 
 OS=`uname`
 MACHINE=`uname -m`
@@ -477,7 +483,13 @@ fi
 # We have found Perl, so get system arch, according to Perl
 RAW_ARCH=`$PERL_BIN -MConfig -le 'print $Config{archname}'`
 # Strip out extra -gnu on Linux for use within this build script
-ARCH=`echo $RAW_ARCH | sed 's/gnu-//' | sed 's/^i[3456]86-/i386-/' | sed 's/armv.*?-/arm-/' `
+ARCH=`echo $RAW_ARCH | sed 's/gnu-//' | sed 's/armv.*?-/arm-/' `
+
+# Default behavior is to rename all x86 architectures to i386
+if [ $RENAME_x86 -eq 1 ]; then
+   ARCH=`echo "$ARCH" | sed 's/^i[3456]86-/i386-/'`
+fi
+
 
 echo "Building for $OS / $ARCH"
 echo "Building with Perl 5.$PERL_MINOR_VER at $PERL_BIN"
