@@ -1167,15 +1167,20 @@ function build_libjpeg {
         return
     fi
 
+    # There is a known issue with the way automake passes things to libtool,
+    # so the warnings about an "unknown NASM token" can be disregarded. See
+    # for more info: https://sourceforge.net/p/libjpeg-turbo/mailman/message/34381375/
+
     # build libjpeg-turbo on x86 platforms
+    TURBO_VER="libjpeg-turbo-1.5.3"
     # skip on 10.9 until we've been able to build nasm from macports
     if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
-        tar_wrapper zxf libjpeg-turbo-1.1.1.tar.gz
-        cd libjpeg-turbo-1.1.1
+        tar_wrapper zxf $TURBO_VER.tar.gz
+        cd $TURBO_VER
 
         # Disable features we don't need
-        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
 
         # Build 64-bit fork
         CFLAGS="-O3 $OSX_FLAGS" \
@@ -1218,11 +1223,11 @@ function build_libjpeg {
         # combine i386 turbo with ppc libjpeg
 
         # build i386 turbo
-        tar_wrapper zxf libjpeg-turbo-1.1.1.tar.gz
-        cd libjpeg-turbo-1.1.1
+        tar_wrapper zxf $TURBO_VER.tar.gz
+        cd $TURBO_VER
 
         # Disable features we don't need
-        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
 
         CFLAGS="-O3 -m32 $OSX_FLAGS" \
         CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
@@ -1264,13 +1269,13 @@ function build_libjpeg {
         mv -fv libjpeg.a $BUILD/lib/libjpeg.a
         rm -fv libjpeg-i386.a libjpeg-ppc.a
 
-    elif [ "$ARCH" = "i386-linux-thread-multi" -o "$ARCH" = "x86_64-linux-thread-multi" -o "$ARCH" = "i86pc-solaris-thread-multi-64int" -o "$OS" = "FreeBSD" ]; then
+    elif [[ "$ARCH" =~ ^(i[3456]86-linux|x86_64-linux|i86pc-solaris).*$ || "$OS" == "FreeBSD" ]]; then
         # build libjpeg-turbo
-        tar_wrapper zxf libjpeg-turbo-1.1.1.tar.gz
-        cd libjpeg-turbo-1.1.1
+        tar_wrapper zxf $TURBO_VER.tar.gz
+        cd $TURBO_VER
 
         # Disable features we don't need
-        cp -fv ../libjpeg-turbo-jmorecfg.h jmorecfg.h
+        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
 
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
@@ -1306,7 +1311,7 @@ function build_libjpeg {
 
     rm -rf jpeg-8b
     rm -rf jpeg-6b
-    rm -rf libjpeg-turbo-1.1.1
+    rm -rf $TURBO_VER
 }
 
 function build_libpng {
@@ -1315,11 +1320,12 @@ function build_libpng {
     fi
 
     # build libpng
-    tar_wrapper zxf libpng-1.4.3.tar.gz
-    cd libpng-1.4.3
+    LIBPNG_VER="libpng-1.6.36"
+    tar_wrapper zxf $LIBPNG_VER.tar.gz
+    cd $LIBPNG_VER
 
     # Disable features we don't need
-    cp -fv ../libpng-pngconf.h pngconf.h
+    cp -fv ../libpng-pngusr.dfa pngusr.dfa
     . ../update-config.sh
 
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1334,7 +1340,7 @@ function build_libpng {
     $MAKE install
     cd ..
 
-    rm -rf libpng-1.4.3
+    rm -rf $LIBPNG_VER
 }
 
 function build_giflib {
