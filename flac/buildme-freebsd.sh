@@ -45,6 +45,7 @@ echo "Untarring..."
 tar zxvf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
 patch -p1 < ../01-flac.patch >> $LOG
+patch -p1 < ../02-flac-C-locale.patch >> $LOG
 mv configure.in configure.ac
 autoreconf -fi
 ./autogen.sh

@@ -47,6 +47,7 @@ echo "Untarring..."
 tar zxvf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
 patch -p1 < ../01-flac.patch >> $LOG
+patch -p1 < ../02-flac-C-locale.patch >> $LOG
 echo "Configuring..."
 ./configure --host=$TARGET --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-doxygen-docs --disable-shared --disable-xmms-plugin --disable-cpplibs --prefix $OUTPUT >> $LOG
 echo "Running make"
