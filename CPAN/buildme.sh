@@ -1320,7 +1320,7 @@ function build_libpng {
     fi
 
     # build libpng
-    LIBPNG_VER="libpng-1.6.36"
+    LIBPNG_VER="libpng-1.6.37"
     tar_wrapper zxf $LIBPNG_VER.tar.gz
     cd $LIBPNG_VER
 
