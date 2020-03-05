@@ -563,7 +563,7 @@ function build_module {
 
     if [ $local_use_hints -eq 1 ]; then
         # Always copy in our custom hints for OSX
-        cp -Rv ../hints .
+        cp -R ../hints .
     fi
     if [ $PERL_BIN ]; then
         export PERL5LIB=$PERL_BASE/lib/perl5
@@ -631,7 +631,7 @@ function build {
                 tar_wrapper zxf Class-C3-XS-0.11.tar.gz
                 cd Class-C3-XS-0.11
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
-                cp -Rv ../hints .
+                cp -R ../hints .
                 export PERL5LIB=$PERL_BASE/lib/perl5
 
                 $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
@@ -738,7 +738,7 @@ function build {
 
             # Replace huge data file with smaller one containing only our collations
             rm -f $BUILD/share/icu/58.2/icudt58*.dat
-            cp -v icudt58*.dat $BUILD/share/icu/58.2
+            cp icudt58*.dat $BUILD/share/icu/58.2
 
             # Custom build for ICU support
             tar_wrapper zxf DBD-SQLite-1.58.tar.gz
@@ -752,7 +752,7 @@ function build {
             if [ "$OS" = 'SunOS' ]; then
                 patch -p0 < ../DBD-SQLite-XOPEN.patch
             fi
-            cp -Rv ../hints .
+            cp -R ../hints .
 
             if [ $PERL_MINOR_VER -eq 8 ]; then
                 # Running 5.8
@@ -802,7 +802,7 @@ function build {
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
                 fi
             fi
-            cp -Rv ../hints .
+            cp -R ../hints .
             cd ..
 
             build_module EV-4.03
@@ -934,8 +934,8 @@ function build {
             # Template, custom build due to 2 Makefile.PL's
             tar_wrapper zxf Template-Toolkit-2.21.tar.gz
             cd Template-Toolkit-2.21
-            cp -Rv ../hints .
-            cp -Rv ../hints ./xs
+            cp -R ../hints .
+            cp -R ../hints ./xs
             cd ..
 
             # minor test failure, so don't test
@@ -967,7 +967,7 @@ function build {
             # DBD::mysql custom, statically linked with libmysqlclient
             tar_wrapper zxf DBD-mysql-3.0002.tar.gz
             cd DBD-mysql-3.0002
-            cp -Rv ../hints .
+            cp -R ../hints .
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             cd ..
@@ -1002,8 +1002,8 @@ function build {
             # XML::Parser custom, built against expat
             tar_wrapper zxf XML-Parser-2.41.tar.gz
             cd XML-Parser-2.41
-            cp -Rv ../hints .
-            cp -Rv ../hints ./Expat # needed for second Makefile.PL
+            cp -R ../hints .
+            cp -R ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
 
             cd ..
@@ -1020,10 +1020,10 @@ function build {
             . ../update-config.sh
 
             # Disable features we don't need for CODE2000
-            cp -fv ../freetype-ftoption.h objs/ftoption.h
+            cp -f ../freetype-ftoption.h objs/ftoption.h
 
             # Disable modules we don't need for CODE2000
-            cp -fv ../freetype-modules.cfg modules.cfg
+            cp -f ../freetype-modules.cfg modules.cfg
 
             # libfreetype.a size (i386/x86_64 universal binary):
             #   1634288 (default)
@@ -1053,7 +1053,7 @@ function build {
             # Disable some functions so we can compile out more freetype modules
             patch -p0 < ../Font-FreeType-lean.patch
 
-            cp -Rv ../hints .
+            cp -R ../hints .
             cd ..
 
             build_module Font-FreeType-0.03
@@ -1193,7 +1193,7 @@ function build_libjpeg {
             echo "make failed"
             exit $?
         fi
-        cp -fv .libs/libjpeg.a libjpeg-x86_64.a
+        cp -f .libs/libjpeg.a libjpeg-x86_64.a
 
         # Build 32-bit fork
         if [ $CLEAN -eq 1 ]; then
@@ -1209,7 +1209,7 @@ function build_libjpeg {
             echo "make failed"
             exit $?
         fi
-        cp -fv .libs/libjpeg.a libjpeg-i386.a
+        cp -f .libs/libjpeg.a libjpeg-i386.a
 
         # Combine the forks
         lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
@@ -1240,7 +1240,7 @@ function build_libjpeg {
             exit $?
         fi
         $MAKE install
-        cp -fv .libs/libjpeg.a ../libjpeg-i386.a
+        cp -f .libs/libjpeg.a ../libjpeg-i386.a
         cd ..
 
         # build ppc libjpeg 6b
@@ -1248,7 +1248,7 @@ function build_libjpeg {
         cd jpeg-6b
 
         # Disable features we don't need
-        cp -fv ../libjpeg62-jmorecfg.h jmorecfg.h
+        cp -f ../libjpeg62-jmorecfg.h jmorecfg.h
 
         CFLAGS="-arch ppc -O3 $OSX_FLAGS" \
         LDFLAGS="-arch ppc -O3 $OSX_FLAGS" \
@@ -1259,7 +1259,7 @@ function build_libjpeg {
             echo "make failed"
             exit $?
         fi
-        cp -fv libjpeg.a ../libjpeg-ppc.a
+        cp -f libjpeg.a ../libjpeg-ppc.a
         cd ..
 
         # Combine the forks
@@ -1294,7 +1294,7 @@ function build_libjpeg {
         cd jpeg-8b
         . ../update-config.sh
         # Disable features we don't need
-        cp -fv ../libjpeg-jmorecfg.h jmorecfg.h
+        cp -f ../libjpeg-jmorecfg.h jmorecfg.h
 
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1325,7 +1325,7 @@ function build_libpng {
     cd $LIBPNG_VER
 
     # Disable features we don't need
-    cp -fv ../libpng-pngusr.dfa pngusr.dfa
+    cp -f ../libpng-pngusr.dfa pngusr.dfa
     . ../update-config.sh
 
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1443,10 +1443,10 @@ function build_ffmpeg {
                 exit $?
             fi
 
-            cp -fv libavcodec/libavcodec.a libavcodec-x86_64.a
-            cp -fv libavformat/libavformat.a libavformat-x86_64.a
-            cp -fv libavutil/libavutil.a libavutil-x86_64.a
-            cp -fv libswscale/libswscale.a libswscale-x86_64.a
+            cp -f libavcodec/libavcodec.a libavcodec-x86_64.a
+            cp -f libavformat/libavformat.a libavformat-x86_64.a
+            cp -f libavutil/libavutil.a libavutil-x86_64.a
+            cp -f libswscale/libswscale.a libswscale-x86_64.a
         fi
 
         # Build 32-bit fork (all OSX versions)
@@ -1462,10 +1462,10 @@ function build_ffmpeg {
             exit $?
         fi
 
-        cp -fv libavcodec/libavcodec.a libavcodec-i386.a
-        cp -fv libavformat/libavformat.a libavformat-i386.a
-        cp -fv libavutil/libavutil.a libavutil-i386.a
-        cp -fv libswscale/libswscale.a libswscale-i386.a
+        cp -f libavcodec/libavcodec.a libavcodec-i386.a
+        cp -f libavformat/libavformat.a libavformat-i386.a
+        cp -f libavutil/libavutil.a libavutil-i386.a
+        cp -f libswscale/libswscale.a libswscale-i386.a
 
         # Build PPC fork (10.5)
         if [ "$OSX_VER" = "10.5" ]; then
@@ -1481,10 +1481,10 @@ function build_ffmpeg {
                 exit $?
             fi
 
-            cp -fv libavcodec/libavcodec.a libavcodec-ppc.a
-            cp -fv libavformat/libavformat.a libavformat-ppc.a
-            cp -fv libavutil/libavutil.a libavutil-ppc.a
-            cp -fv libswscale/libswscale.a libswscale-ppc.a
+            cp -f libavcodec/libavcodec.a libavcodec-ppc.a
+            cp -f libavformat/libavformat.a libavformat-ppc.a
+            cp -f libavutil/libavutil.a libavutil-ppc.a
+            cp -f libswscale/libswscale.a libswscale-ppc.a
         fi
 
         # Combine the forks
