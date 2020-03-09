@@ -867,12 +867,12 @@ function build {
 
             build_module Net-SSLeay-1.82
 
-            tar_wrapper zxf IO-Socket-SSL-2.052.tar.gz
-            cd IO-Socket-SSL-2.052
+            tar_wrapper zxf IO-Socket-SSL-2.067.tar.gz
+            cd IO-Socket-SSL-2.067
             patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
             cd ..
 
-            build_module IO-Socket-SSL-2.052
+            build_module IO-Socket-SSL-2.067
 	    ;;
 
         JSON::XS)
