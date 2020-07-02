@@ -10,10 +10,9 @@ ARCH="osx"
 OUTPUT=$PWD/flac-build-$ARCH-$CHANGENO
 
 # Mac Universal Binary support
-#CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -mmacosx-version-min=10.3"
-#LDFLAGS="-arch i386 -arch ppc"
-CFLAGS="-mmacosx-version-min=10.6 -arch x86_64"
-LDFLAGS="-mmacosx-version-min=10.6 -arch x86_64"
+CFLAGS="-O2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -arch i386 -arch x86_64 -mmacosx-version-min=10.7"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="-Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -arch i386 -arch x86_64 -mmacosx-version-min=10.7"
 
 # Clean up
 rm -rf $OUTPUT
@@ -40,7 +39,7 @@ cd flac-$FLAC >> $LOG
 patch -p1 < ../01-flac.patch >> $LOG
 patch -p1 < ../02-flac-C-locale.patch >> $LOG
 echo "Configuring..."
-./configure CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-doxygen-docs --disable-shared --disable-xmms-plugin --disable-dependency-tracking --disable-asm-optimizations --disable-cpplibs --prefix $OUTPUT >> $LOG
+./configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" --with-ogg-includes=$PWD/../libogg-$OGG/include --with-ogg-libraries=$PWD/../libogg-$OGG/src/.libs/ --disable-doxygen-docs --disable-shared --disable-xmms-plugin --disable-dependency-tracking --disable-asm-optimizations --disable-cpplibs --prefix $OUTPUT >> $LOG
 echo "Running make"
 make >> $LOG
 echo "Running make install"

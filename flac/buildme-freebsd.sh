@@ -30,6 +30,10 @@ rm -rf flac-$FLAC
 echo "Most log mesages sent to $LOG... only 'errors' displayed here"
 date > $LOG
 
+# '-O2' reduces binary size with minimal performance loss.
+export CFLAGS="-O2"
+export CXXFLAGS="-O2"
+
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
 tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
