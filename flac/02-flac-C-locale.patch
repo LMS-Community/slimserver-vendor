@@ -1,0 +1,89 @@
+From 76505158ddbd2d5ef68ae830d531f9714dc8f936 Mon Sep 17 00:00:00 2001
+From: Martin Williams <martinr.williams@gmail.com>
+Date: Thu, 22 Aug 2019 19:25:50 +0100
+Subject: [PATCH] Force use of 'C' locale, otherwise LMS transcoding breaks
+
+In interpreting the mm:ss.ss 'skip' & 'until' specifications, flac
+versions 1.30+ make use of 'strtod', which applies the conventions of
+the locale currently in force. Which means accepting one of '.' or ','
+as the decimal separator, according to the locale.
+
+If the separator used on the flac command line does not match the
+separator specified by the locale, flac will simply fail, with a message
+of the form 'ERROR: invalid value for skip'.
+
+Logitech Media Server makes use of the 'skip' and 'until' specifiers in
+in some of its transcoding rules. But it uses the '.' convention
+exclusively, without reference to the current locale.
+'Slim::Utils::DateTime::fracSecToMinSec' is responsible for formatting
+the specification.
+
+In consequence, transcoding silently fails on any platform that is not
+set up to use '.' as its decimal separator. Which covers much of the
+world.
+
+This change has flac operate exclusively in the 'C' locale, which
+assures us that the '.' will be recognized as the decimal separator
+regardless of the user's locale settings.
+
+Notes:
+
+1) This patch applies cleanly to the version of flac 1.32+ adopted by
+LMS in September 2018, which is taken from the flac tree headed by
+commit reference faafa4.
+
+Suitable adaptation may be required if another version of flac is used,
+e.g. the (earlier) published flac version 1.32.
+
+2) flac versions prior to 1.30 made use of 'atof', instead of 'strtod'.
+Although 'atof' also uses the current locale, the code in use at that
+time did not fail completely, it simply truncated the 'skip'
+specification to its integer part. LMS transcoding, therefore, works,
+although the seek points would not be accurate to fractions of a second.
+
+Refer flac commit 4b0f270.
+---
+ src/flac/main.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/flac/main.c b/src/flac/main.c
+index be072a3d..43e912b9 100644
+--- a/src/flac/main.c
++++ b/src/flac/main.c
+@@ -310,6 +310,12 @@ int main(int argc, char *argv[])
+ #endif
+ 
+ 	srand((uint32_t)time(0));
++
++#if 1
++/* LMS patch: Use C locale exclusively */
++	setlocale(LC_ALL, "C"); /* Belt & braces. Should be the default anyway */
++#else
++/* Original code block: Sets up user locale */
+ #ifdef _WIN32
+ 	{
+ 		const char *var;
+@@ -324,6 +330,9 @@ int main(int argc, char *argv[])
+ #else
+ 	setlocale(LC_ALL, "");
+ #endif
++/* Original code block ends */
++#endif
++
+ 	if(!init_options()) {
+ 		flac__utils_printf(stderr, 1, "ERROR: allocating memory\n");
+ 		retval = 1;
+@@ -1170,6 +1179,10 @@ static void usage_header(void)
+ 	printf("Copyright (C) 2000-2009  Josh Coalson\n");
+ 	printf("Copyright (C) 2011-2016  Xiph.Org Foundation\n");
+ 	printf("\n");
++	printf("   Patched for Logitech Media Server:\n");
++	printf("   This version of flac operates exclusively in the 'C'\n");
++	printf("   locale. In particular, '--skip' and '--until' mm:ss.ss\n");
++	printf("   specifications require a '.' as decimal separator.\n\n");
+ 	printf("This program is free software; you can redistribute it and/or\n");
+ 	printf("modify it under the terms of the GNU General Public License\n");
+ 	printf("as published by the Free Software Foundation; either version 2\n");
+-- 
+2.20.1
+

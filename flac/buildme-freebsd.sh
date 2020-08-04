@@ -30,6 +30,10 @@ rm -rf flac-$FLAC
 echo "Most log mesages sent to $LOG... only 'errors' displayed here"
 date > $LOG
 
+# '-O2' reduces binary size with minimal performance loss.
+export CFLAGS="-O2"
+export CXXFLAGS="-O2"
+
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
 tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
@@ -45,6 +49,7 @@ echo "Untarring..."
 tar zxvf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
 cd flac-$FLAC >> $LOG
 patch -p1 < ../01-flac.patch >> $LOG
+patch -p1 < ../02-flac-C-locale.patch >> $LOG
 mv configure.in configure.ac
 autoreconf -fi
 ./autogen.sh

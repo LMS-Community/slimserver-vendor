@@ -41,7 +41,8 @@ cd ..
 echo "Cloning FLAC....."
 [ -d flac-$FLAC ] || git clone --depth 1 https://github.com/xiph/flac.git flac-$FLAC >> $LOG
 cd flac-$FLAC >> $LOG
-patch -p1 < ../01-flac.patch
+patch -p1 < ../01-flac.patch >> $LOG
+patch -p1 < ../02-flac-C-locale.patch >> $LOG
 [ -x configure ] || ./autogen.sh >> $LOG
 #. ../../CPAN/update-config.sh
 echo "Configuring..."
