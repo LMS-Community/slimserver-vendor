@@ -7,6 +7,9 @@ OS=`uname`
 # Build dir
 BUILD=$PWD/build
 
+# Wavpack version
+VERSION="5.3.0"
+
 FLAGS=""
 # Mac-specific flags (must be built on Leopard)
 if [ $OS = "Darwin" ]; then
@@ -36,8 +39,8 @@ rm -rf $BUILD
 mkdir $BUILD
 
 # Build wavpack
-tar jxvf wavpack-4.50.1.tar.bz2
-cd wavpack-4.50.1
+tar jxvf wavpack-$VERSION.tar.bz2
+cd wavpack-$VERSION
 . ../../CPAN/update-config.sh
 CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
@@ -51,7 +54,7 @@ if [ $? != 0 ]; then
 fi
 make install
 cd ..
-rm -rf wavpack-4.50.1
+rm -rf wavpack-$VERSION
 
 cp $BUILD/bin/wvunpack .
 rm -rf $BUILD
