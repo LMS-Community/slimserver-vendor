@@ -47,6 +47,7 @@ CLEAN=1
 FLAGS="-fPIC"
 # Default is to rename every x86 to i386
 RENAME_x86=1
+THREADNUM=2
 
 function usage {
     cat <<EOF
@@ -54,16 +55,17 @@ $0 [args] [target]
 -h            this help
 -c            do not run make clean
 -i <lmsbase>  install modules in lmsbase directory
--p <perlbin > set custom perl binary
+-p <perlbin>  set custom perl binary
 -r            do not rename all x86 archs to "i386"
 -t            do not run tests
+-j <threads>  multithreaded compile
 
 target: make target - if not specified all will be built
 
 EOF
 }
 
-while getopts hci:p:t opt; do
+while getopts j:hci:p:t opt; do
   case $opt in
   c)
       CLEAN=0
@@ -79,6 +81,9 @@ while getopts hci:p:t opt; do
       ;;
   t)
       RUN_TESTS=0
+      ;;
+  j)
+      THREADNUM=$OPTARG
       ;;
   h)
       usage
@@ -462,6 +467,16 @@ if [ $PERL_526 ]; then
     PERL_MINOR_VER=26
 fi
 
+# Path to Perl 5.32
+if [ -x "/usr/bin/perl5.32.0" ]; then
+    PERL_532=/opt/localperl/bin/perl5.32.0
+fi
+
+if [ $PERL_532 ]; then
+    PERL_BIN=$PERL_532
+    PERL_MINOR_VER=32
+fi
+
 # try to use default perl version
 if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
     if [ "$CUSTOM_PERL" = "" ]; then
@@ -502,19 +517,19 @@ if [ "$OS" = "FreeBSD" ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
     fi
-    export MAKE=/usr/local/bin/gmake
+    export MAKE="/usr/local/bin/gmake -j $THREADNUM"
 elif [ "$OS" = "SunOS" ]; then
     if [ ! -x /usr/bin/gmake ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
     fi
-    export MAKE=/usr/bin/gmake
+    export MAKE="/usr/bin/gmake -j $THREADNUM"
 else
     # Support a newer make if available, needed on ReadyNAS
     if [ -x /usr/local/bin/make ]; then
-        export MAKE=/usr/local/bin/make
+        export MAKE="/usr/local/bin/make -j $THREADNUM"
     else
-        export MAKE=/usr/bin/make
+        export MAKE="/usr/bin/make -j $THREADNUM"
     fi
 fi
 
@@ -593,24 +608,90 @@ function build_module {
     rm -rf $module
 }
 
+function build_module_with_build {
+    module=$1
+    makefile_args=$2
+    local_run_tests=${3-$RUN_TESTS}
+    local_clean=${4-$CLEAN}
+    local_use_hints=${5-$USE_HINTS}
+
+    echo "build_module run tests:$local_run_tests clean:$local_clean hints $local_use_hints $module $makefile_args"
+
+    if [ ! -d $module ]; then
+
+        if [ ! -f "${module}.tar.gz" ]; then
+            echo "ERROR: cannot find source code archive ${module}.tar.gz"
+            echo "Please download all source files from http://github.com/Logitech/slimserver-vendor"
+            exit
+        fi
+
+        tar_wrapper zxf "${module}.tar.gz"
+    fi
+
+    cd "${module}"
+
+    if [ $local_use_hints -eq 1 ]; then
+        # Always copy in our custom hints for OSX
+        cp -R ../hints .
+    fi
+    if [ $PERL_BIN ]; then
+        export PERL5LIB=$PERL_BASE/lib/perl5
+
+        $PERL_BIN Build.PL INSTALL_BASE=$PERL_BASE $makefile_args
+        if [ $local_run_tests -eq 1 ]; then
+            $PERL_BIN Build test
+        else
+            $PERL_BIN Build
+        fi
+        if [ $? != 0 ]; then
+            if [ $local_run_tests -eq 1 ]; then
+                echo "make test failed, aborting"
+            else
+                echo "make failed, aborting"
+            fi
+            exit $?
+        fi
+        $PERL_BIN Build install
+
+        if [ $local_clean -eq 1 ]; then
+            $PERL_BIN Build clean
+        fi
+    fi
+
+    cd ..
+    rm -rf $module
+}
+
 function build_all {
     build Audio::Scan
+    build Canary::Stability
     build Class::C3::XS
     build Class::XSAccessor
     build Compress::Raw::Zlib
     # DBD::SQLite builds DBI, so don't need it here as well.
-#   build DBI
+    build DBI
+    build Test::Needs
+    build Try::Tiny
+    build Encode::Locale
+    build HTTP::Date
+    build Time::Zone
+    build Test::Fatal
+    build IO::HTML
+    build LWP::MediaTypes
+    build URI::URL
 #   build DBD::mysql
     build DBD::SQLite
     build Digest::SHA1
     build EV
+    build Types::Serialiser
     build Encode::Detect
     build HTML::Parser
+    build HTTP::Header
     # XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
     build Image::Scale
     build IO::AIO
     build IO::Interface
-#   build IO::Socket::SSL
+    build IO::Socket::SSL
     build JSON::XS
     build Linux::Inotify2
     build Mac::FSEvents
@@ -620,6 +701,7 @@ function build_all {
     build Template
     build XML::Parser
     build YAML::LibYAML
+    build HTTP::Headers
 #    build Font::FreeType
 #    build Locale::Hebrew
 }
@@ -628,8 +710,8 @@ function build {
     case "$1" in
         Class::C3::XS)
             if [ $PERL_MINOR_VER -eq 8 ]; then
-                tar_wrapper zxf Class-C3-XS-0.11.tar.gz
-                cd Class-C3-XS-0.11
+                tar_wrapper zxf Class-C3-XS-0.15.tar.gz
+                cd Class-C3-XS-0.15
                 patch -p0 < ../Class-C3-XS-no-ckWARN.patch
                 cp -R ../hints .
                 export PERL5LIB=$PERL_BASE/lib/perl5
@@ -653,16 +735,16 @@ function build {
                     $MAKE clean
                 fi
                 cd ..
-                rm -rf Class-C3-XS-0.11
+                rm -rf Class-C3-XS-0.15
             fi
             ;;
 
         Class::XSAccessor)
             if [ $PERL_MINOR_VER -ge 16 ]; then
-                build_module Class-XSAccessor-1.18
+                build_module Class-XSAccessor-1.19
             else
                 if [[ "$CC_IS_CLANG" == true ]]; then
-                    build_module Class-XSAccessor-1.18
+                    build_module Class-XSAccessor-1.19
                 else
                     build_module Class-XSAccessor-1.05
                 fi
@@ -671,17 +753,49 @@ function build {
 
         Compress::Raw::Zlib)
             if [ $PERL_MINOR_VER -eq 8 -o $PERL_MINOR_VER -eq 10 ]; then
-	            build_module Compress-Raw-Zlib-2.033
+	            build_module Compress-Raw-Zlib-2.096
             fi
             ;;
+			
+		Test::Needs)
+			build_module Test-Needs-0.002006
+			;;
+			
+		Try::Tiny)
+			build_module Try-Tiny-0.30
+			;;
+			
+		Encode::Locale)
+			build_module Encode-Locale-1.05
+			;;
+			
+		HTTP::Date)
+			build_module HTTP-Date-6.05
+			;;
+	
+		Time::Zone)
+			build_module TimeDate-2.33
+			;;
+			
+		Test::Fatal)
+			build_module Test-Fatal-0.016
+			;;
+			
+		IO::HTML)
+			build_module IO-HTML-1.004
+			;;
+			
+		LWP::MediaTypes)
+			build_module LWP-MediaTypes-6.04
+			;;
 
         DBI)
             if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module DBI-1.628
+                build_module DBI-1.643
             elif [ $PERL_MINOR_VER -eq 8 ]; then
                 build_module DBI-1.616 "" 0
             else
-                build_module DBI-1.616
+                build_module DBI-1.643
             fi
             ;;
 
@@ -741,8 +855,8 @@ function build {
             cp icudt58*.dat $BUILD/share/icu/58.2
 
             # Custom build for ICU support
-            tar_wrapper zxf DBD-SQLite-1.58.tar.gz
-            cd DBD-SQLite-1.58
+            tar_wrapper zxf DBD-SQLite-1.66.tar.gz
+            cd DBD-SQLite-1.66
             if [[ "$GCC_LIBCPP" == true ]] ; then
             # Need this because GLIBCXX uses -lstdc++, but LIBCPP uses -lc++
                 patch -p0 < ../DBD-SQLite-ICU-libcpp.patch
@@ -776,10 +890,10 @@ function build {
                 fi
 
                 cd ..
-                rm -rf DBD-SQLite-1.58
+                rm -rf DBD-SQLite-1.66
             else
                 cd ..
-                build_module DBD-SQLite-1.58
+                build_module DBD-SQLite-1.66
             fi
 
             ;;
@@ -787,25 +901,27 @@ function build {
         Digest::SHA1)
             build_module Digest-SHA1-2.13
             ;;
+			
+		Canary::Stability)
+			build_module Canary-Stability-2013
+			;;
+			
+		Types::Serialiser)
+			build_module Types-Serialiser-1.0
+			;;
 
         EV)
-            build_module common-sense-2.0
+            build_module common-sense-3.75
 
             # custom build to apply pthread patch
             export PERL_MM_USE_DEFAULT=1
 
-            tar_wrapper zxf EV-4.03.tar.gz
-            cd EV-4.03
-            patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
-            if [ "$OS" = "Darwin" ]; then
-                if [ $PERL_58 ]; then
-                    patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
-                fi
-            fi
+            tar_wrapper zxf EV-4.33.tar.gz
+            cd EV-4.33
             cp -R ../hints .
             cd ..
 
-            build_module EV-4.03
+            build_module EV-4.33
 
             export PERL_MM_USE_DEFAULT=
             ;;
@@ -813,18 +929,19 @@ function build {
         Encode::Detect)
             if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 && $PERL_MINOR_VER -le 10 ]]; then
                 # Tests fail in jails with old Perl
-                build_module Data-Dump-1.19 "" 0
+                build_module Data-Dump-1.23 "" 0
             else
-                build_module Data-Dump-1.19
+                build_module Data-Dump-1.23
             fi
-            build_module ExtUtils-CBuilder-0.260301
-            build_module Module-Build-0.35 "" 0
-            build_module Encode-Detect-1.00
+            build_module ExtUtils-CBuilder-0.280234
+            build_module Module-Build-0.4231 "" 0
+            build_module Encode-Detect-1.01
             ;;
 
         HTML::Parser)
             build_module HTML-Tagset-3.20
-            build_module HTML-Parser-3.68
+			build_module HTTP-Message-6.26
+            build_module HTML-Parser-3.75
             ;;
 
         Image::Scale)
@@ -832,7 +949,7 @@ function build {
             build_libpng
             build_giflib
 
-            build_module Test-NoWarnings-1.02 "" 0
+            build_module Test-NoWarnings-1.04 "" 0
             build_module Image-Scale-0.14 "--with-jpeg-includes="$BUILD/include" --with-jpeg-static \
                     --with-png-includes="$BUILD/include" --with-png-static \
                     --with-gif-includes="$BUILD/include" --with-gif-static"
@@ -840,46 +957,54 @@ function build {
 
         IO::AIO)
             if [ "$OS" != "FreeBSD" ]; then
-                build_module common-sense-2.0
+                build_module common-sense-3.75
 
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
-                build_module IO-AIO-3.71 "" 0 $CLEAN 0
+                build_module IO-AIO-4.72 "" 0 $CLEAN 0
             fi
             ;;
 
         IO::Interface)
             # The IO::Interface tests erroneously require that lo0 be 127.0.0.1. This can be tough in jails.
             if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 ]]; then
-                build_module IO-Interface-1.06 "" 0
+                build_module_with_build IO-Interface-1.09 "" 0
             else
-                build_module IO-Interface-1.06
+                build_module_with_build IO-Interface-1.09
             fi
             ;;
+			
+		URI::URL)
+			build_module URI-5.05
+			;;
+			
+		HTTP::Header)
+			build_module HTTP-Message-6.26
+			;;
 
         IO::Socket::SSL)
-            build_module Test-NoWarnings-1.02 "" 0
-            build_module Net-IDN-Encode-2.400
+            build_module Test-NoWarnings-1.04 "" 0
+            build_module Net-IDN-Encode-2.500
 
-            tar_wrapper zxf Net-SSLeay-1.82.tar.gz
-            cd Net-SSLeay-1.82
-            patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
+            tar_wrapper zxf Net-SSLeay-1.90.tar.gz
+            cd Net-SSLeay-1.90
+            #patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
             cd ..
 
-            build_module Net-SSLeay-1.82
+            build_module Net-SSLeay-1.90
 
-            tar_wrapper zxf IO-Socket-SSL-2.067.tar.gz
-            cd IO-Socket-SSL-2.067
-            patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
+            tar_wrapper zxf IO-Socket-SSL-2.069.tar.gz
+            cd IO-Socket-SSL-2.069
+            #patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
             cd ..
 
-            build_module IO-Socket-SSL-2.067
+            build_module IO-Socket-SSL-2.069
 	    ;;
 
         JSON::XS)
-            build_module common-sense-2.0
+            build_module common-sense-3.75
 
             if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module JSON-XS-2.34
+                build_module JSON-XS-4.02
             else
                 build_module JSON-XS-2.3
             fi
@@ -887,30 +1012,30 @@ function build {
 
         Linux::Inotify2)
             if [ "$OS" = "Linux" ]; then
-                build_module common-sense-2.0
-                build_module Linux-Inotify2-1.21
+                build_module common-sense-3.75
+                build_module Linux-Inotify2-2.2
             fi
             ;;
 
         Locale::Hebrew)
-            build_module Locale-Hebrew-1.04
+            build_module Locale-Hebrew-1.05
             ;;
 
         Mac::FSEvents)
             if [ "$OS" = 'Darwin' ]; then
-                build_module Mac-FSEvents-0.04 "" 0
+                build_module Mac-FSEvents-0.14 "" 0
             fi
             ;;
 
         Sub::Name)
-            build_module Sub-Name-0.05
+            build_module Sub-Name-0.26
             ;;
 
         YAML::LibYAML)
             # Needed because LibYAML 0.35 used . in @INC (not permitted in Perl 5.26)
             # Needed for Debian's Perl 5.24 as well, for the same reason
             if [ $PERL_MINOR_VER -ge 24 ]; then
-                build_module YAML-LibYAML-0.65
+                build_module YAML-LibYAML-0.82
             elif [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
@@ -919,9 +1044,9 @@ function build {
             ;;
 
         Audio::Scan)
-            build_module Sub-Uplevel-0.22 "" 0
-            build_module Tree-DAG_Node-1.06 "" 0
-            build_module Test-Warn-0.23 "" 0
+            build_module Sub-Uplevel-0.2800 "" 0
+            build_module Tree-DAG_Node-1.31 "" 0
+            build_module Test-Warn-0.36 "" 0
             build_module Audio-Scan-1.02
             ;;
 
@@ -932,21 +1057,21 @@ function build {
 
         Template)
             # Template, custom build due to 2 Makefile.PL's
-            tar_wrapper zxf Template-Toolkit-2.21.tar.gz
-            cd Template-Toolkit-2.21
+            tar_wrapper zxf Template-Toolkit-3.009.tar.gz
+            cd Template-Toolkit-3.009
             cp -R ../hints .
             cp -R ../hints ./xs
             cd ..
 
             # minor test failure, so don't test
-            build_module Template-Toolkit-2.21 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
+            build_module Template-Toolkit-3.009 "TT_ACCEPT=y TT_EXAMPLES=n TT_EXTRAS=n" 0
 
             ;;
 
         DBD::mysql)
             # Build libmysqlclient
-            tar_wrapper jxf mysql-5.1.37.tar.bz2
-            cd mysql-5.1.37
+            tar_wrapper zxf mysql-5.6.50.tar.gz
+            cd mysql-5.6.50
             . ../update-config.sh
             CC=gcc CXX=gcc \
             CFLAGS="-O3 -fno-omit-frame-pointer $FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -962,24 +1087,24 @@ function build {
             fi
             make install
             cd ..
-            rm -rf mysql-5.1.37
+            rm -rf mysql-5.6.50
 
             # DBD::mysql custom, statically linked with libmysqlclient
-            tar_wrapper zxf DBD-mysql-3.0002.tar.gz
-            cd DBD-mysql-3.0002
+            tar_wrapper zxf DBD-mysql-4.050.tar.gz
+            cd DBD-mysql-4.050
             cp -R ../hints .
             mkdir mysql-static
             cp $BUILD/lib/mysql/libmysqlclient.a mysql-static
             cd ..
 
-            build_module DBD-mysql-3.0002 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\""
+            build_module DBD-mysql-4.050 "--mysql_config=$BUILD/bin/mysql_config --libs=\"-Lmysql-static -lmysqlclient -lz -lm\""
 
             ;;
 
         XML::Parser)
             # build expat
-            tar_wrapper zxf expat-2.0.1.tar.gz
-            cd expat-2.0.1/conftools
+            tar_wrapper zxf expat-2.2.10.tar.gz
+            cd expat-2.2.10/conftools
             . ../../update-config.sh
             cd ..
             CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
@@ -1000,23 +1125,23 @@ function build {
             cd ../..
 
             # XML::Parser custom, built against expat
-            tar_wrapper zxf XML-Parser-2.41.tar.gz
-            cd XML-Parser-2.41
+            tar_wrapper zxf XML-Parser-2.46.tar.gz
+            cd XML-Parser-2.46
             cp -R ../hints .
             cp -R ../hints ./Expat # needed for second Makefile.PL
             patch -p0 < ../XML-Parser-Expat-Makefile.patch
 
             cd ..
 
-            build_module XML-Parser-2.41 "EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
+            build_module XML-Parser-2.46 "EXPATLIBPATH=$BUILD/lib EXPATINCPATH=$BUILD/include"
 
-            rm -rf expat-2.0.1
+            rm -rf expat-2.2.10
             ;;
 
         Font::FreeType)
             # build freetype
-            tar_wrapper zxf freetype-2.4.2.tar.gz
-            cd freetype-2.4.2
+            tar_wrapper zxf freetype-2.10.4.tar.gz
+            cd freetype-2.10.4
             . ../update-config.sh
 
             # Disable features we don't need for CODE2000
@@ -1044,8 +1169,8 @@ function build {
             ln -sf libfreetype.a libfreetype_s.a
             cd ../..
 
-            tar_wrapper zxf Font-FreeType-0.03.tar.gz
-            cd Font-FreeType-0.03
+            tar_wrapper zxf Font-FreeType-0.16.tar.gz
+            cd Font-FreeType-0.16
 
             # Build statically
             patch -p0 < ../Font-FreeType-Makefile.patch
@@ -1056,9 +1181,9 @@ function build {
             cp -R ../hints .
             cd ..
 
-            build_module Font-FreeType-0.03
+            build_module Font-FreeType-0.16
 
-            rm -rf freetype-2.4.2
+            rm -rf freetype-2.10.4
             ;;
 
         Media::Scan)
@@ -1072,21 +1197,14 @@ function build {
             # build libmediascan
             # XXX library does not link correctly on Darwin with libjpeg due to missing x86_64
             # in libjpeg.dylib, Perl still links OK because it uses libjpeg.a
-            tar_wrapper zxf libmediascan-0.1.tar.gz
+            tar_wrapper zxf libmediascan-devel.tar.gz
 
-            if [ "$OSX_VER" = "10.9" -o "$OSX_VER" = "10.10" ]; then
-                patch -p0 libmediascan-0.1/bindings/perl/hints/darwin.pl < libmediascan-hints-darwin.pl.patch
-            fi
+            cd libmediascan-devel
 
-            cd libmediascan-0.1
-
-            if [ "$OS" = "FreeBSD" ]; then
-            	patch -p1 < ../libmediascan-freebsd.patch
-            elif [ "$OS" = "SunOS" ]; then
-                patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch
-            fi
             . ../update-config.sh
-
+			
+			autoreconf -f -i
+			
             CFLAGS="-I$BUILD/include $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             LDFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
             OBJCFLAGS="-L$BUILD/lib $FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1100,7 +1218,7 @@ function build {
             cd ..
 
             # build Media::Scan
-            cd libmediascan-0.1/bindings/perl
+            cd libmediascan-devel/bindings/perl
             # LMS's hints file is OK and also has custom frameworks added
 
             MSOPTS="--with-static \
@@ -1132,7 +1250,7 @@ function build {
             fi
 
             cd ../../..
-            rm -rf libmediascan-0.1
+            rm -rf libmediascan-devel
             ;;
     esac
 }
@@ -1143,7 +1261,7 @@ function build_libexif {
     fi
 
     # build libexif
-    tar_wrapper jxf libexif-0.6.20.tar.bz2
+    tar_wrapper xjf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     . ../update-config.sh
 
@@ -1244,8 +1362,8 @@ function build_libjpeg {
         cd ..
 
         # build ppc libjpeg 6b
-        tar_wrapper zxf jpegsrc.v6b.tar.gz
-        cd jpeg-6b
+        tar_wrapper zxf jpegsrc.v9d.tar.gz
+        cd jpeg-9d
 
         # Disable features we don't need
         cp -f ../libjpeg62-jmorecfg.h jmorecfg.h
@@ -1290,8 +1408,8 @@ function build_libjpeg {
 
     # build libjpeg v8 on other platforms
     else
-        tar_wrapper zxf jpegsrc.v8b.tar.gz
-        cd jpeg-8b
+        tar_wrapper zxf jpegsrc.v9d.tar.gz
+        cd jpeg-9d
         . ../update-config.sh
         # Disable features we don't need
         cp -f ../libjpeg-jmorecfg.h jmorecfg.h
@@ -1309,8 +1427,7 @@ function build_libjpeg {
         cd ..
     fi
 
-    rm -rf jpeg-8b
-    rm -rf jpeg-6b
+    rm -rf jpeg-9d
     rm -rf $TURBO_VER
 }
 
@@ -1349,9 +1466,13 @@ function build_giflib {
     fi
 
     # build giflib
-    tar_wrapper zxf giflib-4.1.6.tar.gz
-    cd giflib-4.1.6
+    tar_wrapper zxf giflib-5.2.1.tar.gz
+    cd giflib-5.2.1
     . ../update-config.sh
+	
+	old="PREFIX = /usr/local"
+	new="PREFIX = ${BUILD}"
+	sed -i "" "s#$old#$new#g" Makefile
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ./configure --prefix=$BUILD \
@@ -1364,7 +1485,7 @@ function build_giflib {
     $MAKE install
     cd ..
 
-    rm -rf giflib-4.1.6
+    rm -rf giflib-5.2.1
 }
 
 function build_ffmpeg {
@@ -1375,25 +1496,20 @@ function build_ffmpeg {
     fi
 
     # build ffmpeg, enabling only the things libmediascan uses
-    tar_wrapper jxf ffmpeg-0.8.4.tar.bz2
-    cd ffmpeg-0.8.4
+    tar_wrapper xzf FFmpeg-n4.3.1.tar.gz
+    cd FFmpeg-n4.3.1
     . ../update-config.sh
-
-    if [ "$MACHINE" = "padre" ]; then
-        patch -p0 < ../ffmpeg-padre-configure.patch
-    fi
 
     echo "Configuring FFmpeg..."
 
     # x86: Disable all but the lowend MMX ASM
     # ARM: Disable all
     # PPC: Disable AltiVec
-    FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver \
+    FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe \
         --disable-avdevice --enable-pic \
-        --disable-amd3dnow --disable-amd3dnowext --disable-mmx2 --disable-sse --disable-ssse3 --disable-avx \
-        --disable-armv5te --disable-armv6 --disable-armv6t2 --disable-armvfp --disable-iwmmxt --disable-mmi --disable-neon \
+        --disable-amd3dnow --disable-amd3dnowext  \
+        --disable-armv5te --disable-armv6 --disable-armv6t2 --disable-mmi --disable-neon \
         --disable-altivec \
-        --disable-vis \
         --enable-zlib --disable-bzlib \
         --disable-everything --enable-swscale \
         --enable-decoder=h264 --enable-decoder=mpeg1video --enable-decoder=mpeg2video \
@@ -1523,7 +1639,7 @@ function build_ffmpeg {
         cd ..
     fi
 
-    rm -rf ffmpeg-0.8.4
+    rm -rf FFmpeg-n4.3.1
 }
 
 function build_bdb {
@@ -1538,8 +1654,8 @@ function build_bdb {
     fi
 
     # build bdb
-    tar_wrapper zxf db-5.1.25.tar.gz
-    cd db-5.1.25/dist
+    tar_wrapper zxf db-5.3.28.tar.gz
+    cd db-5.3.28/dist
     . ../../update-config.sh
     cd ../build_unix
 
@@ -1561,7 +1677,7 @@ function build_bdb {
     $MAKE install
     cd ../..
 
-    rm -rf db-5.1.25
+    rm -rf db-5.3.28
 }
 
 # Build a single module if requested, or all
