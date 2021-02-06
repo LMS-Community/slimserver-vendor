@@ -1001,12 +1001,13 @@ function build {
 
         JSON::XS)
             build_module common-sense-3.75
-
+	    export PERL_MM_USE_DEFAULT=1
             if [ $PERL_MINOR_VER -ge 18 ]; then
                 build_module JSON-XS-4.02
             else
                 build_module JSON-XS-2.3
             fi
+	    export PERL_MM_USE_DEFAULT=
             ;;
 
         Linux::Inotify2)
