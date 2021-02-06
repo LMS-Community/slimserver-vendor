@@ -927,12 +927,7 @@ function build {
             ;;
 
         Encode::Detect)
-            if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 && $PERL_MINOR_VER -le 10 ]]; then
-                # Tests fail in jails with old Perl
-                build_module Data-Dump-1.23 "" 0
-            else
-                build_module Data-Dump-1.23
-            fi
+            build_module Data-Dump-1.23
             build_module ExtUtils-CBuilder-0.280234
             build_module Module-Build-0.4231 "" 0
             build_module Encode-Detect-1.01
@@ -1261,8 +1256,8 @@ function build_libexif {
     fi
 
     # build libexif
-    tar_wrapper xjf libexif-0.6.20.tar.bz2
-    cd libexif-0.6.20
+    tar_wrapper xzf libexif-0.6.22.tar.gz
+    cd libexif-0.6.22
     . ../update-config.sh
 
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1277,7 +1272,7 @@ function build_libexif {
     $MAKE install
     cd ..
 
-    rm -rf libexif-0.6.20
+    rm -rf libexif-0.6.22
 }
 
 function build_libjpeg {
@@ -1290,7 +1285,7 @@ function build_libjpeg {
     # for more info: https://sourceforge.net/p/libjpeg-turbo/mailman/message/34381375/
 
     # build libjpeg-turbo on x86 platforms
-    TURBO_VER="libjpeg-turbo-1.5.3"
+    TURBO_VER="libjpeg-turbo-2.0.5"
     # skip on 10.9 until we've been able to build nasm from macports
     if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
@@ -1344,9 +1339,6 @@ function build_libjpeg {
         tar_wrapper zxf $TURBO_VER.tar.gz
         cd $TURBO_VER
 
-        # Disable features we don't need
-        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
-
         CFLAGS="-O3 -m32 $OSX_FLAGS" \
         CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
         LDFLAGS="-m32 $OSX_FLAGS" \
@@ -1392,9 +1384,6 @@ function build_libjpeg {
         tar_wrapper zxf $TURBO_VER.tar.gz
         cd $TURBO_VER
 
-        # Disable features we don't need
-        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
-
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" CXXFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
             ./configure --prefix=$BUILD --disable-dependency-tracking
         $MAKE
@@ -1411,8 +1400,6 @@ function build_libjpeg {
         tar_wrapper zxf jpegsrc.v9d.tar.gz
         cd jpeg-9d
         . ../update-config.sh
-        # Disable features we don't need
-        cp -f ../libjpeg-jmorecfg.h jmorecfg.h
 
         CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
