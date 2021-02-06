@@ -22,6 +22,8 @@ On Debian, Ubuntu etc. make sure you have the following packages installed:
 * zlib1g-dev
 * libgd-dev
 * libmodule-install-perl
+* libperl-dev
+* libssl-dev
 
 ### Preparation of a FreeBSD based system
 On FreeBSD, FreeNAS, etc. make sure you have the following packages/ports installed:
