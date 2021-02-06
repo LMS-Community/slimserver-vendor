@@ -979,6 +979,8 @@ function build {
         IO::Socket::SSL)
             build_module Test-NoWarnings-1.04 "" 0
             build_module Net-IDN-Encode-2.500
+	    
+	    export PERL_MM_USE_DEFAULT=1
 
             tar_wrapper zxf Net-SSLeay-1.90.tar.gz
             cd Net-SSLeay-1.90
@@ -993,6 +995,8 @@ function build {
             cd ..
 
             build_module IO-Socket-SSL-2.069
+	    
+	    export PERL_MM_USE_DEFAULT=
 	    ;;
 
         JSON::XS)
