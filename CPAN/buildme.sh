@@ -1285,7 +1285,7 @@ function build_libjpeg {
     # for more info: https://sourceforge.net/p/libjpeg-turbo/mailman/message/34381375/
 
     # build libjpeg-turbo on x86 platforms
-    TURBO_VER="libjpeg-turbo-2.0.5"
+    TURBO_VER="libjpeg-turbo-1.5.3"
     # skip on 10.9 until we've been able to build nasm from macports
     if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
         # Build i386/x86_64 versions of turbo
