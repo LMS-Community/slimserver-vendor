@@ -955,7 +955,7 @@ function build {
                 build_module common-sense-3.75
 
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
-                build_module IO-AIO-4.72 "" 0 $CLEAN 0
+                build_module IO-AIO-4.75 "" 0 $CLEAN 0
             fi
             ;;
 
