@@ -1261,7 +1261,7 @@ function build_libexif {
     fi
 
     # build libexif
-    tar_wrapper xjf libexif-0.6.20.tar.gz
+    tar_wrapper xjf libexif-0.6.20.tar.bz2
     cd libexif-0.6.20
     . ../update-config.sh
 
