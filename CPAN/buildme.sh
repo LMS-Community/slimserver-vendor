@@ -1261,8 +1261,8 @@ function build_libexif {
     fi
 
     # build libexif
-    tar_wrapper xzf libexif-0.6.22.tar.gz
-    cd libexif-0.6.22
+    tar_wrapper xjf libexif-0.6.20.tar.gz
+    cd libexif-0.6.20
     . ../update-config.sh
 
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
@@ -1277,7 +1277,7 @@ function build_libexif {
     $MAKE install
     cd ..
 
-    rm -rf libexif-0.6.22
+    rm -rf libexif-0.6.20
 }
 
 function build_libjpeg {
