@@ -313,31 +313,10 @@ if [ "$OS" = "Darwin" ]; then
         echo "Unable to determine OSX version"
         exit 0
     fi
-
-    if [ "$OSX_VER" = "10.5" ]; then
-        # Leopard, build for i386/ppc with support back to 10.4
-        OSX_ARCH="-arch i386 -arch ppc"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4"
-    elif [ "$OSX_VER" = "10.6" ]; then
-        # Snow Leopard, build for x86_64/i386 with support back to 10.5
-        OSX_ARCH="-arch x86_64 -arch i386"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-    elif [ "$OSX_VER" = "10.7" ]; then
-        # Lion, build for x86_64 with support back to 10.6
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
-    elif [ "$OSX_VER" = "10.9" ]; then
-        # Mavericks, build for x86_64 with support back to 10.9
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=10.9"
-    elif [ "$OSX_VER" = "10.10" ]; then
-        # Yosemite, build for x86_64 with support back to 10.10
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=10.10"
-    else
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=$OSX_VER"
-    fi
+	
+    OSX_ARCH="-arch x86_64"
+    OSX_FLAGS="-mmacosx-version-min=$OSX_VER"
+	
 fi
 
 # Build dir
@@ -345,90 +324,9 @@ BUILD=$PWD/build
 PERL_BASE=$BUILD/perl5x
 PERL_ARCH=$BUILD/arch/perl5x
 
-# Path to Perl 5.8.8
-if [ -x "/usr/bin/perl5.8.8" ]; then
-    PERL_58=/usr/bin/perl5.8.8
-elif [ -x "/usr/local/bin/perl5.8.8" ]; then
-    PERL_58=/usr/local/bin/perl5.8.8
-elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.8.9/bin/perl5.8.9" ]; then
-    PERL_58=$HOME/perl5/perlbrew/perls/perl-5.8.9/bin/perl5.8.9
-elif [ -x "/usr/local/bin/perl5.8.9" ]; then # FreeBSD 7.2
-    PERL_58=/usr/local/bin/perl5.8.9
-fi
-
-if [ $PERL_58 ]; then
-    PERL_BIN=$PERL_58
-    PERL_MINOR_VER=8
-fi
-
-# Path to Perl 5.10.0
-if [ -x "/usr/bin/perl5.10.0" ]; then
-    PERL_510=/usr/bin/perl5.10.0
-elif [ -x "/usr/local/bin/perl5.10.0" ]; then
-    PERL_510=/usr/local/bin/perl5.10.0
-elif [ -x "/usr/local/bin/perl5.10.1" ]; then # FreeBSD 8.2
-    PERL_510=/usr/local/bin/perl5.10.1
-fi
-
-if [ $PERL_510 ]; then
-    PERL_BIN=$PERL_510
-    PERL_MINOR_VER=10
-fi
-
-# Path to Perl 5.12
-if [ "$OSX_VER" = "10.9" ]; then
-    echo "Ignoring Perl 5.12 - we want 5.16 on Mavericks"
-elif [ -x "/usr/bin/perl5.12.4" ]; then
-    PERL_512=/usr/bin/perl5.12.4
-elif [ -x "/usr/local/bin/perl5.12.4" ]; then
-    PERL_512=/usr/local/bin/perl5.12.4
-elif [ -x "/usr/local/bin/perl5.12.4" ]; then # Also FreeBSD 8.2
-    PERL_512=/usr/local/bin/perl5.12.4
-elif [ -x "$HOME/perl5/perlbrew/perls/perl-5.12.4/bin/perl5.12.4" ]; then
-    PERL_512=$HOME/perl5/perlbrew/perls/perl-5.12.4/bin/perl5.12.4
-elif [ -x "/usr/bin/perl5.12" ]; then
-    # OSX Lion uses this path
-    PERL_512=/usr/bin/perl5.12
-fi
-
-if [ $PERL_512 ]; then
-    PERL_BIN=$PERL_512
-    PERL_MINOR_VER=12
-fi
-
-# Path to Perl 5.14.1
-if [ -x "$HOME/perl5/perlbrew/perls/perl-5.14.1/bin/perl5.14.1" ]; then
-    PERL_514=$HOME/perl5/perlbrew/perls/perl-5.14.1/bin/perl5.14.1
-fi
-
-if [ $PERL_514 ]; then
-    PERL_BIN=$PERL_514
-    PERL_MINOR_VER=14
-fi
-
-# Path to Perl 5.16
-if [ "$OSX_VER" = "10.10" ]; then
-    echo "Ignoring Perl 5.16 - we want 5.18 on Yosemite"
-elif [ -x "/usr/bin/perl5.16" ]; then
-    PERL_516=/usr/bin/perl5.16
-elif [ -x "/usr/bin/perl5.16.3" ]; then
-    PERL_516=/usr/bin/perl5.16.3
-fi
-
-if [ $PERL_516 ]; then
-    PERL_BIN=$PERL_516
-    PERL_MINOR_VER=16
-fi
-
-# Path to Perl 5.18
-if [ -x "/usr/bin/perl5.18" ]; then
-    PERL_518=/usr/bin/perl5.18
-fi
-
-# defined on the command line - no detection yet
-if [ $PERL_518 ]; then
-    PERL_BIN=$PERL_518
-    PERL_MINOR_VER=18
+# Path to Perl 5.20
+if [ -x "/usr/bin/perl5.20" ]; then
+    PERL_518=/usr/bin/perl5.20
 fi
 
 # defined on the command line - no detection yet
@@ -465,6 +363,26 @@ fi
 if [ $PERL_526 ]; then
     PERL_BIN=$PERL_526
     PERL_MINOR_VER=26
+fi
+
+# Path to Perl 5.28
+if [ -x "/usr/bin/perl5.28.0" ]; then
+    PERL_528=/usr/bin/perl5.28.0
+fi
+
+if [ $PERL_528 ]; then
+    PERL_BIN=$PERL_528
+    PERL_MINOR_VER=28
+fi
+
+# Path to Perl 5.30
+if [ -x "/usr/bin/perl5.30.0" ]; then
+    PERL_530=/opt/localperl/bin/perl5.30.0
+fi
+
+if [ $PERL_530 ]; then
+    PERL_BIN=$PERL_530
+    PERL_MINOR_VER=30
 fi
 
 # Path to Perl 5.32
@@ -668,7 +586,6 @@ function build_all {
     build Class::C3::XS
     build Class::XSAccessor
     build Compress::Raw::Zlib
-    # DBD::SQLite builds DBI, so don't need it here as well.
     build DBI
     build Test::Needs
     build Try::Tiny
@@ -679,7 +596,6 @@ function build_all {
     build IO::HTML
     build LWP::MediaTypes
     build URI::URL
-#   build DBD::mysql
     build DBD::SQLite
     build Digest::SHA1
     build EV
@@ -687,7 +603,6 @@ function build_all {
     build Encode::Detect
     build HTML::Parser
     build HTTP::Header
-    # XXX - Image::Scale requires libjpeg-turbo - which requires nasm 2.07 or later (install from http://www.macports.org/)
     build Image::Scale
     build IO::AIO
     build IO::Interface
@@ -790,13 +705,7 @@ function build {
 			;;
 
         DBI)
-            if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module DBI-1.643
-            elif [ $PERL_MINOR_VER -eq 8 ]; then
-                build_module DBI-1.616 "" 0
-            else
-                build_module DBI-1.643
-            fi
+            build_module DBI-1.643
             ;;
 
         DBD::SQLite)
@@ -1002,11 +911,7 @@ function build {
         JSON::XS)
             build_module common-sense-3.75
 	    export PERL_MM_USE_DEFAULT=1
-            if [ $PERL_MINOR_VER -ge 18 ]; then
-                build_module JSON-XS-4.02
-            else
-                build_module JSON-XS-2.3
-            fi
+            build_module JSON-XS-4.02
 	    export PERL_MM_USE_DEFAULT=
             ;;
 
@@ -1494,9 +1399,6 @@ function build_ffmpeg {
 
     echo "Configuring FFmpeg..."
 
-    # x86: Disable all but the lowend MMX ASM
-    # ARM: Disable all
-    # PPC: Disable AltiVec
     FFOPTS="--prefix=$BUILD --disable-ffmpeg --disable-ffplay --disable-ffprobe \
         --disable-avdevice --enable-pic \
         --disable-amd3dnow --disable-amd3dnowext  \
@@ -1526,6 +1428,7 @@ function build_ffmpeg {
     if [[ "$ARCH" = "x86_64-linux-thread-multi" || "$ARCH" =~ "amd64-freebsd" || "$ARCH" = "i86pc-solaris-thread-multi-64int" ]]; then
         FFOPTS="$FFOPTS --disable-mmx"
     fi
+	
     # FreeBSD amd64 needs arch option
     if [[ "$ARCH" =~ "amd64-freebsd" ]]; then
         FFOPTS="$FFOPTS --arch=x86"
@@ -1656,6 +1559,7 @@ function build_bdb {
        patch -p0 < ../db51-src_dbinc_atomic.patch
        popd
     fi
+	
     CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
     LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
         ../dist/configure --prefix=$BUILD $MUTEX \
