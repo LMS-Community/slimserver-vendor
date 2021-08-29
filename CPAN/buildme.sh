@@ -749,9 +749,6 @@ function build {
             else
                 patch -p0 < ../DBD-SQLite-ICU.patch
             fi
-            if [ "$OS" = 'SunOS' ]; then
-                patch -p0 < ../DBD-SQLite-XOPEN.patch
-            fi
             cp -R ../hints .
 
             if [ $PERL_MINOR_VER -eq 8 ]; then
