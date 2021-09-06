@@ -15,7 +15,7 @@
 +#    "These test will detect if there are network problems and fail soft,\n".
 +#    "so please disable them only if you definitely don't want to have any\n".
 +#    "network traffic to external sites.  [Y/n]", 'y' );
-+my $xt = 'n';
++my $xt = 'y';
  
  # See lib/ExtUtils/MakeMaker.pm for details of how to influence
  # the contents of the Makefile that is written.
