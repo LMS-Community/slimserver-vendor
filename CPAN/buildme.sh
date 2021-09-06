@@ -799,6 +799,11 @@ function build {
                     patch -p0 < ../EV-fixes.patch # patch to disable pthreads and one call to SvREADONLY
                 fi
             fi
+            if [ "$OS" = "SunOS" ]; then
+                cd libev
+                patch -p0 < ../../EV_fstyp-SunOS.patch
+                cd ..
+            fi
             cp -R ../hints .
             cd ..
 

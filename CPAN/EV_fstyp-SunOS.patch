@@ -1,0 +1,33 @@
+--- ev.c.orig   2011-01-11 02:56:13.000000000 +0000
++++ ev.c        2021-09-03 02:17:44.734460643 +0000
+@@ -3003,19 +3003,23 @@ infy_add (EV_P_ ev_stat *w)
+     {
+       struct statfs sfs;
+
++      int len;
++      int fstyp;
++
+       /* now local changes will be tracked by inotify, but remote changes won't */
+       /* unless the filesystem is known to be local, we therefore still poll */
+       /* also do poll on <2.6.25, but with normal frequency */
+
+       if (!fs_2625)
+         w->timer.repeat = w->interval ? w->interval : DEF_STAT_INTERVAL;
+-      else if (!statfs (w->path, &sfs)
+-               && (sfs.f_type == 0x1373 /* devfs */
+-                   || sfs.f_type == 0xEF53 /* ext2/3 */
+-                   || sfs.f_type == 0x3153464a /* jfs */
+-                   || sfs.f_type == 0x52654973 /* reiser3 */
+-                   || sfs.f_type == 0x01021994 /* tempfs */
+-                   || sfs.f_type == 0x58465342 /* xfs */))
++      else if (!statfs (w->path, &sfs, len, fstyp)
++               && (sfs.f_fstyp == 0x1373 /* devfs */
++                   || sfs.f_fstyp == 0xEF53 /* ext2/3 */
++                   || sfs.f_fstyp == 0x3153464a /* jfs */
++                   || sfs.f_fstyp == 0x52654973 /* reiser3 */
++                   || sfs.f_fstyp == 0x01021994 /* tempfs */
++                   || sfs.f_fstyp == 0x58465342 /* xfs */
++                   || sfs.f_fstyp == 0x2fc12fc1 /* zfs */))
+         w->timer.repeat = 0.; /* filesystem is local, kernel new enough */
+       else
+         w->timer.repeat = w->interval ? w->interval : NFS_STAT_INTERVAL; /* remote, use reduced frequency */
