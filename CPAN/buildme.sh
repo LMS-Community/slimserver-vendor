@@ -857,19 +857,19 @@ function build {
             build_module Test-NoWarnings-1.02 "" 0
             build_module Net-IDN-Encode-2.400
 
-            tar_wrapper zxf Net-SSLeay-1.82.tar.gz
-            cd Net-SSLeay-1.82
+            tar_wrapper zxf Net-SSLeay-1.90.tar.gz
+            cd Net-SSLeay-1.90
             patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
             cd ..
 
-            build_module Net-SSLeay-1.82
+            build_module Net-SSLeay-1.90
 
-            tar_wrapper zxf IO-Socket-SSL-2.067.tar.gz
-            cd IO-Socket-SSL-2.067
+            tar_wrapper zxf IO-Socket-SSL-2.072.tar.gz
+            cd IO-Socket-SSL-2.072
             patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
             cd ..
 
-            build_module IO-Socket-SSL-2.067
+            build_module IO-Socket-SSL-2.072
 	    ;;
 
         JSON::XS)
