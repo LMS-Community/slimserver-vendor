@@ -924,7 +924,7 @@ function build {
             build_module Sub-Uplevel-0.22 "" 0
             build_module Tree-DAG_Node-1.06 "" 0
             build_module Test-Warn-0.23 "" 0
-            build_module Audio-Scan-1.04
+            build_module Audio-Scan-1.05
             ;;
 
         MP3::Cut::Gapless)
