@@ -1,28 +1,20 @@
---- inc/Module/Install/PRIVATE/Net/SSLeay.pm.orig	2017-11-05 19:35:17.741797882 +0000
-+++ inc/Module/Install/PRIVATE/Net/SSLeay.pm	2017-11-05 19:36:49.311435105 +0000
-@@ -46,15 +46,16 @@
-         LIBS => join(' ', (map {"-L$_"} @{$opts->{lib_paths}}), (map {"-l$_"} @{$opts->{lib_links}})),
-     );
+--- Makefile.PL.orig    2021-09-12 00:38:55.408399723 +0000
++++ Makefile.PL 2021-09-12 00:44:41.423186095 +0000
+@@ -13,11 +13,12 @@ use Symbol qw(gensym);
+ # the Net-SSLeay loadable object on Windows
+ my $win_link_statically = 0;
  
--    if ( $self->prompt(
--            "Do you want to run external tests?\n".
--            "These tests *will* *fail* if you do not have network connectivity.",
--            'n',
--    ) =~ /^y/i ) {
--        $self->tests('t/*/*.t t/*/*/*.t');
--    } else {
--        $self->tests('t/local/*.t t/handle/local/*.t');
--    }
-+#    if ( $self->prompt(
-+#            "Do you want to run external tests?\n".
-+#            "These tests *will* *fail* if you do not have network connectivity.",
-+#            'n',
-+#    ) =~ /^y/i ) {
-+#        $self->tests('t/*/*.t t/*/*/*.t');
-+#    } else {
-+#        $self->tests('t/local/*.t t/handle/local/*.t');
-+#    }
-+    $self->tests('t/local/*.t t/handle/local/*.t');
- }
+-my $tests = prompt(
+-  "Do you want to run external tests?\n".
+-  "These tests *will* *fail* if you do not have network connectivity.",
+-  'n',
+-) =~ /^y/i ? 't/*/*.t t/*/*/*.t' : 't/local/*.t t/handle/local/*.t';
++#my $tests = prompt(
++#  "Do you want to run external tests?\n".
++#  "These tests *will* *fail* if you do not have network connectivity.",
++#  'n',
++#)
++my $tests = 'y' =~ /^y/i ? 't/*/*.t t/*/*/*.t' : 't/local/*.t t/handle/local/*.t';
  
- sub ssleay_get_build_opts {
+ my %eumm_args = (
+   NAME => 'Net::SSLeay',
