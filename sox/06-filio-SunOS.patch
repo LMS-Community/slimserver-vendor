@@ -1,0 +1,10 @@
+--- src/http.c.orig	2018-09-14 23:25:45.000000000 +0000
++++ src/http.c	2021-10-19 18:37:20.436501581 +0000
+@@ -334,6 +334,7 @@
+ 
+ # else
+ /*Normal Berkeley sockets.*/
++#  include <sys/filio.h> 
+ #  include <sys/ioctl.h>
+ #  include <sys/types.h>
+ #  include <sys/socket.h>
