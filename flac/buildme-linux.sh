@@ -1,9 +1,9 @@
 #!/bin/sh
 
-OGG=1.3.3
-FLAC=1.3.2
-OGG_GIT="-bc82844df068429d209e909da47b1f730b53b689"
-FLAC_GIT="-faafa4c82c31e5aed7bc7c0e87a379825372c6ac"
+OGG=1.3.5
+FLAC=1.3.4
+OGG_GIT=""
+FLAC_GIT=""
 LOG=$PWD/config.log
 CHANGENO=$(git rev-parse --short HEAD)
 ARCH=`arch`
@@ -24,7 +24,7 @@ export CXXFLAGS="-O2"
 
 ## Build Ogg first
 echo "Untarring libogg-$OGG.tar.gz..."
-tar -zxf libogg-${OGG}${OGG_GIT}.tar.gz
+tar -Jxf libogg-${OGG}${OGG_GIT}.tar.xz
 cd libogg-$OGG
 . ../../CPAN/update-config.sh
 echo "Configuring..."
@@ -35,7 +35,7 @@ cd ..
 
 ## Build
 echo "Untarring..."
-tar zxvf flac-${FLAC}${FLAC_GIT}.tar.gz >> $LOG
+tar Jxvf flac-${FLAC}${FLAC_GIT}.tar.xz >> $LOG
 cd flac-$FLAC >> $LOG
 . ../../CPAN/update-config.sh
 patch -p1 < ../01-flac.patch >> $LOG
@@ -51,7 +51,8 @@ cd ..
 strip --strip-unneeded $OUTPUT/bin/*
 
 ## Tar the whole package up
-tar -zcvf $OUTPUT.tgz $OUTPUT
+cp $OUTPUT/bin/flac .
+tar -zcf $OUTPUT.tgz $OUTPUT
 rm -rf $OUTPUT
 rm -rf flac-$FLAC
 rm -rf libogg-$OGG
