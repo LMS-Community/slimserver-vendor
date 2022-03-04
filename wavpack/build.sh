@@ -11,10 +11,11 @@ BUILD=$PWD/build
 VERSION="5.3.0"
 
 FLAGS=""
+CONFIG_FLAGS=""
 # Mac-specific flags (must be built on Leopard)
 if [ $OS = "Darwin" ]; then
-#    FLAGS="-arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3"
-    FLAGS="-arch x86_64"
+    FLAGS="-arch arm64 -mmacosx-version-min=11.0"
+    CONFIG_FLAGS="--disable-asm"
 elif [ $OS = "FreeBSD" ]; then
     # needed to find iconv
     FLAGS="-I/usr/local/include -L/usr/local/lib"
@@ -46,7 +47,8 @@ CFLAGS="$FLAGS" \
 LDFLAGS="$FLAGS" \
     ./configure --prefix=$BUILD \
     --disable-dependency-tracking \
-    --disable-shared
+    --disable-shared \
+    $CONFIG_FLAGS
 make
 if [ $? != 0 ]; then
     echo "make failed"
