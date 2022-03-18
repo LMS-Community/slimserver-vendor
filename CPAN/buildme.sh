@@ -12,11 +12,9 @@
 #   PowerPC Linux
 #   Sparc Linux (ReadyNAS)
 # Mac OSX
-#   Under 10.5, builds Universal Binaries for i386/ppc Perl 5.8.8
-#   Under 10.6, builds Universal Binaries for i386/x86_64 Perl 5.10.0
-#   Under 10.7, builds for x86_64 Perl 5.12.3 (Lion does not support 32-bit CPUs)
-#   Under 10.9, builds for x86_64 Perl 5.16
-#   Under 10.10, builds for x86_64 Perl 5.18
+#   Using a custom Perlbrew installed, relocatable build
+#   MACOSX_DEPLOYMENT_TARGET=10.13 perlbrew install -D usethreads -D userelocatableinc -Dman1dir=none -Dman3dir=none -j4 perl-5.34.0
+#
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
 # Solaris
@@ -248,39 +246,39 @@ if [ $? -ne 0 ] ; then
 fi
 
 if [ "$OS" = "Linux" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz ; do
-	    ldconfig -p | grep "${i}.so" > /dev/null
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-	for hdr in "zlib.h"; do
-	    hdr_found=$(find /usr/include -name "$hdr");
-	    if [ ! "$hdr_found" ]; then
-	        echo "$hdr not found - please install appropriate development package"
-	        exit 1
-	    fi
-	done
+   #for i in libgif libz libgd ; do
+   for i in libz ; do
+       ldconfig -p | grep "${i}.so" > /dev/null
+       if [ $? -ne 0 ] ; then
+           echo "$i not found - please install it"
+           exit 1
+       fi
+   done
+   for hdr in "zlib.h"; do
+       hdr_found=$(find /usr/include -name "$hdr");
+       if [ ! "$hdr_found" ]; then
+           echo "$hdr not found - please install appropriate development package"
+           exit 1
+       fi
+   done
 fi
 
 if [ "$OS" = "FreeBSD" ]; then
-	#for i in libgif libz libgd ; do
-	for i in libz ; do
-	    ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
-	    if [ $? -ne 0 ] ; then
-	        echo "$i not found - please install it"
-	        exit 1
-	    fi
-	done
-	for hdr in "zlib.h"; do
-	    hdr_found=$(find /usr/include/ -name "$hdr");
-	    if [ ! "$hdr_found" ]; then
-	        echo "$hdr not found - please install appropriate development package"
-	        exit 1
-	    fi
-	done
+   #for i in libgif libz libgd ; do
+   for i in libz ; do
+       ldconfig -r | grep "${i}.so" > /dev/null #On FreeBSD flag -r should be used, there is no -p
+       if [ $? -ne 0 ] ; then
+           echo "$i not found - please install it"
+           exit 1
+       fi
+   done
+   for hdr in "zlib.h"; do
+       hdr_found=$(find /usr/include/ -name "$hdr");
+       if [ ! "$hdr_found" ]; then
+           echo "$hdr not found - please install appropriate development package"
+           exit 1
+       fi
+   done
 fi
 
 find /usr/lib/ -maxdepth 1 | grep libungif
@@ -294,45 +292,27 @@ OSX_FLAGS=
 OSX_ARCH=
 if [ "$OS" = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
-    REGEX=' OS X.* (10\.[5-9])'
-    REGEX2=' OS X.* (10\.1[0-9])'
-    REGEX3=' macOS (10\.1[0-9])'
+    REGEX=' macOS (1[12]\.[0-9]+)'
 
-    if [[ $OSX_VER =~ $REGEX3 ]]; then
-        OSX_VER=${BASH_REMATCH[1]}
-    elif [[ $OSX_VER =~ $REGEX ]]; then
-        OSX_VER=${BASH_REMATCH[1]}
-    elif [[ $OSX_VER =~ $REGEX2 ]]; then
+    if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
     else
         echo "Unable to determine OSX version"
         exit 0
     fi
 
-    if [ "$OSX_VER" = "10.5" ]; then
-        # Leopard, build for i386/ppc with support back to 10.4
-        OSX_ARCH="-arch i386 -arch ppc"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4"
-    elif [ "$OSX_VER" = "10.6" ]; then
-        # Snow Leopard, build for x86_64/i386 with support back to 10.5
-        OSX_ARCH="-arch x86_64 -arch i386"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5"
-    elif [ "$OSX_VER" = "10.7" ]; then
-        # Lion, build for x86_64 with support back to 10.6
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.6"
-    elif [ "$OSX_VER" = "10.9" ]; then
-        # Mavericks, build for x86_64 with support back to 10.9
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=10.9"
-    elif [ "$OSX_VER" = "10.10" ]; then
-        # Yosemite, build for x86_64 with support back to 10.10
-        OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=10.10"
+    OSX_ARCH=`arch`
+    if [ "$OSX_ARCH" = "arm64" ]; then
+        OSX_ARCH="-arch arm64"
+        OSX_FLAGS="-mmacosx-version-min=11.0"
     else
         OSX_ARCH="-arch x86_64"
-        OSX_FLAGS="-mmacosx-version-min=$OSX_VER"
+        OSX_FLAGS="-mmacosx-version-min=10.13"
     fi
+
+    echo OSX_VER:   $OSX_VER
+    echo OSX_FLAGS: $OSX_FLAGS
+    echo OSX_ARCH:  $OSX_ARCH
 fi
 
 # Build dir
@@ -477,7 +457,9 @@ if [ "$PERL_BIN" = "" -o "$CUSTOM_PERL" != "" ]; then
         echo "Failed to find supported Perl version for '$PERL_BIN'"
         exit
     fi
-
+elif [ "$OS" = "Darwin" ]; then
+    echo "Please define Perl to use (-p ~/perl5...)"
+    exit
 fi
 
 # We have found Perl, so get system arch, according to Perl
@@ -614,7 +596,7 @@ function build_all {
     build JSON::XS
     build Linux::Inotify2
     build Mac::FSEvents
-    build Media::Scan
+   #  build Media::Scan
     build MP3::Cut::Gapless
     build Sub::Name
     build Template
@@ -671,7 +653,7 @@ function build {
 
         Compress::Raw::Zlib)
             if [ $PERL_MINOR_VER -eq 8 -o $PERL_MINOR_VER -eq 10 ]; then
-	            build_module Compress-Raw-Zlib-2.033
+               build_module Compress-Raw-Zlib-2.033
             fi
             ;;
 
@@ -859,23 +841,48 @@ function build {
             ;;
 
         IO::Socket::SSL)
+            if [ "$OS" = "Darwin" ]; then
+                build_openssl
+            fi
+
             build_module Test-NoWarnings-1.02 "" 0
             build_module Net-IDN-Encode-2.400
 
-            tar_wrapper zxf Net-SSLeay-1.90.tar.gz
-            cd Net-SSLeay-1.90
-            patch -p0 < ../NetSSLeay-SunOS-NoPrompt.patch
-            cd ..
+            tar_wrapper zxf Net-SSLeay-1.92.tar.gz
+            cd Net-SSLeay-1.92
 
-            build_module Net-SSLeay-1.90
+            patch -p0 < ../NetSSLeay-NoPrompt.patch
+
+            cp -R ../hints .
+            export PERL5LIB=$PERL_BASE/lib/perl5
+            $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE
+
+            if [ "$OS" = "Darwin" ]; then
+                # this assumes zlib, openssl, and libcrypto to be installed in /usr/local - please check your path!
+                patch -p0 < ../NetSSLeay-macOS-static.patch
+            fi
+
+            $MAKE test
+
+            if [ $? != 0 ]; then
+                echo "make failed, aborting"
+                exit $?
+            fi
+
+            $MAKE install
+
+            cd ..
+            rm -rf Net-SSLeay-1.92
+            rm -rf openssl
 
             tar_wrapper zxf IO-Socket-SSL-2.072.tar.gz
+
             cd IO-Socket-SSL-2.072
             patch -p0 < ../IOSocketSSL-NoPrompt-SunOS.patch
             cd ..
 
             build_module IO-Socket-SSL-2.072
-	    ;;
+            ;;
 
         JSON::XS)
             build_module common-sense-2.0
@@ -1084,7 +1091,7 @@ function build {
             cd libmediascan-0.1
 
             if [ "$OS" = "FreeBSD" ]; then
-            	patch -p1 < ../libmediascan-freebsd.patch
+               patch -p1 < ../libmediascan-freebsd.patch
             elif [ "$OS" = "SunOS" ]; then
                 patch -p0 < ../libmediascan-mediascan_unix.c-SunOS.patch
             fi
@@ -1140,6 +1147,42 @@ function build {
     esac
 }
 
+function build_openssl {
+    if [ -f $BUILD/openssl/include/openssl.h -o -f $BUILD/openssl/lib/libssl.a ]; then
+        return
+    fi
+
+    tar_wrapper xzf openssl-1.1.1m.tar.gz
+
+    mkdir -p $BUILD/openssl/lib
+    cd openssl-1.1.1m
+
+    PWD=`pwd`
+    PKG=$PWD/pkg64
+
+    CFLAGS="-O3 $FLAGS $OSX_ARCH $OSX_FLAGS"
+    CPPFLAGS="${CFLAGS}"
+    CXXFLAGS="${CFLAGS}"
+    LDFLAGS="-Wl,-syslibroot $FLAGS $OSX_ARCH $OSX_FLAGS"
+
+    ./Configure $GCC no-shared enable-ec_nistp_64_gcc_128 --openssldir=$PKG --prefix=$PKG || exit 1
+
+    if [ -d $PKG ]; then
+        rm -rf $PKG
+        mkdir $PKG
+    fi
+
+    make depend
+    make install
+
+    cp -pr $PKG/include/openssl $BUILD/openssl/include
+    cp -p $PKG/lib/{libssl.a,libcrypto.a} $BUILD/openssl/lib
+
+    cd ..
+
+    rm -rf openssl-1.1.1m
+}
+
 function build_libexif {
     if [ -f $BUILD/include/libexif/exif-data.h ]; then
         return
@@ -1176,101 +1219,31 @@ function build_libjpeg {
 
     # build libjpeg-turbo on x86 platforms
     TURBO_VER="libjpeg-turbo-1.5.3"
-    # skip on 10.9 until we've been able to build nasm from macports
-    if [ "$OS" = "Darwin" -a "$OSX_VER" != "10.5" ]; then
-        # Build i386/x86_64 versions of turbo
+    if [ "$OS" = "Darwin" ]; then
         tar_wrapper zxf $TURBO_VER.tar.gz
         cd $TURBO_VER
 
         # Disable features we don't need
         patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
 
-        # Build 64-bit fork
+        OSX_HOST=x86_64
+        if [[ "$OSX_ARCH" =~ "arm64" ]]; then
+            OSX_HOST=arm
+        fi
+
         CFLAGS="-O3 $OSX_FLAGS" \
         CXXFLAGS="-O3 $OSX_FLAGS" \
         LDFLAGS="$OSX_FLAGS" \
-            ./configure --prefix=$BUILD --host x86_64-apple-darwin NASM=/usr/local/bin/nasm \
+            ./configure --prefix=$BUILD --host ${OSX_HOST}-apple-darwin NASM=/usr/local/bin/nasm \
             --disable-dependency-tracking
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
             exit $?
         fi
-        cp -f .libs/libjpeg.a libjpeg-x86_64.a
 
-        # Build 32-bit fork
-        if [ $CLEAN -eq 1 ]; then
-            $MAKE clean
-        fi
-        CFLAGS="-O3 -m32 $OSX_FLAGS" \
-        CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
-        LDFLAGS="-m32 $OSX_FLAGS" \
-            ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
-            --disable-dependency-tracking
-        $MAKE
-        if [ $? != 0 ]; then
-            echo "make failed"
-            exit $?
-        fi
-        cp -f .libs/libjpeg.a libjpeg-i386.a
-
-        # Combine the forks
-        lipo -create libjpeg-x86_64.a libjpeg-i386.a -output libjpeg.a
-
-        # Install and replace libjpeg.a with universal version
         $MAKE install
-        cp -f libjpeg.a $BUILD/lib/libjpeg.a
         cd ..
-
-    elif [ "$OS" = "Darwin" -a "$OSX_VER" = "10.5" ]; then
-        # combine i386 turbo with ppc libjpeg
-
-        # build i386 turbo
-        tar_wrapper zxf $TURBO_VER.tar.gz
-        cd $TURBO_VER
-
-        # Disable features we don't need
-        patch -p0 < ../libjpeg-turbo-jmorecfg.h.patch
-
-        CFLAGS="-O3 -m32 $OSX_FLAGS" \
-        CXXFLAGS="-O3 -m32 $OSX_FLAGS" \
-        LDFLAGS="-m32 $OSX_FLAGS" \
-            ./configure --prefix=$BUILD NASM=/usr/local/bin/nasm \
-            --disable-dependency-tracking
-        $MAKE
-        if [ $? != 0 ]; then
-            echo "make failed"
-            exit $?
-        fi
-        $MAKE install
-        cp -f .libs/libjpeg.a ../libjpeg-i386.a
-        cd ..
-
-        # build ppc libjpeg 6b
-        tar_wrapper zxf jpegsrc.v6b.tar.gz
-        cd jpeg-6b
-
-        # Disable features we don't need
-        cp -f ../libjpeg62-jmorecfg.h jmorecfg.h
-
-        CFLAGS="-arch ppc -O3 $OSX_FLAGS" \
-        LDFLAGS="-arch ppc -O3 $OSX_FLAGS" \
-            ./configure --prefix=$BUILD \
-            --disable-dependency-tracking
-        $MAKE
-        if [ $? != 0 ]; then
-            echo "make failed"
-            exit $?
-        fi
-        cp -f libjpeg.a ../libjpeg-ppc.a
-        cd ..
-
-        # Combine the forks
-        lipo -create libjpeg-i386.a libjpeg-ppc.a -output libjpeg.a
-
-        # Replace libjpeg library
-        mv -fv libjpeg.a $BUILD/lib/libjpeg.a
-        rm -fv libjpeg-i386.a libjpeg-ppc.a
 
     elif [[ "$ARCH" =~ ^(i[3456]86-linux|x86_64-linux|i86pc-solaris).*$ || "$OS" == "FreeBSD" ]]; then
         # build libjpeg-turbo
@@ -1347,7 +1320,7 @@ function build_libpng {
 }
 
 function build_giflib {
-    if [ -f $BUILD/include/gif_lib.h ]; then
+    if [ -f $BUILD/include/gif_lib.h -o -f /usr/local/include/gif_lib.h -o -f /opt/homebrew/include/gif_lib.h ]; then
         return
     fi
 
@@ -1370,6 +1343,7 @@ function build_giflib {
     rm -rf giflib-4.1.6
 }
 
+# TODO - build for macOS
 function build_ffmpeg {
     echo "build ffmpeg"
     if [ -f $BUILD/include/libavformat/avformat.h ]; then
@@ -1474,15 +1448,15 @@ function build_ffmpeg {
         if [ "$OSX_VER" = "10.5" ]; then
             $MAKE clean
             FLAGS="-arch ppc -O3 $OSX_FLAGS"
-            CFLAGS="$FLAGS" \
-            LDFLAGS="$FLAGS" \
+         CFLAGS="$FLAGS" \
+         LDFLAGS="$FLAGS" \
                 ./configure $FFOPTS --arch=ppc --disable-altivec
 
-            $MAKE
-            if [ $? != 0 ]; then
-                echo "make failed"
-                exit $?
-            fi
+         $MAKE
+         if [ $? != 0 ]; then
+               echo "make failed"
+               exit $?
+         fi
 
             cp -f libavcodec/libavcodec.a libavcodec-ppc.a
             cp -f libavformat/libavformat.a libavformat-ppc.a

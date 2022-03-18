@@ -1,0 +1,13 @@
+--- Makefile.orig	2022-02-22 15:04:10.000000000 +0100
++++ Makefile	2022-02-22 15:04:35.000000000 +0100
+@@ -303,8 +303,8 @@
+ # Net::SSLeay might depend on some other libraries:
+ # See ExtUtils::Liblist for details
+ #
+-EXTRALIBS = -L/usr/local/opt/openssl/lib -L/usr/local/opt/openssl -lssl -lcrypto -lz
+-LDLOADLIBS = -L/usr/local/opt/openssl/lib -L/usr/local/opt/openssl -lssl -lcrypto -lz
++EXTRALIBS = -L../build/openssl/lib ../build/openssl/lib/libssl.a ../build/openssl/lib/libcrypto.a /usr/local/Cellar/zlib/1.2.11/lib/libz.a
++LDLOADLIBS = -L../build/openssl/lib ../build/openssl/lib/libssl.a ../build/openssl/lib/libcrypto.a /usr/local/Cellar/zlib/1.2.11/lib/libz.a
+ BSLOADLIBS = 
+ LD_RUN_PATH = /usr/local/opt/openssl/lib
+ 
