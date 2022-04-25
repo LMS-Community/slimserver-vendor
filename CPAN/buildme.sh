@@ -1245,7 +1245,7 @@ function build_libjpeg {
         $MAKE install
         cd ..
 
-    elif [[ "$ARCH" =~ ^(i[3456]86-linux|x86_64-linux|i86pc-solaris).*$ || "$OS" == "FreeBSD" ]]; then
+    elif [[ "$ARCH" =~ ^(i[3456]86-linux|x86_64-linux|i86pc-solaris).*$ ]]; then
         # build libjpeg-turbo
         tar_wrapper zxf $TURBO_VER.tar.gz
         cd $TURBO_VER
