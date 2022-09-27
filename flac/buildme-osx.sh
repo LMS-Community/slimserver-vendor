@@ -1,7 +1,7 @@
 #!/bin/sh
 
 OGG=1.3.5
-FLAC=1.3.4
+FLAC=1.4.1
 OGG_GIT=""
 FLAC_GIT=""
 LOG=$PWD/config.log
