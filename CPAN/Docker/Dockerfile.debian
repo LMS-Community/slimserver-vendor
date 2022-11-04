@@ -1,8 +1,9 @@
 # adjust base image to whatever version you want to build with
-FROM --platform=linux/amd64 debian:unstable
+FROM --platform=linux/amd64 debian:testing
 
 RUN apt-get update && apt-get install -y nasm make gcc g++ rsync patch libc-bin zlib1g-dev libgd-dev unzip perl bzip2
 
 RUN mkdir /cpan
+WORKDIR /cpan
 
 CMD ["/bin/bash"]

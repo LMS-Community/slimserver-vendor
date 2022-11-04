@@ -1,0 +1,26 @@
+name: Build Perl CPAN modules for Logitech Media Server
+
+inputs:
+  flavour:
+    description: The Linux flavour we're building for. Currently 'debian' or 'fedora' only.
+    default: 'debian'
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Run Build Script
+      shell: bash
+      run: |
+        cd CPAN
+        docker build --rm -f "Docker/Dockerfile.${{ inputs.flavour }}" -t slimservervendor:${{ inputs.flavour }} .
+        # TODO - make platform configurable
+        docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:${{ inputs.flavour }} ./buildme.sh
+
+    # TODO - run LMS smoke test
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: CPAN-${{ inputs.flavour }}
+        path: CPAN/build/arch/5.*/*/auto/
