@@ -292,7 +292,7 @@ OSX_FLAGS=
 OSX_ARCH=
 if [ "$OS" = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
-    REGEX=' macOS (1[12]\.[0-9]+)'
+    REGEX=' macOS (1[123]\.[0-9]+)'
 
     if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
@@ -932,7 +932,7 @@ function build {
             build_module Sub-Uplevel-0.22 "" 0
             build_module Tree-DAG_Node-1.06 "" 0
             build_module Test-Warn-0.23 "" 0
-            build_module Audio-Scan-1.05
+            build_module Audio-Scan-1.06
             ;;
 
         MP3::Cut::Gapless)
