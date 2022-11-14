@@ -1,5 +1,5 @@
 # adjust base image to whatever version you want to build with
-FROM --platform=linux/amd64 fedora:latest
+FROM fedora:latest
 
 RUN dnf install -y nasm make gcc gcc-c++ rsync patch glibc zlib-devel gd-devel unzip perl which bzip2 && \
 	dnf clean all && \

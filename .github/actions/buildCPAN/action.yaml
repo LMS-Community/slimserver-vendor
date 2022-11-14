@@ -3,7 +3,7 @@ name: Build Perl CPAN modules for Logitech Media Server
 inputs:
   flavour:
     description: The Linux flavour we're building for. Currently 'debian' or 'fedora' only.
-    default: 'debian'
+    default: debian
 
 runs:
   using: "composite"
