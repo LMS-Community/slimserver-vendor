@@ -11,7 +11,7 @@ Don't forget to adjust platform and base image versions to cover your needs.
 
 ```
 cd CPAN
-docker build --rm -f "Docker/Dockerfile.fedora" -t slimservervendor:fedora .
+docker build --rm --platform=linux/amd64 -f "Docker/Dockerfile.fedora" -t slimservervendor:fedora .
 docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:fedora ./buildme.sh
 ```
 
@@ -19,6 +19,6 @@ docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:fedora ./
 
 ```
 cd CPAN
-docker build --rm -f "Docker/Dockerfile.debian" -t slimservervendor:debian .
+docker build --rm --platform=linux/amd64 -f "Docker/Dockerfile.debian" -t slimservervendor:debian .
 docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:debian ./buildme.sh
 ```

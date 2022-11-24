@@ -1,7 +1,7 @@
 # adjust base image to whatever version you want to build with
 FROM debian:testing
 
-RUN apt-get update && apt-get install -y nasm make gcc g++ rsync patch libc-bin zlib1g-dev libgd-dev unzip perl bzip2
+RUN apt-get update && apt-get install -y nasm make gcc g++ rsync patch libc-bin zlib1g-dev libgd-dev unzip perl bzip2 wget
 
 RUN mkdir /cpan
 WORKDIR /cpan

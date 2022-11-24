@@ -1,7 +1,7 @@
 # adjust base image to whatever version you want to build with
 FROM fedora:latest
 
-RUN dnf install -y nasm make gcc gcc-c++ rsync patch glibc zlib-devel gd-devel unzip perl which bzip2 && \
+RUN dnf install -y nasm make gcc gcc-c++ rsync patch glibc zlib-devel gd-devel unzip perl which bzip2 wget && \
 	dnf clean all && \
 	rm -rf /var/cache/yum
 
