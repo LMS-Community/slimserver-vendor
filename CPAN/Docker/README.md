@@ -19,6 +19,9 @@ docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:fedora ./
 
 ```
 cd CPAN
-docker build --rm --platform=linux/amd64 -f "Docker/Dockerfile.debian" -t slimservervendor:debian .
-docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:debian ./buildme.sh
+docker build --rm --platform=linux/arm/v7 -f "Docker/Dockerfile.debian" -t slimservervendor:debian-arm .
+docker run --rm --platform=linux/arm/v7 -v `pwd`:/cpan slimservervendor:debian-arm ./buildme.sh
+
+docker build --rm --platform=linux/arm64/v8 -f "Docker/Dockerfile.debian" -t slimservervendor:debian-arm64 .
+docker run --rm --platform=linux/arm64/v8 -v `pwd`:/cpan slimservervendor:debian-arm64 ./buildme.sh
 ```

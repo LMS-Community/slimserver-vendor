@@ -292,7 +292,7 @@ OSX_FLAGS=
 OSX_ARCH=
 if [ "$OS" = "Darwin" ]; then
     OSX_VER=`/usr/sbin/system_profiler SPSoftwareDataType`
-    REGEX=' macOS (1[123]\.[0-9]+)'
+    REGEX=' macOS (1[1-9]\.[0-9]+)'
 
     if [[ $OSX_VER =~ $REGEX ]]; then
         OSX_VER=${BASH_REMATCH[1]}
