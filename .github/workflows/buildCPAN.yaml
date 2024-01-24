@@ -19,8 +19,9 @@ on:
         type: choice
         options:
           - amd64
-          - arm64
-          - arm/v7
+          # not supported by Github yet, but would succees using ACT on Apple Silicon
+          # - arm64
+          # - arm/v7
         required: true
         default: amd64
       module:
@@ -42,7 +43,6 @@ jobs:
         run: |
           DOCKERFILE="CPAN/Docker/Dockerfile.${{ inputs.flavour }}"
           sed -Ei 's/:(latest|testing)/:${{ inputs.tag }}/g' $DOCKERFILE
-          head $DOCKERFILE
 
       - name: Run Build Script
         shell: bash
