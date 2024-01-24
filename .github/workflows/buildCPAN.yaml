@@ -19,8 +19,8 @@ on:
         type: choice
         options:
           - amd64
-          - aarch64
-          - armv7
+          - arm64
+          - arm/v7
         required: true
         default: amd64
       module:
@@ -57,5 +57,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: ${{ !env.ACT }}
         with:
-          name: ${{ inputs.module && inputs.module || 'CPAN'}}-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform }}
+          # TODO - find a way to remove the colons from the module name, and slash from platform
+          # name: ${{ inputs.module && inputs.module || 'CPAN'}}-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform }}
+          name: CPAN-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}
           path: CPAN/build/arch/5.*/*/auto/
