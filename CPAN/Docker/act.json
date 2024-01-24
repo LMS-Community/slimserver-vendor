@@ -1,0 +1,9 @@
+{
+	"action": "workflow_dispatch",
+	"inputs": {
+		"flavour": "debian",
+		"tag": "bullseye",
+		"platform": "arm64",
+		"module": "Audio::Scan"
+	}
+}
