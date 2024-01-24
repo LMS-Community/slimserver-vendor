@@ -1,0 +1,61 @@
+name: Build Perl CPAN modules for Logitech Media Server
+on:
+  workflow_dispatch:
+    inputs:
+      flavour:
+        description: The Linux flavour we're building for. Currently 'debian' or 'fedora' only.
+        type: choice
+        options:
+          - debian
+          - fedora
+        required: true
+        default: debian
+      tag:
+        description: The Docker tag to use to build. Defaults to "testing" for Debian, "latest" for Fedora if left blank.
+        type: string
+        required: false
+      platform:
+        description: The hardware platform for which to build.
+        type: choice
+        options:
+          - amd64
+          - aarch64
+          - armv7
+        required: true
+        default: amd64
+      module:
+        description: A specific module you'd like to build. Defaults to all modules if none is specified.
+        type: string
+        required: false
+
+jobs:
+  buildCPAN:
+    name: Build Perl CPAN modules
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set requested Docker image tag
+        if: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          DOCKERFILE="CPAN/Docker/Dockerfile.${{ inputs.flavour }}"
+          sed -Ei 's/:(latest|testing)/:${{ inputs.tag }}/g' $DOCKERFILE
+          head $DOCKERFILE
+
+      - name: Run Build Script
+        shell: bash
+        run: |
+          cd CPAN
+          docker build --rm --platform=linux/${{ inputs.platform }} -f "Docker/Dockerfile.${{ inputs.flavour }}" -t slimservervendor:${{ inputs.flavour }} .
+          docker run --rm --platform=linux/${{ inputs.platform }} -v `pwd`:/cpan slimservervendor:${{ inputs.flavour }} ./buildme.sh ${{ inputs.module }}
+
+      # TODO - run LMS smoke test
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ !env.ACT }}
+        with:
+          name: ${{ inputs.module && inputs.module || 'CPAN'}}-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform }}
+          path: CPAN/build/arch/5.*/*/auto/
