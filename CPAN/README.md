@@ -22,6 +22,16 @@ After you've set up ACT following the instructions from above link you can set u
 Where:
 * `flavour`: currently `debian` or `fedora` are supported
 * `tag`: the Docker tag if you wish to use a specific version of one of those distributions. See Docker Hub for available tags for [Debian](https://hub.docker.com/_/debian) or [Fedora](https://hub.docker.com/_/fedora). The workflow would fall back to `testing` or `latest`, respectively.
+* `platform`: the target platform you want to build for. You'd have to use the Docker notification like `amd64`, `arm64`, or `arm/v7`.
+* `module`: one of the Perl modules you'd like to build. Or empty if you want to build all dependencies.
+
+Once that file is set up you can build from the root of this repository running:
+
+```
+act --job buildCPAN --eventpath CPAN/Docker/act.json
+```
+
+You'll then find the resulting binaries in `CPAN/build/arch` (see below).
 
 ## Building on your machine
 
