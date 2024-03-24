@@ -55,6 +55,22 @@ On Debian, Ubuntu etc. make sure you have the following packages installed:
 * libgd-dev
 * libmodule-install-perl
 
+In order to build on Debian unstable/sid where Perl 5.38 is deployed, but the prebuild CPAN modules do not work because glibc is not yet version 2.38, you could use the following shell script:
+
+```
+#!/bin/bash
+
+PERL=5.38
+
+sudo apt install git sed nasm make gcc rsync patch g++ libc-bin zlib1g-dev libgd-dev libmodule-install-perl
+git clone -b public/8.4 https://github.com/LMS-Community/slimserver-vendor.git
+cd slimserver-vendor/CPAN
+sed -i -e 's+ldconfig+/sbin/ldconfig+' buildme.sh
+./buildme.sh
+(cd build/arch/$PERL/x86_64-linux-gnu-thread-multi/auto && tar cf - $(find . -name "*.so")) | sudo tar tvf - -C /usr/share/squeezeboxserver/CPAN/arch/$PERL/x86_64-linux-thread-multi/auto
+sudo sed -i -e 's/1\.06/1\.09/' /usr/share/squeezeboxserver/CPAN/arch/$PERL/Audio/Scan.pm
+```
+
 ### Preparation of a FreeBSD based system
 On FreeBSD, FreeNAS, etc. make sure you have the following packages/ports installed:
 * devel/nasm
