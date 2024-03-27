@@ -67,7 +67,7 @@ git clone -b public/8.4 https://github.com/LMS-Community/slimserver-vendor.git
 cd slimserver-vendor/CPAN
 sed -i -e 's+ldconfig+/sbin/ldconfig+' buildme.sh
 ./buildme.sh
-(cd build/arch/$PERL/x86_64-linux-gnu-thread-multi/auto && tar cf - $(find . -name "*.so")) | sudo tar tvf - -C /usr/share/squeezeboxserver/CPAN/arch/$PERL/x86_64-linux-thread-multi/auto
+(cd build/arch/$PERL/x86_64-linux-gnu-thread-multi/auto && tar cf - $(find . -name "*.so")) | sudo tar xvf - -C /usr/share/squeezeboxserver/CPAN/arch/$PERL/x86_64-linux-thread-multi/auto
 sudo sed -i -e 's/1\.06/1\.09/' /usr/share/squeezeboxserver/CPAN/arch/$PERL/Audio/Scan.pm
 ```
 
