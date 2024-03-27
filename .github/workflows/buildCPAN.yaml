@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set requested Docker image tag
         if: ${{ inputs.tag }}
@@ -54,7 +54,7 @@ jobs:
       # TODO - run LMS smoke test
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ !env.ACT }}
         with:
           # TODO - find a way to remove the colons from the module name, and slash from platform
