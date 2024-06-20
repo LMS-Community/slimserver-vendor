@@ -11,8 +11,8 @@ Don't forget to adjust platform and base image versions to cover your needs.
 
 ```
 cd CPAN
-docker build --rm --platform=linux/amd64 -f "Docker/Dockerfile.fedora" -t slimservervendor:fedora .
-docker run --rm --platform=linux/amd64 -v `pwd`:/cpan slimservervendor:fedora ./buildme.sh
+podman build --rm --platform=linux/amd64 -f "Docker/Dockerfile.fedora" -t slimservervendor:fedora .
+podman run --rm --platform=linux/amd64 -v `pwd`:/cpan:Z localhost/slimservervendor:fedora ./buildme.sh
 ```
 
 ## Building for Debian
