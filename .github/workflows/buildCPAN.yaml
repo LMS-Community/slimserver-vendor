@@ -1,4 +1,4 @@
-name: Build Perl CPAN modules for Logitech Media Server
+name: Build Perl CPAN modules for Lyrion Music Server
 on:
   workflow_dispatch:
     inputs:

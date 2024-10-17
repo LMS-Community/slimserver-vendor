@@ -2,8 +2,8 @@
 	"action": "workflow_dispatch",
 	"inputs": {
 		"flavour": "debian",
-		"tag": "bullseye",
-		"platform": "arm64",
+		"tag": "bookworm",
+		"platform": "arm/v7",
 		"module": "Audio::Scan"
 	}
 }

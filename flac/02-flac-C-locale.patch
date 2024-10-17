@@ -12,7 +12,7 @@ If the separator used on the flac command line does not match the
 separator specified by the locale, flac will simply fail, with a message
 of the form 'ERROR: invalid value for skip'.
 
-Logitech Media Server makes use of the 'skip' and 'until' specifiers in
+Lyrion Music Server makes use of the 'skip' and 'until' specifiers in
 in some of its transcoding rules. But it uses the '.' convention
 exclusively, without reference to the current locale.
 'Slim::Utils::DateTime::fracSecToMinSec' is responsible for formatting
@@ -52,7 +52,7 @@ index be072a3d..43e912b9 100644
 +++ b/src/flac/main.c
 @@ -310,6 +310,12 @@ int main(int argc, char *argv[])
  #endif
- 
+
  	srand((uint32_t)time(0));
 +
 +#if 1
@@ -77,13 +77,13 @@ index be072a3d..43e912b9 100644
  	printf("Copyright (C) 2000-2009  Josh Coalson\n");
  	printf("Copyright (C) 2011-2016  Xiph.Org Foundation\n");
  	printf("\n");
-+	printf("   Patched for Logitech Media Server:\n");
++	printf("   Patched for Lyrion Music Server:\n");
 +	printf("   This version of flac operates exclusively in the 'C'\n");
 +	printf("   locale. In particular, '--skip' and '--until' mm:ss.ss\n");
 +	printf("   specifications require a '.' as decimal separator.\n\n");
  	printf("This program is free software; you can redistribute it and/or\n");
  	printf("modify it under the terms of the GNU General Public License\n");
  	printf("as published by the Free Software Foundation; either version 2\n");
--- 
+--
 2.20.1
 
