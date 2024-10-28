@@ -1328,8 +1328,8 @@ function build_giflib {
     tar_wrapper zxf giflib-4.1.6.tar.gz
     cd giflib-4.1.6
     . ../update-config.sh
-    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
-    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3" \
+    CFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3 -Wno-implicit-function-declaration" \
+    LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS -O3 -Wno-implicit-function-declaration" \
         ./configure --prefix=$BUILD \
         --disable-dependency-tracking
     $MAKE
