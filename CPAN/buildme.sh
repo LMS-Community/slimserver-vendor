@@ -723,8 +723,8 @@ function build {
             cp icudt58*.dat $BUILD/share/icu/58.2
 
             # Custom build for ICU support
-            tar_wrapper zxf DBD-SQLite-1.58.tar.gz
-            cd DBD-SQLite-1.58
+            tar_wrapper zxf DBD-SQLite-1.76.tar.gz
+            cd DBD-SQLite-1.76
             if [[ "$GCC_LIBCPP" == true ]] ; then
             # Need this because GLIBCXX uses -lstdc++, but LIBCPP uses -lc++
                 patch -p0 < ../DBD-SQLite-ICU-libcpp.patch
@@ -733,33 +733,8 @@ function build {
             fi
             cp -R ../hints .
 
-            if [ $PERL_MINOR_VER -eq 8 ]; then
-                # Running 5.8
-                export PERL5LIB=$PERL_BASE/lib/perl5
-
-                $PERL_BIN Makefile.PL INSTALL_BASE=$PERL_BASE $2
-
-                if [ "$OS" = 'Darwin' ]; then
-                    # OSX does not seem to properly find -lstdc++, so we need to hack the Makefile to add it
-                    $PERL_BIN -p -i -e "s{^LDLOADLIBS =.+}{LDLOADLIBS = -L$PWD/../build/lib -licudata_s -licui18n_s -licuuc_s -lstdc++}" Makefile
-                fi
-
-                $MAKE test
-                if [ $? != 0 ]; then
-                    echo "make test failed, aborting"
-                    exit $?
-                fi
-                $MAKE install
-                if [ $CLEAN -eq 1 ]; then
-                    $MAKE clean
-                fi
-
-                cd ..
-                rm -rf DBD-SQLite-1.58
-            else
-                cd ..
-                build_module DBD-SQLite-1.58
-            fi
+            cd ..
+            build_module DBD-SQLite-1.76
 
             ;;
 
