@@ -59,4 +59,4 @@ jobs:
           # TODO - find a way to remove the colons from the module name, and slash from platform
           # name: ${{ inputs.module && inputs.module || 'CPAN'}}-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform }}
           name: CPAN-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}
-          path: CPAN/build/arch/5.*/*/auto/
+          path: CPAN/build/arch/5.*
