@@ -31,7 +31,7 @@ on:
 jobs:
   buildCPAN:
     name: Build Perl CPAN modules
-    runs-on: ${{ inputs.platform == 'amd64' && 'ubuntu-latest' || 'ubuntu-latest-arm' }}
+    runs-on: ${{ inputs.platform == 'amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
 
     steps:
       - uses: actions/checkout@v4
