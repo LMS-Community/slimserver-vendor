@@ -543,6 +543,12 @@ function build_module {
 
     cd "${module}"
 
+    if [[ "$PERL_VERSION" -ge "5.42" ]]; then
+        if [ "${module}" = "Audio-Scan-1.10" ]; then
+            patch Scan.xs ../Scan.xs.patch || true
+        fi
+    fi
+
     if [ $local_use_hints -eq 1 ]; then
         # Always copy in our custom hints for OSX
         cp -R ../hints .
@@ -750,6 +756,11 @@ function build {
 
             tar_wrapper zxf EV-4.03.tar.gz
             cd EV-4.03
+
+            if [[ "$PERL_VERSION" -ge "5.42" ]]; then
+                patch typemap ../typemap.patch || true
+            fi
+
             patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
             if [ "$OS" = "Darwin" ]; then
                 if [ $PERL_58 ]; then
