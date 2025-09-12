@@ -543,12 +543,6 @@ function build_module {
 
     cd "${module}"
 
-    if [[ "$PERL_VERSION" -ge "5.42" ]]; then
-        if [ "${module}" = "Audio-Scan-1.10" ]; then
-            patch Scan.xs ../Scan.xs.patch || true
-        fi
-    fi
-
     if [ $local_use_hints -eq 1 ]; then
         # Always copy in our custom hints for OSX
         cp -R ../hints .
