@@ -758,7 +758,7 @@ function build {
             cd EV-4.03
 
             if [[ "$PERL_VERSION" -ge "5.42" ]]; then
-                patch typemap ../typemap.patch || true
+                patch typemap ../EV-typemap.patch || true
             fi
 
             patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
