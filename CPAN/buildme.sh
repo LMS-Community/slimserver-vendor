@@ -751,7 +751,7 @@ function build {
             tar_wrapper zxf EV-4.03.tar.gz
             cd EV-4.03
 
-            if [[ "$PERL_VERSION" -ge "5.42" ]]; then
+            if [[ $PERL_MINOR_VER -ge 42 ]]; then
                 patch typemap ../EV-typemap.patch || true
             fi
 
