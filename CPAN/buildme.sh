@@ -750,6 +750,11 @@ function build {
 
             tar_wrapper zxf EV-4.03.tar.gz
             cd EV-4.03
+
+            if [[ "$PERL_VERSION" -ge "5.42" ]]; then
+                patch typemap ../EV-typemap.patch || true
+            fi
+
             patch -p0 < ../EV-llvm-workaround.patch # patch to avoid LLVM bug 9891
             if [ "$OS" = "Darwin" ]; then
                 if [ $PERL_58 ]; then
