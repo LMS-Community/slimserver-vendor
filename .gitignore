@@ -4,3 +4,6 @@ CPAN/build/
 .vscode
 .vstags
 CPAN/DBD-SQLite*/
+CPAN/DBI-*/
+CPAN/icu/
+CPAN/YAML-Lib*
