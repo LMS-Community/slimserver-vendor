@@ -900,7 +900,7 @@ function build {
             # Needed because LibYAML 0.35 used . in @INC (not permitted in Perl 5.26)
             # Needed for Debian's Perl 5.24 as well, for the same reason
             if [ $PERL_MINOR_VER -ge 24 ]; then
-                build_module YAML-LibYAML-0.89
+                build_module YAML-LibYAML-v0.903.0
             elif [ $PERL_MINOR_VER -ge 16 ]; then
                 build_module YAML-LibYAML-0.35 "" 0
             else
