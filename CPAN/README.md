@@ -33,6 +33,12 @@ act --job buildCPAN --eventpath CPAN/Docker/act.json
 
 You'll then find the resulting binaries in `CPAN/build/arch` (see below).
 
+### Debian image to use for Perl version
+
+* Perl 5.40: Sid
+* Perl 5.36: Bookworm
+* Perl 5.32: Bullseye
+
 ## Building on your machine
 
 In most cases it should be good enough to just run `./buildme.sh` from this folder.
