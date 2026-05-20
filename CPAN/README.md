@@ -35,6 +35,8 @@ You'll then find the resulting binaries in `CPAN/build/arch` (see below).
 
 ### Debian image to use for Perl version
 
+See https://qa.debian.org/madison.php?package=perl.
+
 * Perl 5.40: Sid
 * Perl 5.36: Bookworm
 * Perl 5.32: Bullseye

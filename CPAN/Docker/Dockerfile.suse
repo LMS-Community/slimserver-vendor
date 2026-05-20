@@ -1,5 +1,5 @@
 # adjust base image to whatever version you want to build with
-FROM opensuse/tumbleweed:latest
+FROM opensuse/leap:16.0
 
 RUN zypper install -y nasm make gcc gcc-c++ rsync patch glibc zlib-devel gd-devel unzip perl which bzip2 wget tar gzip awk
 
