@@ -8,6 +8,7 @@ on:
         options:
           - debian
           - fedora
+          - suse
         required: true
         default: debian
       tag:
