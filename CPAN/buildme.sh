@@ -912,7 +912,9 @@ function build {
             build_module Sub-Uplevel-0.22 "" 0
             build_module Tree-DAG_Node-1.06 "" 0
             build_module Test-Warn-0.23 "" 0
-            build_module Audio-Scan-1.13
+            build_module Module-CPANfile-1.1004 "" 0
+            build_module ExtUtils-MakeMaker-CPANfile-0.11 "" 0
+            build_module Audio-Scan-1.14
             ;;
 
         MP3::Cut::Gapless)
