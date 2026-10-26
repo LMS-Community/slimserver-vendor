@@ -17,7 +17,7 @@
 #
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
-# OpenBSD 8.0 (Perl 4.52.3)
+# OpenBSD 8.0 (Perl 5.42.3)
 # Solaris
 #   builds are best done with custom compiled perl and gcc
 #   using the following PATH=/opt/gcc-5.1.0/bin:/usr/gnu/bin:$PATH
