@@ -1,0 +1,28 @@
+# Build CPAN XS modules for Raspberry Pi OS on ARMv6.
+# Use with Docker/QEMU and --platform=linux/arm/v6.
+FROM balenalib/raspberry-pi-debian:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		binutils \
+		g++ \
+		gcc \
+		libc-bin \
+		libgd-dev \
+		libmodule-install-perl \
+		libtest-warn-perl \
+		make \
+		nasm \
+		patch \
+		perl \
+		rsync \
+		unzip \
+		wget \
+		zlib1g-dev \
+	&& rm -rf /var/lib/apt/lists/*
+
+WORKDIR /cpan
+
+CMD ["/bin/bash"]

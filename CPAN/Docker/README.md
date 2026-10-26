@@ -25,3 +25,31 @@ docker run --rm --platform=linux/arm/v7 -v `pwd`:/cpan slimservervendor:debian-a
 docker build --rm --platform=linux/arm64/v8 -f "Docker/Dockerfile.debian" -t slimservervendor:debian-arm64 .
 docker run --rm --platform=linux/arm64/v8 -v `pwd`:/cpan slimservervendor:debian-arm64 ./buildme.sh
 ```
+
+## Building for Raspberry Pi OS ARMv6
+
+Use this to build binaries compatible with Raspberry Pi 1 / ARMv6. The
+interactive flags are useful when building or inspecting one module manually.
+
+```
+cd CPAN
+docker build --rm --platform=linux/arm/v6 -f "Docker/Dockerfile.raspbian" -t slimservervendor:raspbian-armv6 .
+docker run --rm -it --platform=linux/arm/v6 -v `pwd`:/cpan -w /cpan slimservervendor:raspbian-armv6 /bin/bash
+```
+
+Inside the container, verify the target and then build the desired module:
+
+```
+perl -MConfig -e 'print "$Config{version} $Config{archname}\n"'
+gcc -Q --help=target | egrep 'march=|mfpu=|mfloat-abi='
+./buildme.sh -t Audio::Scan
+```
+
+For the Github workflow or ACT, use:
+
+```
+flavour: raspbian
+tag: latest
+platform: arm/v6
+module: Audio::Scan
+```
