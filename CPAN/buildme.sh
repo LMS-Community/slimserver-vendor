@@ -17,6 +17,7 @@
 #
 # FreeBSD 7.2 (Perl 5.8.9)
 # FreeBSD 8.X,9.X (Perl 5.12.4)
+# OpenBSD 8.0 (Perl 5.42.3)
 # Solaris
 #   builds are best done with custom compiled perl and gcc
 #   using the following PATH=/opt/gcc-5.1.0/bin:/usr/gnu/bin:$PATH
@@ -97,7 +98,7 @@ echo "RUN_TESTS:$RUN_TESTS CLEAN:$CLEAN USE_HINTS:$USE_HINTS RENAME_x86:$RENAME_
 OS=`uname`
 MACHINE=`uname -m`
 
-if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "SunOS" ]; then
+if [ "$OS" != "Linux" -a "$OS" != "Darwin" -a "$OS" != "FreeBSD" -a "$OS" != "SunOS" -a $OS != "OpenBSD" ]; then
     echo "Unsupported platform: $OS, please submit a patch or provide us with access to a development system."
     exit
 fi
@@ -106,12 +107,16 @@ fi
 # Check to see if CC and CXX are already defined
 if [[ ! -z "$CC" ]]; then
    GCC="$CC"
+elif [ "$OS" = 'OpenBSD' ]; then
+   GCC=egcc
 else
    # Take a guess
    GCC=gcc
 fi
 if [[ ! -z "$CXX" ]]; then
    GXX="$CXX"
+elif [ "$OS" = 'OpenBSD' ]; then
+   GXX=eg++
 else
    GXX=g++
 fi
@@ -479,7 +484,7 @@ PERL_BASE=$BUILD/5.$PERL_MINOR_VER
 PERL_ARCH=$BUILD/arch/5.$PERL_MINOR_VER
 
 # FreeBSD's make sucks
-if [ "$OS" = "FreeBSD" ]; then
+if [ "$OS" = "FreeBSD" -o "$OS" = "OpenBSD" ]; then
     if [ ! -x /usr/local/bin/gmake ]; then
         echo "ERROR: Please install GNU make (gmake)"
         exit
@@ -694,6 +699,9 @@ function build {
                     ICUOS="FreeBSD"
                     for i in ../../icu58_patches/freebsd/patch-*;
                         do patch -p0 < $i; done
+                elif [ "$OS" = 'OpenBSD' ]; then
+                    ICUFLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+                    ICUOS="OpenBSD"
                 fi
                 CFLAGS="$ICUFLAGS" CXXFLAGS="$ICUFLAGS" LDFLAGS="$FLAGS $OSX_ARCH $OSX_FLAGS" \
                     ./runConfigureICU $ICUOS --prefix=$BUILD --enable-static --with-data-packaging=archive
@@ -803,7 +811,7 @@ function build {
             ;;
 
         IO::AIO)
-            if [ "$OS" != "FreeBSD" ]; then
+            if [ "$OS" != "FreeBSD" -a "$OS" != "OpenBSD" ]; then
                 build_module common-sense-2.0
 
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
@@ -813,7 +821,8 @@ function build {
 
         IO::Interface)
             # The IO::Interface tests erroneously require that lo0 be 127.0.0.1. This can be tough in jails.
-            if [[ "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 ]]; then
+            if [[ "$OS" == "OpenBSD" || "$OS" == "FreeBSD" && `sysctl -n security.jail.jailed` == 1 ]]; then
+P
                 build_module IO-Interface-1.06 "" 0
             else
                 build_module IO-Interface-1.06
@@ -1536,7 +1545,7 @@ if [ "$OS" = 'Darwin' ]; then
     # strip -S on all bundle files
     find $BUILD -name '*.bundle' -exec chmod u+w {} \;
     find $BUILD -name '*.bundle' -exec strip -S {} \;
-elif [ "$OS" = 'Linux' -o "$OS" = "FreeBSD" ]; then
+elif [ "$OS" = 'Linux' -o "$OS" = "FreeBSD" -o "$OS" = 'OpenBSD' ]; then
     # strip all so files
     find $BUILD -name '*.so' -exec chmod u+w {} \;
     find $BUILD -name '*.so' -exec strip {} \;
