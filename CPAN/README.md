@@ -51,6 +51,34 @@ Once compilation is done, copy the folder in `build/arch/{Perl version}/{your ar
 cp -r build/arch/5.26/aarch64-linux-thread-multi /path/to/slimserver/CPAN/arch/5.26/
 ```
 
+### Building on macOS
+
+Use [Homebrew](https://brew.sh) to install the following tools and libraries:
+* nasm
+* ... (depending on the module - the build script will tell you...)
+
+As we ship our own custom Perl build with Lyrion Music Server for Mac we have to make sure we use
+the same to build the binaries. Therefore you have to tell the `buildme.sh` script, what Perl to
+use. This is assuming you're building on a moder Apple Silicon Mac:
+
+```
+./buildme.sh -p ~/perl5/perlbrew/perls/perl-5.34.0/bin/perl Audio::Scan
+```
+
+Unfortunately I'm no longer able to build for x86_64 in macOS. We therefore have to maintain
+custom Perl versions of the modules which cover different versions per platform.
+There's eg. a custom `Audio/Scan.pm` in the `CPAN` folder which must _not_ be overwritten.
+Just make sure you set the `$VERSION` string to the latest version.
+
+Then use `lipo` to bind the two architecture files together into one fat binary:
+
+```
+lipo -create silicon/Scan.bundle x86_64/Scan.bundle -output Scan.bundle
+```
+
+Copy the resulting file to the `CPAN` tree in Lyrion Music Server.
+
+
 ### Preparation of a Debian based system
 On Debian, Ubuntu etc. make sure you have the following packages installed:
 * nasm
