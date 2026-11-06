@@ -562,7 +562,7 @@ function build_module {
             else
                 echo "make failed, aborting"
             fi
-            exit $?
+            exit 1
         fi
         $MAKE install
 
@@ -628,7 +628,7 @@ function build {
                     else
                         echo "make failed, aborting"
                     fi
-                    exit $?
+                    exit 1
                 fi
                 $MAKE install
                 if [ $CLEAN -eq 1 ]; then
@@ -700,7 +700,7 @@ function build {
                 $MAKE
                 if [ $? != 0 ]; then
                     echo "make failed"
-                    exit $?
+                    exit 1
                 fi
                 $MAKE install
 
@@ -846,7 +846,7 @@ function build {
 
             if [ $? != 0 ]; then
                 echo "make failed, aborting"
-                exit $?
+                exit 1
             fi
 
             $MAKE install
@@ -950,7 +950,7 @@ function build {
             make
             if [ $? != 0 ]; then
                 echo "make failed"
-                exit $?
+                exit 1
             fi
             make install
             cd ..
@@ -981,7 +981,7 @@ function build {
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
-                exit $?
+                exit 1
             fi
             $MAKE install
             cd ..
@@ -1026,7 +1026,7 @@ function build {
             $MAKE # needed for FreeBSD to use gmake
             if [ $? != 0 ]; then
                 echo "make failed"
-                exit $?
+                exit 1
             fi
             $MAKE install
             cd ..
@@ -1086,7 +1086,7 @@ function build {
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
-                exit $?
+                exit 1
             fi
             $MAKE install
             cd ..
@@ -1109,13 +1109,13 @@ function build {
                 $MAKE
                 if [ $? != 0 ]; then
                     echo "make failed, aborting"
-                    exit $?
+                    exit 1
                 fi
                 # XXX hack until regular test works
                 $PERL_BIN -Iblib/lib -Iblib/arch t/01use.t
                 if [ $? != 0 ]; then
                     echo "make test failed, aborting"
-                    exit $?
+                    exit 1
                 fi
                 $MAKE install
                 if [ $CLEAN -eq 1 ]; then
@@ -1182,7 +1182,7 @@ function build_libexif {
     $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
-        exit $?
+        exit 1
     fi
     $MAKE install
     cd ..
@@ -1221,7 +1221,7 @@ function build_libjpeg {
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
-            exit $?
+            exit 1
         fi
 
         $MAKE install
@@ -1240,7 +1240,7 @@ function build_libjpeg {
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
-            exit $?
+            exit 1
         fi
 
         $MAKE install
@@ -1261,7 +1261,7 @@ function build_libjpeg {
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
-            exit $?
+            exit 1
         fi
         $MAKE install
         cd ..
@@ -1293,7 +1293,7 @@ function build_libpng {
     $MAKE && $MAKE check
     if [ $? != 0 ]; then
         echo "make failed"
-        exit $?
+        exit 1
     fi
     $MAKE install
     cd ..
@@ -1317,7 +1317,7 @@ function build_giflib {
     $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
-        exit $?
+        exit 1
     fi
     $MAKE install
     cd ..
@@ -1399,7 +1399,7 @@ function build_ffmpeg {
             $MAKE
             if [ $? != 0 ]; then
                 echo "make failed"
-                exit $?
+                exit 1
             fi
 
             cp -f libavcodec/libavcodec.a libavcodec-x86_64.a
@@ -1418,7 +1418,7 @@ function build_ffmpeg {
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
-            exit $?
+            exit 1
         fi
 
         cp -f libavcodec/libavcodec.a libavcodec-i386.a
@@ -1437,7 +1437,7 @@ function build_ffmpeg {
          $MAKE
          if [ $? != 0 ]; then
                echo "make failed"
-               exit $?
+               exit 1
          fi
 
             cp -f libavcodec/libavcodec.a libavcodec-ppc.a
@@ -1476,7 +1476,7 @@ function build_ffmpeg {
         $MAKE
         if [ $? != 0 ]; then
             echo "make failed"
-            exit $?
+            exit 1
         fi
         $MAKE install
         cd ..
@@ -1515,7 +1515,7 @@ function build_bdb {
     $MAKE
     if [ $? != 0 ]; then
         echo "make failed"
-        exit $?
+        exit 1
     fi
     $MAKE install
     cd ../..
