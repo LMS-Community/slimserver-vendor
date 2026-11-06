@@ -806,6 +806,13 @@ function build {
             if [ "$OS" != "FreeBSD" ]; then
                 build_module common-sense-2.0
 
+                # Perl 5.44 defines atfork_child as a macro for Perl_atfork_child in embed.h,
+                # which clashes with the static atfork_child() in AIO.xs. Rename ours.
+                tar_wrapper zxf IO-AIO-3.71.tar.gz
+                cd IO-AIO-3.71
+                patch -p1 < ../IO-AIO-perl544.patch
+                cd ..
+
                 # Don't use the darwin hints file, it breaks if compiled on Snow Leopard with 10.5 (!?)
                 build_module IO-AIO-3.71 "" 0 $CLEAN 0
             fi

@@ -1,0 +1,26 @@
+Rename IO::AIO's static atfork_child() so it does not clash with the
+atfork_child macro Perl 5.44 defines in embed.h (alias for Perl_atfork_child).
+
+Originally written by Fabio Loli for the Arch Linux lyrionmusicserver-git package:
+https://github.com/FabioLolix/PKGBUILD/blob/master/lyrionmusicserver-git/IO-AIO-perl544.patch
+
+--- a/AIO.xs	2010-12-30 08:16:36.000000000 +0100
++++ b/AIO.xs	2026-11-06 14:31:21.573007437 +0100
+@@ -629,7 +629,7 @@
+     }
+ }
+ 
+-static void atfork_child (void)
++static void aio_atfork_child (void)
+ {
+   create_respipe ();
+ }
+@@ -818,7 +818,7 @@
+     croak ("IO::AIO: unable to initialise eio library");
+ 
+   /* atfork child called in fifo order, so before eio's handler */
+-  X_THREAD_ATFORK (0, 0, atfork_child);
++  X_THREAD_ATFORK (0, 0, aio_atfork_child);
+ }
+ 
+ void
