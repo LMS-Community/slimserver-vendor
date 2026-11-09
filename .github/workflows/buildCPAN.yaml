@@ -3,11 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       flavour:
-        description: The Linux flavour we're building for. Currently 'debian' or 'fedora' only.
+        description: The Linux flavour we're building for.
         type: choice
         options:
           - debian
           - fedora
+          - raspbian
           - suse
         required: true
         default: debian
@@ -20,6 +21,7 @@ on:
         type: choice
         options:
           - amd64
+          - arm/v6
           - arm64
           - arm/v7
         required: true
@@ -36,6 +38,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
       - name: Set requested Docker image tag
         if: ${{ inputs.tag }}
@@ -57,7 +64,5 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ !env.ACT }}
         with:
-          # TODO - find a way to remove the colons from the module name, and slash from platform
-          # name: ${{ inputs.module && inputs.module || 'CPAN'}}-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform }}
-          name: CPAN-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}
+          name: CPAN-${{ inputs.flavour }}${{ inputs.tag && format('-{0}', inputs.tag) || ''}}-${{ inputs.platform == 'arm/v6' && 'armv6' || inputs.platform == 'arm/v7' && 'armv7' || inputs.platform }}
           path: CPAN/build/arch/5.*
